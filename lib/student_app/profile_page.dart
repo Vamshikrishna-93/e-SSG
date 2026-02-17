@@ -6,6 +6,7 @@ import 'package:student_app/student_app/services/student_profile_service.dart';
 import 'package:student_app/student_app/student_app_bar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:student_app/student_app/change_password_page.dart';
 import 'package:student_app/theme_controllers.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -515,12 +516,20 @@ class _ProfilePageState extends State<ProfilePage> {
                           if (!_isEditMode)
                             _MenuButton(
                               label: "Change Password",
-                              icon: Icons.lock,
-                              isActive: _showChangePassword,
-                              onTap: () => setState(() {
-                                _showChangePassword = true;
-                                _activeSection = ''; // Clear other sections
-                              }),
+                              icon: Icons.lock_outline_rounded,
+                              isActive: false,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ThemeControllerWrapper(
+                                      themeController:
+                                          StudentThemeController.themeMode,
+                                      child: const ChangePasswordPage(),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
 
                           const SizedBox(height: 24),

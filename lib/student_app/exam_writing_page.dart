@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:student_app/student_app/services/exams_service.dart';
+import 'package:student_app/student_app/model/exam_item.dart';
+import 'package:student_app/student_app/online_exam_portal_page.dart';
 import 'package:student_app/theme_controllers.dart';
 
 class ExamWritingPage extends StatefulWidget {
@@ -9,6 +11,7 @@ class ExamWritingPage extends StatefulWidget {
   final String subject;
   final String duration;
   final int questionsCount;
+  final bool skipInstructions;
 
   const ExamWritingPage({
     super.key,
@@ -17,6 +20,7 @@ class ExamWritingPage extends StatefulWidget {
     this.subject = 'General',
     this.duration = 'N/A',
     this.questionsCount = 0,
+    this.skipInstructions = false,
   });
 
   @override
@@ -41,6 +45,9 @@ class _ExamWritingPageState extends State<ExamWritingPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.skipInstructions) {
+      _startExam();
+    }
   }
 
   void _startExam() {
@@ -872,7 +879,30 @@ class _ExamWritingPageState extends State<ExamWritingPage> {
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton(
-                        onPressed: _isAgreed ? _startExam : null,
+                        onPressed: _isAgreed
+                            ? () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => OnlineExamPortalPage(
+                                      exam: ExamModel(
+                                        id: widget.examId,
+                                        title: widget.examName,
+                                        subject: widget.subject,
+                                        duration: widget.duration,
+                                        questions: widget.questionsCount,
+                                        date: "", // Placeholder
+                                        time: "",
+                                        board: "",
+                                        progress: 0,
+                                        type: "Online",
+                                        color: Colors.blue,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                            : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,

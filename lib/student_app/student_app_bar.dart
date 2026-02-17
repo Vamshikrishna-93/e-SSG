@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:student_app/student_app/dashboard_page.dart';
+import 'package:student_app/student_app/change_password_page.dart';
 import 'package:student_app/student_app/profile_page.dart';
+import 'package:student_app/student_app/signIn_page.dart';
 import 'package:student_app/student_app/services/session_service.dart';
 import 'package:student_app/student_app/services/student_profile_service.dart';
 import 'package:student_app/student_app/studentdrawer.dart';
@@ -146,9 +147,11 @@ class StudentAppBar extends StatelessWidget implements PreferredSizeWidget {
                 child: Row(
                   children: [
                     Icon(
-                      Icons.person_outline,
-                      size: 20,
-                      color: Theme.of(context).iconTheme.color,
+                      Icons.person_outline_rounded,
+                      size: 22,
+                      color: Theme.of(
+                        context,
+                      ).textTheme.bodyLarge?.color?.withOpacity(0.7),
                     ),
                     const SizedBox(width: 12),
                     const Text("Profile"),
@@ -161,9 +164,11 @@ class StudentAppBar extends StatelessWidget implements PreferredSizeWidget {
                 child: Row(
                   children: [
                     Icon(
-                      Icons.lock_outline,
-                      size: 20,
-                      color: Theme.of(context).iconTheme.color,
+                      Icons.lock_outline_rounded,
+                      size: 22,
+                      color: Theme.of(
+                        context,
+                      ).textTheme.bodyLarge?.color?.withOpacity(0.7),
                     ),
                     const SizedBox(width: 12),
                     const Text("Change Password"),
@@ -176,9 +181,19 @@ class StudentAppBar extends StatelessWidget implements PreferredSizeWidget {
                 value: 'logout',
                 child: Row(
                   children: [
-                    Icon(Icons.logout, size: 20, color: Colors.red),
+                    Icon(
+                      Icons.logout_rounded,
+                      size: 22,
+                      color: Colors.redAccent,
+                    ),
                     const SizedBox(width: 12),
-                    Text("Logout", style: TextStyle(color: Colors.red)),
+                    Text(
+                      "Logout",
+                      style: TextStyle(
+                        color: Colors.redAccent,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -195,15 +210,12 @@ class StudentAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 );
               } else if (value == 'password') {
-                // Navigate to Profile but user has to click "Change Password" there.
-                // Alternatively, we could navigate to profile and try to trigger state,
-                // but simple navigation is safe.
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => ThemeControllerWrapper(
                       themeController: StudentThemeController.themeMode,
-                      child: const ProfilePage(),
+                      child: const ChangePasswordPage(),
                     ),
                   ),
                 );
@@ -212,7 +224,12 @@ class StudentAppBar extends StatelessWidget implements PreferredSizeWidget {
                   if (context.mounted) {
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (_) => const DashboardPage()),
+                      MaterialPageRoute(
+                        builder: (_) => ThemeControllerWrapper(
+                          themeController: StudentThemeController.themeMode,
+                          child: const SignInPage(),
+                        ),
+                      ),
                       (route) => false,
                     );
                   }

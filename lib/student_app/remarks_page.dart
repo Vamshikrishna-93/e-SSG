@@ -38,21 +38,40 @@ class _RemarksPageState extends State<RemarksPage>
         setState(() {
           _remarks = remarks;
 
+          // Categorize based on 'remark_type' if available, otherwise use 'related_to' as a fallback
           _positiveRemarks = _remarks.where((r) {
-            final type = r['remark_type']?.toString().toLowerCase() ?? '';
-            return type == 'positive' ||
-                type == 'good' ||
-                type == 'appreciation';
+            final type =
+                (r['remark_type'] ?? r['related_to'])
+                    ?.toString()
+                    .toLowerCase() ??
+                '';
+            return type.contains('positive') ||
+                type.contains('good') ||
+                type.contains('appreciation') ||
+                type.contains('academic'); // Example fallback
           }).toList();
 
           _warningRemarks = _remarks.where((r) {
-            final type = r['remark_type']?.toString().toLowerCase() ?? '';
-            return type == 'warning';
+            final type =
+                (r['remark_type'] ?? r['related_to'])
+                    ?.toString()
+                    .toLowerCase() ??
+                '';
+            return type.contains('warning') ||
+                type.contains('attendance') || // Common warning trigger
+                type.contains('late');
           }).toList();
 
           _criticalRemarks = _remarks.where((r) {
-            final type = r['remark_type']?.toString().toLowerCase() ?? '';
-            return type == 'critical' || type == 'bad' || type == 'severe';
+            final type =
+                (r['remark_type'] ?? r['related_to'])
+                    ?.toString()
+                    .toLowerCase() ??
+                '';
+            return type.contains('critical') ||
+                type.contains('bad') ||
+                type.contains('severe') ||
+                type.contains('discipline');
           }).toList();
 
           _positiveCount = _positiveRemarks.length;
@@ -425,44 +444,102 @@ class _RemarksList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: remarks.length,
       itemBuilder: (context, index) {
         final remark = remarks[index];
-        // Adjust keys based on actual API response structure
         final remarkText =
-            remark['remarks'] ?? remark['remark'] ?? 'No details available';
-        final date = remark['created_at'] ?? remark['date'] ?? '';
+            remark['remark']?.toString() ?? 'No details available';
+        final relatedTo = remark['related_to']?.toString() ?? 'General';
+        final rawDate = remark['created_at']?.toString() ?? '';
 
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+        // Simple date formatting
+        String dateStr = rawDate;
+        if (rawDate.length >= 10) {
+          try {
+            final date = DateTime.parse(rawDate);
+            dateStr = "${date.day}/${date.month}/${date.year}";
+          } catch (_) {}
+        }
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? Colors.white10 : Colors.grey.shade100,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  remarkText.toString(),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2563EB).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      relatedTo,
+                      style: const TextStyle(
+                        color: Color(0xFF2563EB),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                ),
-                if (date.toString().isNotEmpty) ...[
-                  const SizedBox(height: 8),
                   Text(
-                    date.toString(),
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    dateStr,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.white54 : Colors.grey.shade600,
+                    ),
                   ),
                 ],
-              ],
-            ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    size: 20,
+                    color: Colors.blueGrey,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      remarkText,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? Colors.white : const Color(0xFF334155),
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         );
       },

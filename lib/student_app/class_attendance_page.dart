@@ -1,6 +1,9 @@
 import 'dart:math' as math;
+import 'dart:io';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:student_app/student_app/student_app_bar.dart';
 import 'attendence_month_details_page.dart';
 import 'package:student_app/student_app/services/attendance_service.dart';
@@ -290,15 +293,37 @@ class _AttendancePageState extends State<AttendancePage> {
                       child: OutlinedButton.icon(
                         onPressed: () async {
                           try {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Preparing report..."),
+                              ),
+                            );
+
                             final data =
                                 await AttendanceService.downloadAttendanceReport();
-                            // Ideally save to file and open it.
-                            // Since file I/O permissions are needed, showing success for now.
+
+                            final directory = await getTemporaryDirectory();
+                            final filePath =
+                                '${directory.path}/class_attendance_report.pdf';
+                            final file = File(filePath);
+
+                            await file.writeAsBytes(data);
+
                             if (context.mounted) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).hideCurrentSnackBar();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    "Report downloaded (${(data.length / 1024).toStringAsFixed(2)} KB)",
+                                    "Report downloaded: class_attendance_report.pdf (${(data.length / 1024).toStringAsFixed(2)} KB)",
+                                  ),
+                                  action: SnackBarAction(
+                                    label: "Open",
+                                    textColor: Colors.white,
+                                    onPressed: () {
+                                      OpenFilex.open(filePath);
+                                    },
                                   ),
                                   backgroundColor: Colors.green,
                                 ),
@@ -370,15 +395,37 @@ class _AttendancePageState extends State<AttendancePage> {
                       child: OutlinedButton.icon(
                         onPressed: () async {
                           try {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Preparing report..."),
+                              ),
+                            );
+
                             final data =
                                 await AttendanceService.downloadAttendanceReport();
-                            // Ideally save to file and open it.
-                            // Since file I/O permissions are needed, showing success for now.
+
+                            final directory = await getTemporaryDirectory();
+                            final filePath =
+                                '${directory.path}/class_attendance_report.pdf';
+                            final file = File(filePath);
+
+                            await file.writeAsBytes(data);
+
                             if (context.mounted) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).hideCurrentSnackBar();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    "Report downloaded (${(data.length / 1024).toStringAsFixed(2)} KB)",
+                                    "Report downloaded: class_attendance_report.pdf (${(data.length / 1024).toStringAsFixed(2)} KB)",
+                                  ),
+                                  action: SnackBarAction(
+                                    label: "Open",
+                                    textColor: Colors.white,
+                                    onPressed: () {
+                                      OpenFilex.open(filePath);
+                                    },
                                   ),
                                   backgroundColor: Colors.green,
                                 ),

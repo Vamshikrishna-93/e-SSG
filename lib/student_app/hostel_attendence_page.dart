@@ -5,6 +5,9 @@ import 'package:student_app/student_app/student_app_bar.dart';
 import 'package:student_app/student_app/hostel_month_detail_page.dart';
 import 'package:student_app/student_app/model/hostel_attendance.dart';
 import 'dart:math' as math;
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
 
 class HostelAttendancePage extends StatefulWidget {
   const HostelAttendancePage({super.key});
@@ -49,7 +52,9 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
   Future<void> _fetchAttendance() async {
     setState(() => _isLoading = true);
     try {
-      final data = await HostelAttendanceService.getHostelAttendance();
+      final data = await HostelAttendanceService.getHostelAttendance(
+        year: "2024-2025",
+      );
       if (mounted) {
         setState(() {
           _attendanceData = data;
@@ -271,13 +276,42 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
                       child: OutlinedButton.icon(
                         onPressed: () async {
                           try {
+                            // Show loading indicator
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Preparing report..."),
+                              ),
+                            );
+
                             final data =
-                                await HostelAttendanceService.downloadHostelAttendanceReport();
+                                await HostelAttendanceService.downloadHostelAttendanceReport(
+                                  year: "2024-2025",
+                                );
+
+                            // Get directory to save file
+                            final directory = await getTemporaryDirectory();
+                            final filePath =
+                                '${directory.path}/hostel_attendance_2024_2025.pdf';
+                            final file = File(filePath);
+
+                            // Write bytes to file
+                            await file.writeAsBytes(data);
+
                             if (context.mounted) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).hideCurrentSnackBar();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    "Report downloaded (${(data.length / 1024).toStringAsFixed(2)} KB)",
+                                    "Report downloaded: hostel_attendance_2024_2025.pdf (${(data.length / 1024).toStringAsFixed(2)} KB)",
+                                  ),
+                                  action: SnackBarAction(
+                                    label: "Open",
+                                    textColor: Colors.white,
+                                    onPressed: () {
+                                      OpenFilex.open(filePath);
+                                    },
                                   ),
                                   backgroundColor: Colors.green,
                                 ),
@@ -349,13 +383,39 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
                       child: OutlinedButton.icon(
                         onPressed: () async {
                           try {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Preparing report..."),
+                              ),
+                            );
+
                             final data =
-                                await HostelAttendanceService.downloadHostelAttendanceReport();
+                                await HostelAttendanceService.downloadHostelAttendanceReport(
+                                  year: "2024-2025",
+                                );
+
+                            final directory = await getTemporaryDirectory();
+                            final filePath =
+                                '${directory.path}/hostel_attendance_2024_2025.pdf';
+                            final file = File(filePath);
+
+                            await file.writeAsBytes(data);
+
                             if (context.mounted) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).hideCurrentSnackBar();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    "Report downloaded (${(data.length / 1024).toStringAsFixed(2)} KB)",
+                                    "Report downloaded: hostel_attendance_2024_2025.pdf (${(data.length / 1024).toStringAsFixed(2)} KB)",
+                                  ),
+                                  action: SnackBarAction(
+                                    label: "Open",
+                                    textColor: Colors.white,
+                                    onPressed: () {
+                                      OpenFilex.open(filePath);
+                                    },
                                   ),
                                   backgroundColor: Colors.green,
                                 ),

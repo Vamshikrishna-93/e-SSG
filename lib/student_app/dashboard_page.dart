@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:student_app/theme_controllers.dart';
 import 'package:student_app/student_app/announcement_page.dart';
 import 'package:student_app/student_app/model/class_attendance.dart';
@@ -969,18 +970,9 @@ class _DashboardPageState extends State<DashboardPage> {
 
                   const SizedBox(height: 20),
 
-                  // Remarks & Announcements (Simplified placeholders to complete the file structure)
                   // Remarks Card
-                  DashboardSectionCard(
-                    title: "Remarks",
-                    emptyMessage: _remarks.isNotEmpty
-                        ? (_remarks.first['remarks'] ??
-                              _remarks.first['remark'] ??
-                              "New Remark Available")
-                        : "No remarks found",
-                    buttonText: "View All Remarks",
-                    onTap: () {},
-                  ),
+                  // Remarks Section
+                  _buildRemarksSection(),
                   const SizedBox(height: 20),
 
                   // Announcements Card
@@ -1023,6 +1015,330 @@ class _DashboardPageState extends State<DashboardPage> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildRemarksSection() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              "Remarks",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+              ),
+            ),
+          ),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                if (_remarks.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Text(
+                        "No remarks found",
+                        style: TextStyle(color: Colors.grey.shade500),
+                      ),
+                    ),
+                  )
+                else
+                  ..._remarks.take(2).map((r) => _buildRemarkItem(r)),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _showAllRemarksDialog,
+                    icon: const Icon(Icons.visibility, size: 18),
+                    label: const Text("View All Remarks"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1D68F2),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 4,
+                      shadowColor: Colors.blue.withOpacity(0.4),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRemarkItem(dynamic remark, {bool showStatus = false}) {
+    final remarkText = remark['remark']?.toString() ?? 'No details available';
+    final relatedTo = remark['related_to']?.toString() ?? 'General';
+    final createdAt = remark['created_at']?.toString() ?? '';
+
+    DateTime? dateTime;
+    if (createdAt.isNotEmpty) {
+      try {
+        dateTime = DateTime.parse(createdAt);
+      } catch (e) {}
+    }
+
+    String dateStr = dateTime != null
+        ? DateFormat('dd MMM yyyy').format(dateTime)
+        : '';
+    String timeStr = dateTime != null
+        ? DateFormat('hh:mm a').format(dateTime)
+        : '';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Blue Icon Square
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1D68F2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.access_time_filled,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        relatedTo,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    if (showStatus) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1D68F2),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          "NEUTRAL",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                    const Spacer(),
+                    Text(
+                      dateStr,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  remarkText,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(Icons.person, size: 14, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text(
+                      "Hostel Staff",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    if (timeStr.isNotEmpty) ...[
+                      const SizedBox(width: 4),
+                      Text(
+                        "($timeStr)",
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF1D68F2),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAllRemarksDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              insetPadding: const EdgeInsets.all(20),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 600),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "All Remarks (${_remarks.length})",
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(Icons.close),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    // Content
+                    Flexible(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: _remarks.isEmpty
+                              ? [
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 40),
+                                    child: Center(
+                                      child: Text("No remarks found"),
+                                    ),
+                                  ),
+                                ]
+                              : _remarks
+                                    .map(
+                                      (r) =>
+                                          _buildRemarkItem(r, showStatus: true),
+                                    )
+                                    .toList(),
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    // Footer
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          OutlinedButton(
+                            onPressed: () async {
+                              await _fetchDashboardData();
+                              setDialogState(() {});
+                            },
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF1D68F2)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                            child: const Text("Refresh Data"),
+                          ),
+                          const Spacer(),
+                          ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF64748B),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text("Close"),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

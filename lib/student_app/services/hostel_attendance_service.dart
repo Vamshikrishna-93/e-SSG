@@ -8,19 +8,20 @@ class HostelAttendanceService {
   static const String _hostelAttendanceEndpoint =
       '/student-hostel-attendance-grid';
 
-  static Future<HostelAttendance> getHostelAttendance() async {
+  static Future<HostelAttendance> getHostelAttendance({
+    String year = "2024-2025",
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('access_token');
-      final String? studentId = prefs.getString('student_id');
 
-      if (token == null || studentId == null) {
+      if (token == null) {
         throw Exception('User or Student ID not found. Please log in again.');
       }
 
       final response = await http.get(
         Uri.parse(
-          '${ApiConfig.studentApiBaseUrl}$_hostelAttendanceEndpoint/$studentId',
+          '${ApiConfig.studentApiBaseUrl}$_hostelAttendanceEndpoint/$year',
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -42,19 +43,20 @@ class HostelAttendanceService {
     }
   }
 
-  static Future<List<int>> downloadHostelAttendanceReport() async {
+  static Future<List<int>> downloadHostelAttendanceReport({
+    String year = "2024-2025",
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('access_token');
-      final String? studentId = prefs.getString('student_id');
 
-      if (token == null || studentId == null) {
+      if (token == null) {
         throw Exception('User or Student ID not found. Please log in again.');
       }
 
       final response = await http.get(
         Uri.parse(
-          '${ApiConfig.studentApiBaseUrl}/student-hostel-attendance-download/$studentId',
+          '${ApiConfig.studentApiBaseUrl}/student-hostel-attendance-download/$year',
         ),
         headers: {
           'Authorization': 'Bearer $token',

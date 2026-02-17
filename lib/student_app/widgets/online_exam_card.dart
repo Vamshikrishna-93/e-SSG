@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:student_app/student_app/model/exam_item.dart';
 import 'package:student_app/student_app/exam_writing_page.dart';
 import 'package:student_app/student_app/exam_weekend_details.dart';
+import 'package:student_app/student_app/online_exam_portal_page.dart';
 import 'package:student_app/student_app/widgets/exam_widgets.dart';
 
 class OnlineExamCard extends StatelessWidget {
@@ -28,40 +29,7 @@ class OnlineExamCard extends StatelessWidget {
           examDate.month == now.month &&
           examDate.day == now.day;
 
-      if (!isToday) return false;
-
-      // Parse exam time: 10:00 AM
-      final startTimeParsed = DateFormat("h:mm a").parse(exam.time);
-      final examStartTime = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        startTimeParsed.hour,
-        startTimeParsed.minute,
-      );
-
-      // Determine duration in minutes
-      int durationMinutes = 180; // Default to 3 hours if unknown
-      if (exam.duration != null) {
-        final durString = exam.duration!.toLowerCase();
-        final parts = durString.split(' ');
-        if (parts.isNotEmpty) {
-          final val = int.tryParse(parts[0]);
-          if (val != null) {
-            if (durString.contains("hour")) {
-              durationMinutes = val * 60;
-            } else {
-              durationMinutes = val;
-            }
-          }
-        }
-      }
-
-      final examEndTime = examStartTime.add(Duration(minutes: durationMinutes));
-
-      // Show button if we are within the exam window (with 5 min grace before)
-      return now.isAfter(examStartTime.subtract(const Duration(minutes: 5))) &&
-          now.isBefore(examEndTime);
+      return isToday;
     } catch (e) {
       debugPrint("Error checking exam time: $e");
       return false;

@@ -23,9 +23,6 @@ class _HostelFeesPageState extends State<HostelFeesPage>
   dynamic _feeData;
   String? _errorMessage;
 
-  // Static cache to persist data across page navigations
-  static dynamic _cachedFeeData;
-
   // Safe accessors
   Map<String, dynamic> get _data =>
       _feeData is Map<String, dynamic> ? _feeData : {};
@@ -34,86 +31,34 @@ class _HostelFeesPageState extends State<HostelFeesPage>
       _data['fee_details'] is Map && _data['fee_details']['Deatls'] is List
       ? _data['fee_details']['Deatls']
       : [];
+
   List<dynamic> get _paymentHistory =>
       _data['payment_details'] is Map &&
           _data['payment_details']['payments'] is List
       ? _data['payment_details']['payments']
       : [];
 
-  double get _totalFee {
-    if (_data['fee_details'] is Map && _data['fee_details']['Totals'] is Map) {
-      return double.tryParse(
-            _data['fee_details']['Totals']['total_actual_fee'].toString(),
-          ) ??
-          0.0;
-    }
-    return _feeDetails.fold(
-      0.0,
-      (sum, item) =>
-          sum + (double.tryParse(item['fee']?.toString() ?? '0') ?? 0),
-    );
-  }
+  Map<String, dynamic> get _totals =>
+      (_data['fee_details'] is Map && _data['fee_details']['Totals'] is Map)
+      ? _data['fee_details']['Totals'] as Map<String, dynamic>
+      : {};
 
-  double get _totalPaid {
-    if (_data['fee_details'] is Map && _data['fee_details']['Totals'] is Map) {
-      return double.tryParse(
-            _data['fee_details']['Totals']['total_paid'].toString(),
-          ) ??
-          0.0;
-    }
-    return _feeDetails.fold(
-      0.0,
-      (sum, item) =>
-          sum + (double.tryParse(item['paid_fee']?.toString() ?? '0') ?? 0),
-    );
-  }
-
-  double get _totalDue {
-    if (_data['fee_details'] is Map && _data['fee_details']['Totals'] is Map) {
-      return double.tryParse(
-            _data['fee_details']['Totals']['total_balance'].toString(),
-          ) ??
-          0.0;
-    }
-    return _feeDetails.fold(
-      0.0,
-      (sum, item) =>
-          sum + (double.tryParse(item['balance_fee']?.toString() ?? '0') ?? 0),
-    );
-  }
-
-  double get _totalDiscount {
-    if (_data['fee_details'] is Map && _data['fee_details']['Totals'] is Map) {
-      return double.tryParse(
-            _data['fee_details']['Totals']['total_discount'].toString(),
-          ) ??
-          0.0;
-    }
-    return 0.0;
-  }
-
-  double get _totalCommitted {
-    if (_data['fee_details'] is Map && _data['fee_details']['Totals'] is Map) {
-      return double.tryParse(
-            _data['fee_details']['Totals']['total_committed_fee'].toString(),
-          ) ??
-          0.0;
-    }
-    return 0.0;
-  }
+  double get _totalFee =>
+      double.tryParse(_totals['total_actual_fee']?.toString() ?? '0') ?? 0.0;
+  double get _totalPaid =>
+      double.tryParse(_totals['total_paid']?.toString() ?? '0') ?? 0.0;
+  double get _totalDue =>
+      double.tryParse(_totals['total_balance']?.toString() ?? '0') ?? 0.0;
+  double get _totalDiscount =>
+      double.tryParse(_totals['total_discount']?.toString() ?? '0') ?? 0.0;
+  double get _totalCommitted =>
+      double.tryParse(_totals['total_committed_fee']?.toString() ?? '0') ?? 0.0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-
-    // Use cached data if available, otherwise fetch
-    if (_cachedFeeData != null) {
-      _feeData = _cachedFeeData;
-      _isLoading = false;
-    } else {
-      _fetchData();
-    }
+    _fetchData();
   }
 
   Future<void> _fetchData({bool showLoading = true}) async {
@@ -124,17 +69,14 @@ class _HostelFeesPageState extends State<HostelFeesPage>
       });
     }
     try {
-      final data = await HostelFeeService.getHostelFeeData();
+      final response = await HostelFeeService.getHostelFeeData();
       if (mounted) {
         setState(() {
-          if (data is Map<String, dynamic> &&
-              data.containsKey('data') &&
-              data['data'] is Map) {
-            _feeData = data['data'];
+          if (response is Map<String, dynamic> && response['status'] == true) {
+            _feeData = response['data'];
           } else {
-            _feeData = data;
+            _feeData = response;
           }
-          _cachedFeeData = _feeData; // Update cache
           _isLoading = false;
         });
       }
