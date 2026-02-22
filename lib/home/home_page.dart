@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:student_app/staff_app/pages/login_page.dart';
+import 'package:student_app/student_app/dashboard_page.dart';
+import 'package:student_app/student_app/services/session_service.dart';
 import 'package:student_app/student_app/signIn_page.dart';
 import 'package:student_app/theme_controllers.dart';
 
@@ -64,11 +66,6 @@ class _HomePageState extends State<HomePage> {
                   icon: Icons.badge_outlined,
                   text: 'I am Staff',
                   onTap: () {
-                    // Initialize or Switch to Staff Theme (using the main ThemeController)
-                    // Note: ThemeController is already permanent in main.dart, but we ensure it's used.
-                    // If we had a loadTheme method we would call it.
-                    // For now, ensuring navigation is enough as main.dart set it up.
-
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => LoginPage()),
@@ -82,20 +79,37 @@ class _HomePageState extends State<HomePage> {
                 _roleButton(
                   icon: Icons.school_outlined,
                   text: 'I am Student',
-                  onTap: () {
+                  onTap: () async {
                     // Initialize Student Theme Controller
                     final studentTheme = Get.put(StudentThemeController());
                     studentTheme.loadTheme();
 
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ThemeControllerWrapper(
-                          themeController: StudentThemeController.themeMode,
-                          child: const SignInPage(),
-                        ),
-                      ),
-                    );
+                    // Check if student is already logged in
+                    final bool isLoggedIn = await SessionService.isLoggedIn();
+
+                    if (mounted) {
+                      if (isLoggedIn) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ThemeControllerWrapper(
+                              themeController: StudentThemeController.themeMode,
+                              child: const DashboardPage(),
+                            ),
+                          ),
+                        );
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ThemeControllerWrapper(
+                              themeController: StudentThemeController.themeMode,
+                              child: SignInPage(),
+                            ),
+                          ),
+                        );
+                      }
+                    }
                   },
                 ),
               ],

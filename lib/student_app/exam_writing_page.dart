@@ -21,6 +21,7 @@ class ExamWritingPage extends StatefulWidget {
     this.duration = 'N/A',
     this.questionsCount = 0,
     this.skipInstructions = false,
+    required ExamModel exam,
   });
 
   @override

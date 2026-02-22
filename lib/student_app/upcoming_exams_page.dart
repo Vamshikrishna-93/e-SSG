@@ -1,14 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:student_app/student_app/model/exam_item.dart';
-import 'package:student_app/student_app/student_app_bar.dart';
 
 class UpcomingExams extends StatefulWidget {
-  const UpcomingExams({
-    super.key,
-    required MaterialColor color,
-    required String date,
-    required String title,
-  });
+  const UpcomingExams({super.key});
 
   @override
   State<UpcomingExams> createState() => _UpcomingExamsState();
@@ -18,182 +12,13 @@ class _UpcomingExamsState extends State<UpcomingExams> {
   final int itemsPerPage = 10;
   int currentPage = 1;
 
-  late final List<ExamModel> exams;
+  late List<ExamModel> exams;
 
   @override
   void initState() {
     super.initState();
-
-    exams = [
-      ExamModel(
-        title: "Mathematics Unit Test",
-        date: "22nd July, 2024",
-        color: Colors.blue,
-        time: '',
-        board: '',
-        progress: 0,
-        type: '',
-        id: '',
-        subject: '',
-      ),
-      ExamModel(
-        title: "Physics Monthly Assessment",
-        date: "28th July, 2024",
-        color: Colors.cyan,
-        time: '',
-        board: '',
-        progress: 0,
-        type: '',
-        id: '',
-        subject: '',
-      ),
-      ExamModel(
-        title: "Chemistry Laboratory Exam",
-        date: "5th August, 2024",
-        color: Colors.green,
-        time: '',
-        board: '',
-        progress: 0,
-        type: '',
-        id: '',
-        subject: '',
-      ),
-      ExamModel(
-        title: "English Mid-Term Exam",
-        date: "12th August, 2024",
-        color: Colors.amber,
-        time: '',
-        board: '',
-        progress: 0,
-        type: '',
-        id: '',
-        subject: '',
-      ),
-      ExamModel(
-        title: "Computer Science Practical",
-        date: "18th August, 2024",
-        color: Colors.red,
-        time: '',
-        board: '',
-        progress: 0,
-        type: '',
-        id: '',
-        subject: '',
-      ),
-      ExamModel(
-        title: "Biology Theory Exam",
-        date: "25th August, 2024",
-        color: Colors.blue,
-        time: '',
-        board: '',
-        progress: 0,
-        type: '',
-        id: '',
-        subject: '',
-      ),
-      ExamModel(
-        title: "Social Studies Test",
-        date: "2nd September, 2024",
-        color: Colors.green,
-        time: '',
-        board: '',
-        progress: 0,
-        type: '',
-        id: '',
-        subject: '',
-      ),
-      ExamModel(
-        title: "Physics Practical",
-        date: "9th September, 2024",
-        color: Colors.cyan,
-        time: '',
-        board: '',
-        progress: 0,
-        type: '',
-        id: '',
-        subject: '',
-      ),
-      ExamModel(
-        title: "Mathematics Final",
-        date: "16th September, 2024",
-        color: Colors.amber,
-        time: '',
-        board: '',
-        progress: 0,
-        type: '',
-        id: '',
-        subject: '',
-      ),
-      ExamModel(
-        title: "Chemistry Theory",
-        date: "23rd September, 2024",
-        color: Colors.red,
-        time: '',
-        board: '',
-        progress: 0,
-        type: '',
-        id: '',
-        subject: '',
-      ),
-
-      // ---------- PAGE 2 ----------
-      ExamModel(
-        title: "English Literature",
-        date: "30th September, 2024",
-        color: Colors.blue,
-        time: '',
-        board: '',
-        progress: 0,
-        type: '',
-        id: '',
-        subject: '',
-      ),
-      ExamModel(
-        title: "Computer Theory",
-        date: "7th October, 2024",
-        color: Colors.green,
-        time: '',
-        board: '',
-        progress: 0,
-        type: '',
-        id: '',
-        subject: '',
-      ),
-      ExamModel(
-        title: "Biology Practical",
-        date: "14th October, 2024",
-        color: Colors.cyan,
-        time: '',
-        board: '',
-        progress: 0,
-        type: '',
-        id: '',
-        subject: '',
-      ),
-
-      ExamModel(
-        title: "Social Project Submission",
-        date: "21st October, 2024",
-        color: Colors.amber,
-        time: '',
-        board: '',
-        progress: 0,
-        type: '',
-        id: '',
-        subject: '',
-      ),
-      ExamModel(
-        title: "Final Semester Exams",
-        date: "28th October, 2024",
-        color: Colors.red,
-        time: '',
-        board: '',
-        progress: 0,
-        type: '',
-        id: '',
-        subject: '',
-      ),
-    ];
+    // Use the dynamic data from ExamModel, falling back to an empty list if not yet loaded
+    exams = ExamModel.upcomingExams;
   }
 
   int get totalPages => (exams.length / itemsPerPage).ceil();
@@ -208,7 +33,6 @@ class _UpcomingExamsState extends State<UpcomingExams> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: const StudentAppBar(title: "Upcoming Exams"),
       body: SafeArea(
         child: Column(
           children: [
@@ -217,9 +41,38 @@ class _UpcomingExamsState extends State<UpcomingExams> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
+                    /* ---------------- BACK BUTTON ---------------- */
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(8, 12, 8, 0),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              Icons.arrow_back,
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodyLarge?.color,
+                            ),
+                            onPressed: () => Navigator.pop(context),
+                            tooltip: "Back",
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            "",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodyLarge?.color,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     /* ---------------- HEADER ---------------- */
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
                       child: Row(
                         children: [
                           Expanded(

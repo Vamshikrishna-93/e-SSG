@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:student_app/student_app/answer_key_dialog.dart';
 import 'package:student_app/student_app/services/exams_service.dart';
 import 'package:student_app/theme_controllers.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
 
 class ExamSummaryDialog extends StatefulWidget {
   final String examId;
@@ -394,6 +397,81 @@ class _ExamSummaryDialogState extends State<ExamSummaryDialog> {
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               ElevatedButton.icon(
+                                onPressed: () async {
+                                  try {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Preparing report..."),
+                                      ),
+                                    );
+
+                                    final data =
+                                        await ExamsService.downloadExamReport(
+                                          widget.examId,
+                                        );
+
+                                    final directory =
+                                        await getTemporaryDirectory();
+                                    final filePath =
+                                        '${directory.path}/exam_report_${widget.examId}.pdf';
+                                    final file = File(filePath);
+                                    await file.writeAsBytes(data);
+
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).hideCurrentSnackBar();
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            "Report ready: exam_report_${widget.examId}.pdf",
+                                          ),
+                                          action: SnackBarAction(
+                                            label: "Open",
+                                            textColor: Colors.white,
+                                            onPressed: () {
+                                              OpenFilex.open(filePath);
+                                            },
+                                          ),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).hideCurrentSnackBar();
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text("Download failed: $e"),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                icon: const Icon(Icons.download, size: 18),
+                                label: const Text("Download Report"),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green.shade600,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  elevation: 0,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              ElevatedButton.icon(
                                 onPressed: () {
                                   Navigator.push(
                                     context,
@@ -408,7 +486,7 @@ class _ExamSummaryDialogState extends State<ExamSummaryDialog> {
                                   backgroundColor: const Color(0xFF2563EB),
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
+                                    horizontal: 16,
                                     vertical: 12,
                                   ),
                                   shape: RoundedRectangleBorder(
@@ -417,12 +495,12 @@ class _ExamSummaryDialogState extends State<ExamSummaryDialog> {
                                   elevation: 0,
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: 8),
                               OutlinedButton(
                                 onPressed: () => Navigator.pop(context),
                                 style: OutlinedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
+                                    horizontal: 16,
                                     vertical: 12,
                                   ),
                                   shape: RoundedRectangleBorder(

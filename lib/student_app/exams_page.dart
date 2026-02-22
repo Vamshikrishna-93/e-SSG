@@ -1,14 +1,16 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'dart:async';
 import 'package:student_app/student_app/exam_summary_dialog.dart';
 import 'package:student_app/student_app/model/exam_item.dart';
 import 'package:student_app/student_app/services/exams_service.dart';
 import 'package:student_app/student_app/student_calendar.dart';
 import 'package:student_app/student_app/studentdrawer.dart';
 import 'package:student_app/student_app/student_app_bar.dart';
+import 'package:student_app/student_app/widgets/online_exam_card.dart';
 import 'package:student_app/student_app/widgets/stat_card.dart';
 import 'package:student_app/student_app/widgets/exam_tab_item.dart';
-import 'package:student_app/student_app/widgets/online_exam_card.dart';
 import 'package:student_app/student_app/widgets/standard_exam_card.dart';
 import 'package:student_app/student_app/widgets/completed_exam_card.dart';
 import 'package:student_app/student_app/widgets/exam_headers.dart';
@@ -37,6 +39,7 @@ class _ExamsPageState extends State<ExamsPage> {
   // Data lists
   List<ExamModel> _currentTabExams = [];
   bool _isLoading = true;
+  Timer? _refreshTimer;
 
   // Pagination
   int _currentPage = 1;
@@ -54,6 +57,16 @@ class _ExamsPageState extends State<ExamsPage> {
   void initState() {
     super.initState();
     _fetchExams();
+    // Refresh data every 5 minutes
+    _refreshTimer = Timer.periodic(const Duration(minutes: 3), (_) {
+      _fetchExams();
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _fetchExams() async {
@@ -86,6 +99,7 @@ class _ExamsPageState extends State<ExamsPage> {
           List<ExamModel> onlineExams = [];
           List<ExamModel> upcomingExams = [];
           List<ExamModel> completedExams = [];
+          List<ExamModel> offlineExamsList = [];
 
           for (var examData in apiExams) {
             final exam = ExamModel.fromJson(examData);
@@ -95,14 +109,17 @@ class _ExamsPageState extends State<ExamsPage> {
               continue;
             }
 
-            // Add to online exams list
-            onlineExams.add(exam);
-
-            // Categorize based on status
+            // Categorize based on status and type
             final isCompleted =
                 exam.progress == 100 ||
                 examData['status']?.toString().toLowerCase() == 'completed' ||
                 examData['is_completed'] == true;
+
+            if (exam.type == 'Offline') {
+              offlineExamsList.add(exam);
+            } else {
+              onlineExams.add(exam);
+            }
 
             if (isCompleted) {
               completedExams.add(exam);
@@ -115,22 +132,24 @@ class _ExamsPageState extends State<ExamsPage> {
           ExamModel.onlineExams.clear();
           ExamModel.onlineExams.addAll(onlineExams);
 
-          if (upcomingExams.isNotEmpty) {
-            ExamModel.upcomingExams.clear();
-            ExamModel.upcomingExams.addAll(upcomingExams);
-          }
+          ExamModel.upcomingExams.clear();
+          ExamModel.upcomingExams.addAll(upcomingExams);
 
-          if (completedExams.isNotEmpty) {
-            ExamModel.completedExams.clear();
-            ExamModel.completedExams.addAll(completedExams);
-          }
+          ExamModel.completedExams.clear();
+          ExamModel.completedExams.addAll(completedExams);
+
+          ExamModel.offlineExams.clear();
+          ExamModel.offlineExams.addAll(offlineExamsList);
 
           // Update counts
           _upcomingCount = ExamModel.upcomingExams.length;
           _completedCount = ExamModel.completedExams.length;
 
           // Populate subjects
-          final uniqueSubjects = onlineExams.map((e) => e.subject).toSet();
+          final uniqueSubjects = [
+            ...onlineExams,
+            ...offlineExamsList,
+          ].map((e) => e.subject).toSet();
           _subjects.clear();
           _subjects.add("All Subjects");
           _subjects.addAll(uniqueSubjects);
@@ -219,16 +238,27 @@ class _ExamsPageState extends State<ExamsPage> {
     if (totalItems == 0) return [];
 
     if (_selectedTabIndex == 2) {
-      // Find today's exam if any, otherwise take the first one
+      // Find today's exam if any, otherwise check for tomorrow's, then fallback to first
       final now = DateTime.now();
-      final todayStr =
-          "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+      final today = DateTime(now.year, now.month, now.day);
+      final tomorrow = today.add(const Duration(days: 1));
+
+      final DateFormat formatter = DateFormat("yyyy-MM-dd");
+      final String todayStr = formatter.format(today);
+      final String tomorrowStr = formatter.format(tomorrow);
 
       try {
         final todayExam = filtered.firstWhere((e) => e.date == todayStr);
         return [todayExam];
       } catch (e) {
-        return filtered.take(1).toList();
+        try {
+          final tomorrowExam = filtered.firstWhere(
+            (e) => e.date == tomorrowStr,
+          );
+          return [tomorrowExam];
+        } catch (e) {
+          return filtered.take(1).toList();
+        }
       }
     }
 

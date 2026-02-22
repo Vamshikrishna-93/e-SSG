@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:student_app/student_app/student_app_bar.dart';
 import 'package:student_app/theme_controllers.dart';
 import 'model/anouncement.dart';
 
@@ -123,7 +122,6 @@ class _AnnouncementsDialogState extends State<AnnouncementsDialog> {
           final theme = Theme.of(context);
           return Scaffold(
             backgroundColor: theme.scaffoldBackgroundColor,
-            appBar: const StudentAppBar(title: "Announcements"),
             body: SizedBox(
               height: MediaQuery.of(context).size.height,
               child: Column(
@@ -134,8 +132,33 @@ class _AnnouncementsDialogState extends State<AnnouncementsDialog> {
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
+                            // Back Button
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
+                              padding: const EdgeInsets.fromLTRB(8, 12, 8, 0),
+                              child: Row(
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.arrow_back,
+                                      color: theme.textTheme.bodyLarge?.color,
+                                    ),
+                                    onPressed: () => Navigator.pop(context),
+                                    tooltip: "Back",
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    "",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      color: theme.textTheme.bodyLarge?.color,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
                               child: Row(
                                 children: [
                                   Expanded(

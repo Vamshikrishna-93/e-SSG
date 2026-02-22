@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-enum TimeRange { academicYear, last3Months, last6Months }
+enum TimeRange { academicYear, last3Months, last6Months, lastMonth }
 
 class AttendanceTile extends StatelessWidget {
   final IconData icon;
@@ -479,37 +479,35 @@ class AttendanceChart extends StatelessWidget {
                           BarChartRodData(
                             toY: (d['present'] ?? 0).toDouble(),
                             color: Colors.green,
-                            width: 8,
+                            width: 6,
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(4),
                             ),
                           ),
-                          if (isHostel)
-                            BarChartRodData(
-                              toY: (d['absent'] ?? 0).toDouble(),
-                              color: Colors.lightGreenAccent,
-                              width: 8,
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(4),
-                              ),
+                          BarChartRodData(
+                            toY: (d['absent'] ?? 0).toDouble(),
+                            color: Colors.red,
+                            width: 6,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(4),
                             ),
-                          if (!isHostel) ...[
-                            BarChartRodData(
-                              toY: (d['absent'] ?? 0).toDouble(),
-                              color: Colors.red,
-                              width: 6,
+                          ),
+                          BarChartRodData(
+                            toY: (d['outings'] ?? 0).toDouble(),
+                            color: Colors.amber,
+                            width: 6,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(4),
                             ),
-                            BarChartRodData(
-                              toY: (d['outings'] ?? 0).toDouble(),
-                              color: Colors.amber,
-                              width: 6,
+                          ),
+                          BarChartRodData(
+                            toY: (d['holidays'] ?? 0).toDouble(),
+                            color: Colors.blue,
+                            width: 6,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(4),
                             ),
-                            BarChartRodData(
-                              toY: (d['holidays'] ?? 0).toDouble(),
-                              color: Colors.blue,
-                              width: 6,
-                            ),
-                          ],
+                          ),
                         ],
                       );
                     }),
@@ -525,7 +523,9 @@ class AttendanceChart extends StatelessWidget {
               ? 'Academic Year'
               : selectedRange == TimeRange.last6Months
               ? 'Last 6 Months'
-              : 'Last 3 Months',
+              : selectedRange == TimeRange.last3Months
+              ? 'Last 3 Months'
+              : 'Last Month',
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,

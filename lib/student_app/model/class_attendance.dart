@@ -39,6 +39,10 @@ class ClassAttendance {
       if (list.isEmpty && root['data'] is List) {
         list = root['data'];
       }
+      // If still empty and root map has Day_ keys, it's a single month object
+      if (list.isEmpty && root.keys.any((k) => k.startsWith('Day_'))) {
+        list = [root];
+      }
       stats = root;
     }
 
@@ -119,7 +123,8 @@ class ClassAttendance {
     return result;
   }
 
-  void operator [](String other) {}
+  // Method to check if attendance is empty
+  bool get isEmpty => attendance.isEmpty;
 }
 
 class MonthlyClassAttendance {
@@ -200,22 +205,24 @@ class MonthlyClassAttendance {
 
           synthDetails.add(
             ClassDayAttendance(
-              date: "${json['month_name'] ?? json['month'] ?? ''} $dayStr",
+              date:
+                  "${json['month_name'] ?? json['month'] ?? json['monthName'] ?? ''} $dayStr",
               status: status,
             ),
           );
         }
       });
 
-      // If main stats were missing/zero, use synthesized values
-      if (t == 0 && (sp + sa + sl + so + sh) > 0) {
+      // Use synthesized values if they are more complete than the basic stats
+      if ((sp + sa + sl + so + sh) > (p + a + l + o + h) ||
+          (t == 0 && (sp + sa + sl + so + sh) > 0)) {
         p = sp;
         a = sa;
         l = sl;
         o = so;
-        sh = sh;
-        t = p + a + l + o + sh;
-        perc = (p / t) * 100;
+        h = sh;
+        t = p + a + l + o + h;
+        perc = t > 0 ? (p / t) * 100 : 0.0;
       }
     } else {
       // Look for 'details' list if 'Day_XX' fields aren't present
@@ -238,7 +245,9 @@ class MonthlyClassAttendance {
     }
 
     return MonthlyClassAttendance(
-      monthName: (json['month_name'] ?? json['month'] ?? '').toString(),
+      monthName:
+          (json['month_name'] ?? json['month'] ?? json['monthName'] ?? '')
+              .toString(),
       present: p,
       absent: a,
       leaves: l,

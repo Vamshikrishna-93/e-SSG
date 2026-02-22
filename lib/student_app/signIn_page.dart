@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:student_app/student_app/dashboard_page.dart';
 import 'package:student_app/student_app/services/auth_service.dart';
+import 'package:student_app/student_app/services/session_service.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -207,6 +208,46 @@ class _SignInPageState extends State<SignInPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A wrapper widget that handles automatic redirection if the student is already logged in.
+class StudentLoginWrapper extends StatelessWidget {
+  const StudentLoginWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: SessionService.isLoggedIn(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            backgroundColor: Color(0xFF2F8FED),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: Colors.white),
+                  SizedBox(height: 16),
+                  Text(
+                    "Verifying session...",
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        if (snapshot.data == true) {
+          // If already logged in, show Dashboard directly
+          return const DashboardPage();
+        }
+
+        // If not logged in, show the Sign In page
+        return const SignInPage();
+      },
     );
   }
 }

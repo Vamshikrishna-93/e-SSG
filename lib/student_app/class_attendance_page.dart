@@ -1,13 +1,15 @@
 import 'dart:math' as math;
-import 'dart:io';
+import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:open_filex/open_filex.dart';
 import 'package:student_app/student_app/student_app_bar.dart';
 import 'attendence_month_details_page.dart';
-import 'package:student_app/student_app/services/attendance_service.dart';
 import 'package:student_app/theme_controllers.dart';
+import 'package:student_app/student_app/services/attendance_service.dart';
+import 'package:student_app/student_app/model/class_attendance.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
 
 class AttendancePage extends StatefulWidget {
   const AttendancePage({super.key});
@@ -32,8 +34,9 @@ class _AttendancePageState extends State<AttendancePage> {
   int leavesTaken = 0;
   int leavesRemaining = 0;
 
-  List<Map<String, dynamic>> monthlyData = [];
+  List<MonthlyClassAttendance> monthlyData = [];
   List<double> trendData = [];
+  Timer? _refreshTimer;
 
   final ScrollController _horizontalScrollController = ScrollController();
   double _maxScrollExtent = 0.0;
@@ -43,11 +46,12 @@ class _AttendancePageState extends State<AttendancePage> {
   void initState() {
     super.initState();
     _horizontalScrollController.addListener(_updateScrollMetrics);
-    _fetchAttendanceData();
+    _fetchAttendanceData(forceRefresh: false);
   }
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     _horizontalScrollController.dispose();
     super.dispose();
   }
@@ -59,61 +63,94 @@ class _AttendancePageState extends State<AttendancePage> {
     });
   }
 
-  Future<void> _fetchAttendanceData() async {
+  Future<void> _fetchAttendanceData({bool forceRefresh = true}) async {
+    setState(() => _isLoading = true);
+
     try {
-      final data = await AttendanceService.getAttendance();
+      // Fetch both Grid and Summary in parallel
+      final results = await Future.wait([
+        AttendanceService.getAttendance(forceRefresh: forceRefresh),
+        AttendanceService.getAttendanceSummary(forceRefresh: forceRefresh),
+      ]);
+
+      final ClassAttendance gridData = results[0] as ClassAttendance;
+      final Map<String, dynamic> summary = results[1] as Map<String, dynamic>;
+
+      double? safeDouble(dynamic v) {
+        if (v == null) return null;
+        if (v is num) return v.toDouble();
+        return double.tryParse(v.toString().replaceAll('%', '').trim());
+      }
+
+      int? safeInt(dynamic v) {
+        if (v == null) return null;
+        if (v is num) return v.toInt();
+        return int.tryParse(v.toString().replaceAll('%', '').trim());
+      }
 
       if (mounted) {
         setState(() {
-          // Extract overall statistics from ClassAttendance model
-          overallAttendance = data.overallPercentage ?? 0.0;
-          daysAttended = data.totalPresent ?? 0;
-          totalDays = data.totalDays ?? 0;
-          daysAbsent = data.totalAbsent ?? 0;
-          currentStreak = data.currentStreak ?? 0;
-          bestStreak = data.bestStreak ?? 0;
-          leavesTaken = data.totalLeaves ?? 0;
-          leavesRemaining = data.leavesRemaining ?? 0;
+          // Use summary data if available, otherwise fallback to grid's synthesized stats
+          overallAttendance =
+              safeDouble(
+                summary['overall_attendance_percentage'] ??
+                    summary['attendance_percentage'],
+              ) ??
+              gridData.overallPercentage ??
+              0.0;
+          daysAttended =
+              safeInt(summary['present_days'] ?? summary['present']) ??
+              gridData.totalPresent ??
+              0;
+          totalDays =
+              safeInt(summary['total_working_days'] ?? summary['total']) ??
+              gridData.totalDays ??
+              0;
+          daysAbsent =
+              safeInt(summary['absent_days'] ?? summary['absent']) ??
+              gridData.totalAbsent ??
+              0;
+          currentStreak =
+              safeInt(summary['streak'] ?? summary['current_streak']) ??
+              gridData.currentStreak ??
+              0;
+          bestStreak =
+              safeInt(summary['best_streak'] ?? summary['highest_streak']) ??
+              gridData.bestStreak ??
+              0;
+          leavesTaken =
+              safeInt(summary['leaves'] ?? summary['leave_days']) ??
+              gridData.totalLeaves ??
+              0;
+          leavesRemaining =
+              safeInt(summary['leaves_remaining']) ??
+              gridData.leavesRemaining ??
+              0;
 
-          // Convert MonthlyClassAttendance objects to Map format for UI compatibility
-          monthlyData = data.attendance.map((m) {
-            return {
-              'month': m.monthName,
-              'attended': m.present,
-              'total': m.total,
-              'present': m.present,
-              'absent': m.absent,
-              'leaves': m.leaves,
-              'percentage': m.percentage,
-              'details':
-                  m.details
-                      ?.map(
-                        (d) => {
-                          'attendance_date': d.date,
-                          'status': d.status,
-                          'check_type': 'Class Attendance',
-                        },
-                      )
-                      .toList() ??
-                  [],
-              // Include raw JSON for detail page navigation
-              ...m.rawJson,
-            };
-          }).toList();
+          // Process monthly data for table
+          monthlyData = gridData.attendance;
 
-          // Populate trend data from monthly percentages
-          if (monthlyData.isNotEmpty) {
-            trendData = monthlyData
-                .map((m) => (m['percentage'] as num).toDouble())
-                .toList();
-          }
+          // Process trend data (last 6 months)
+          trendData = gridData.attendance
+              .take(6)
+              .map((m) => m.percentage)
+              .toList()
+              .reversed
+              .toList();
 
           _isLoading = false;
         });
       }
     } catch (e) {
-      debugPrint('Error fetching data: $e');
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load attendance: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -127,6 +164,53 @@ class _AttendancePageState extends State<AttendancePage> {
     if (percentage >= 90) return const Color(0xFF10B981);
     if (percentage >= 75) return const Color(0xFFF97316);
     return const Color(0xFFEF4444);
+  }
+
+  Future<void> _downloadReport() async {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Preparing report...")));
+    try {
+      final bytes = await AttendanceService.downloadAttendanceReport();
+      final directory = await getTemporaryDirectory();
+      final filePath = '${directory.path}/class_attendance_report.pdf';
+      final file = File(filePath);
+      await file.writeAsBytes(bytes);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Report ready: class_attendance_report.pdf"),
+            action: SnackBarAction(
+              label: "Open",
+              textColor: Colors.white,
+              onPressed: () {
+                OpenFilex.open(filePath);
+              },
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        String errorMsg = e.toString();
+        if (errorMsg.contains('MissingPluginException') ||
+            errorMsg.contains('Unsupported operation')) {
+          errorMsg =
+              "App restart required to activate download plugin. Please stop and re-run the app.";
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to download: $errorMsg"),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -268,7 +352,8 @@ class _AttendancePageState extends State<AttendancePage> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
-                        onPressed: _fetchAttendanceData,
+                        onPressed: () =>
+                            _fetchAttendanceData(forceRefresh: true),
                         icon: const Icon(Icons.refresh, size: 18),
                         label: const Text(
                           'Refresh ',
@@ -291,55 +376,7 @@ class _AttendancePageState extends State<AttendancePage> {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
-                        onPressed: () async {
-                          try {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Preparing report..."),
-                              ),
-                            );
-
-                            final data =
-                                await AttendanceService.downloadAttendanceReport();
-
-                            final directory = await getTemporaryDirectory();
-                            final filePath =
-                                '${directory.path}/class_attendance_report.pdf';
-                            final file = File(filePath);
-
-                            await file.writeAsBytes(data);
-
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(
-                                context,
-                              ).hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    "Report downloaded: class_attendance_report.pdf (${(data.length / 1024).toStringAsFixed(2)} KB)",
-                                  ),
-                                  action: SnackBarAction(
-                                    label: "Open",
-                                    textColor: Colors.white,
-                                    onPressed: () {
-                                      OpenFilex.open(filePath);
-                                    },
-                                  ),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Failed to download: $e"),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
-                        },
+                        onPressed: _downloadReport,
                         icon: const Icon(
                           Icons.print,
                           size: 18,
@@ -371,7 +408,8 @@ class _AttendancePageState extends State<AttendancePage> {
                   children: [
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: _fetchAttendanceData,
+                        onPressed: () =>
+                            _fetchAttendanceData(forceRefresh: true),
                         icon: const Icon(Icons.download, size: 18),
                         label: const Text(
                           'Refresh Data',
@@ -393,55 +431,7 @@ class _AttendancePageState extends State<AttendancePage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () async {
-                          try {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Preparing report..."),
-                              ),
-                            );
-
-                            final data =
-                                await AttendanceService.downloadAttendanceReport();
-
-                            final directory = await getTemporaryDirectory();
-                            final filePath =
-                                '${directory.path}/class_attendance_report.pdf';
-                            final file = File(filePath);
-
-                            await file.writeAsBytes(data);
-
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(
-                                context,
-                              ).hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    "Report downloaded: class_attendance_report.pdf (${(data.length / 1024).toStringAsFixed(2)} KB)",
-                                  ),
-                                  action: SnackBarAction(
-                                    label: "Open",
-                                    textColor: Colors.white,
-                                    onPressed: () {
-                                      OpenFilex.open(filePath);
-                                    },
-                                  ),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Failed to download: $e"),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
-                        },
+                        onPressed: _downloadReport,
                         icon: const Icon(
                           Icons.print,
                           size: 18,
@@ -900,9 +890,17 @@ class _AttendancePageState extends State<AttendancePage> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest
+                            : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey.shade800
+                              : const Color(0xFFE2E8F0),
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -968,9 +966,17 @@ class _AttendancePageState extends State<AttendancePage> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest
+                            : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey.shade800
+                              : const Color(0xFFE2E8F0),
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -1005,7 +1011,9 @@ class _AttendancePageState extends State<AttendancePage> {
                   horizontalInterval: 25,
                   getDrawingHorizontalLine: (value) {
                     return FlLine(
-                      color: const Color(0xFFE2E8F0),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey.shade800
+                          : const Color(0xFFE2E8F0),
                       strokeWidth: 1,
                     );
                   },
@@ -1085,16 +1093,22 @@ class _AttendancePageState extends State<AttendancePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           /// Header
-          const Row(
+          Row(
             children: [
-              Icon(Icons.emoji_events, size: 20, color: Color(0xFFF59E0B)),
-              SizedBox(width: 8),
+              const Icon(
+                Icons.emoji_events,
+                size: 20,
+                color: Color(0xFFF59E0B),
+              ),
+              const SizedBox(width: 8),
               Text(
                 'Performance Summary',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1E293B),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : const Color(0xFF1E293B),
                 ),
               ),
             ],
@@ -1225,9 +1239,13 @@ class _AttendancePageState extends State<AttendancePage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey.shade800
+              : const Color(0xFFE5E7EB),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1243,10 +1261,12 @@ class _AttendancePageState extends State<AttendancePage> {
           const SizedBox(height: 6),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF64748B),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey.shade400
+                  : const Color(0xFF64748B),
             ),
           ),
         ],
@@ -1308,9 +1328,17 @@ class _AttendancePageState extends State<AttendancePage> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest
+                            : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey.shade800
+                              : const Color(0xFFE2E8F0),
+                        ),
                       ),
                       child: Row(
                         children: [
@@ -1370,9 +1398,17 @@ class _AttendancePageState extends State<AttendancePage> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest
+                            : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey.shade800
+                              : const Color(0xFFE2E8F0),
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -1420,7 +1456,9 @@ class _AttendancePageState extends State<AttendancePage> {
           Container(
             height: 20,
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Theme.of(context).colorScheme.surfaceContainerHighest
+                  : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Row(
@@ -1533,7 +1571,11 @@ class _AttendancePageState extends State<AttendancePage> {
                         horizontal: isMobile ? 12 : 16,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest
+                            : const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -1734,7 +1776,9 @@ class _AttendancePageState extends State<AttendancePage> {
           Container(
             padding: EdgeInsets.all(isMobile ? 12 : 16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Theme.of(context).colorScheme.surfaceContainerHighest
+                  : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
@@ -1782,10 +1826,10 @@ class _AttendancePageState extends State<AttendancePage> {
     );
   }
 
-  Widget _buildMonthlyRow(Map<String, dynamic> data, bool isMobile) {
-    final percentage = data['percentage'] as double;
-    final attended = data['attended'] as int;
-    final total = data['total'] as int;
+  Widget _buildMonthlyRow(MonthlyClassAttendance data, bool isMobile) {
+    final percentage = data.percentage;
+    final attended = data.present;
+    final total = data.total;
     final progress = total > 0 ? attended / total : 0.0;
     final status = _getStatusString(percentage);
 
@@ -1799,7 +1843,12 @@ class _AttendancePageState extends State<AttendancePage> {
       ),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: const Color(0xFFE2E8F0), width: 1),
+          bottom: BorderSide(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey.shade800
+                : const Color(0xFFE2E8F0),
+            width: 1,
+          ),
         ),
       ),
       child: Row(
@@ -1816,7 +1865,7 @@ class _AttendancePageState extends State<AttendancePage> {
                 SizedBox(width: isMobile ? 4 : 8),
                 Expanded(
                   child: Text(
-                    data['month'] as String,
+                    data.monthName,
                     style: TextStyle(
                       fontSize: isMobile ? 10 : 12,
                       fontWeight: FontWeight.w500,
@@ -1866,22 +1915,38 @@ class _AttendancePageState extends State<AttendancePage> {
               children: [
                 _buildStatusIcon(
                   Icons.check_circle,
-                  data['present'] as int,
+                  data.present,
                   const Color(0xFF10B981),
                   isMobile,
                 ),
                 _buildStatusIcon(
                   Icons.cancel,
-                  data['absent'] as int,
+                  data.absent,
                   const Color(0xFFEF4444),
                   isMobile,
                 ),
                 _buildStatusIcon(
                   Icons.calendar_today,
-                  data['leaves'] as int,
-                  const Color(0xFFF59E0B),
+                  data.leaves,
+                  Theme.of(context).brightness == Brightness.dark
+                      ? Colors.orange.shade300
+                      : const Color(0xFFF59E0B),
                   isMobile,
                 ),
+                if (data.outings > 0)
+                  _buildStatusIcon(
+                    Icons.directions_walk,
+                    data.outings,
+                    const Color(0xFF8B5CF6),
+                    isMobile,
+                  ),
+                if (data.holidays > 0)
+                  _buildStatusIcon(
+                    Icons.beach_access,
+                    data.holidays,
+                    const Color(0xFF06B6D4),
+                    isMobile,
+                  ),
               ],
             ),
           ),
@@ -1922,8 +1987,8 @@ class _AttendancePageState extends State<AttendancePage> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => AttendanceMonthDetailPage(
-                      monthData: data,
-                      month: data['month'] as String,
+                      monthData: data.rawJson,
+                      month: data.monthName,
                     ),
                   ),
                 );
@@ -1997,7 +2062,12 @@ class _AttendancePageState extends State<AttendancePage> {
         const SizedBox(width: 6),
         Text(
           label,
-          style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+          style: TextStyle(
+            fontSize: 11,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey.shade300
+                : const Color(0xFF64748B),
+          ),
         ),
       ],
     );
@@ -2072,27 +2142,27 @@ class _AttendancePageState extends State<AttendancePage> {
           if (monthlyData.isNotEmpty) ...[
             _buildActivityItem(
               Icons.trending_up,
-              _getStatusColor(monthlyData.first['percentage']),
-              '${monthlyData.first['month']} Performance',
-              '${monthlyData.first['present']} present, ${monthlyData.first['absent']} absent, ${monthlyData.first['leaves']} leaves',
+              _getStatusColor(monthlyData.first.percentage),
+              '${monthlyData.first.monthName} Performance',
+              '${monthlyData.first.present} present, ${monthlyData.first.absent} absent, ${monthlyData.first.leaves} leaves',
               'Monthly Summary',
-              '${monthlyData.first['percentage']}%',
+              '${monthlyData.first.percentage.toStringAsFixed(1)}%',
               isMobile,
               showViewDetails: true,
-              monthData: monthlyData.first,
+              monthData: monthlyData.first.rawJson,
             ),
             if (monthlyData.length > 1)
               _buildActivityItem(
                 Icons.history,
-                _getStatusColor(monthlyData[1]['percentage']),
-                '${monthlyData[1]['month']} Performance',
-                '${monthlyData[1]['present']} present, ${monthlyData[1]['absent']} absent, ${monthlyData[1]['leaves']} leaves',
+                _getStatusColor(monthlyData[1].percentage),
+                '${monthlyData[1].monthName} Performance',
+                '${monthlyData[1].present} present, ${monthlyData[1].absent} absent, ${monthlyData[1].leaves} leaves',
                 'Monthly Summary',
-                '${monthlyData[1]['percentage']}%',
+                '${monthlyData[1].percentage.toStringAsFixed(1)}%',
                 isMobile,
                 showViewDetails: true,
                 isLast: true,
-                monthData: monthlyData[1],
+                monthData: monthlyData[1].rawJson,
               ),
           ],
           SizedBox(height: isMobile ? 12 : 16),
@@ -2136,7 +2206,9 @@ class _AttendancePageState extends State<AttendancePage> {
       margin: EdgeInsets.only(bottom: isLast ? 0 : (isMobile ? 12 : 16)),
       padding: EdgeInsets.all(isMobile ? 12 : 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).colorScheme.surfaceContainerHighest
+            : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

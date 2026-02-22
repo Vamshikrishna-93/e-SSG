@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:student_app/student_app/services/attendance_service.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
 
 import 'package:student_app/theme_controllers.dart';
 
@@ -145,9 +148,12 @@ class _AttendanceMonthDetailPageState extends State<AttendanceMonthDetailPage> {
           final int presentDays = monthData['present'] ?? 0;
           final int absentDays = monthData['absent'] ?? 0;
           final int leaveDays = monthData['leaves'] ?? 0;
+          final int outingDays = monthData['outings'] ?? 0;
+          final int holidayDays = monthData['holidays'] ?? 0;
           final double attendancePercentage = monthData['percentage'] ?? 0.0;
           final int totalDays = monthData['total'] ?? 0;
-          final String month = monthData['month'] ?? '';
+          final String month =
+              monthData['month'] ?? monthData['month_name'] ?? '';
 
           final int performanceStars = _calculatePerformanceStars(
             attendancePercentage,
@@ -297,6 +303,32 @@ class _AttendanceMonthDetailPageState extends State<AttendanceMonthDetailPage> {
                                               0.25,
                                             )
                                           : const Color(0xFFFFF7ED),
+                                      isDark: isDark,
+                                    ),
+                                    _buildSummaryCard(
+                                      value: outingDays.toString(),
+                                      label: 'Outings',
+                                      accent: isDark
+                                          ? Colors.purple.shade600
+                                          : const Color(0xFF8B5CF6),
+                                      background: isDark
+                                          ? Colors.purple.shade900.withOpacity(
+                                              0.25,
+                                            )
+                                          : const Color(0xFFF5F3FF),
+                                      isDark: isDark,
+                                    ),
+                                    _buildSummaryCard(
+                                      value: holidayDays.toString(),
+                                      label: 'Holidays',
+                                      accent: isDark
+                                          ? Colors.cyan.shade600
+                                          : const Color(0xFF06B6D4),
+                                      background: isDark
+                                          ? Colors.cyan.shade900.withOpacity(
+                                              0.25,
+                                            )
+                                          : const Color(0xFFECFEFF),
                                       isDark: isDark,
                                     ),
                                     _buildSummaryCard(
@@ -683,14 +715,72 @@ class _AttendanceMonthDetailPageState extends State<AttendanceMonthDetailPage> {
                             ),
                             const SizedBox(width: 12),
                             ElevatedButton.icon(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'PDF download functionality coming soon',
+                              onPressed: () async {
+                                try {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Preparing report..."),
+                                      duration: Duration(seconds: 1),
                                     ),
-                                  ),
-                                );
+                                  );
+
+                                  final data =
+                                      await AttendanceService.downloadAttendanceReport(
+                                        year: '2024-2025',
+                                      );
+
+                                  final directory =
+                                      await getTemporaryDirectory();
+                                  final filePath =
+                                      '${directory.path}/class_attendance_report_${widget.month}.pdf';
+                                  final file = File(filePath);
+
+                                  await file.writeAsBytes(data);
+
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(
+                                      context,
+                                    ).hideCurrentSnackBar();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "Report ready: class_attendance_report_${widget.month}.pdf",
+                                        ),
+                                        action: SnackBarAction(
+                                          label: "Open",
+                                          textColor: Colors.white,
+                                          onPressed: () {
+                                            OpenFilex.open(filePath);
+                                          },
+                                        ),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(
+                                      context,
+                                    ).hideCurrentSnackBar();
+                                    String errorMsg = e.toString();
+                                    if (errorMsg.contains(
+                                          'MissingPluginException',
+                                        ) ||
+                                        errorMsg.contains(
+                                          'Unsupported operation',
+                                        )) {
+                                      errorMsg =
+                                          "App restart required to activate download plugin. Please stop and re-run the app.";
+                                    }
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(errorMsg),
+                                        backgroundColor: Colors.red,
+                                        duration: const Duration(seconds: 5),
+                                      ),
+                                    );
+                                  }
+                                }
                               },
                               icon: const Icon(Icons.download, size: 14),
                               label: const Text(
@@ -932,14 +1022,26 @@ class _AttendanceMonthDetailPageState extends State<AttendanceMonthDetailPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: (detail['status'] == 'Present')
+                  color:
+                      (detail['status'] == 'Present' || detail['status'] == 'P')
                       ? (isDark
                             ? Colors.green.shade900.withValues(alpha: 0.5)
                             : const Color(0xFFD1FAE5))
-                      : (detail['status'] == 'Absent')
+                      : (detail['status'] == 'Absent' ||
+                            detail['status'] == 'A')
                       ? (isDark
                             ? Colors.red.shade900.withValues(alpha: 0.5)
                             : const Color(0xFFFEE2E2))
+                      : (detail['status'] == 'Outing' ||
+                            detail['status'] == 'O')
+                      ? (isDark
+                            ? Colors.purple.shade900.withValues(alpha: 0.5)
+                            : const Color(0xFFF5F3FF))
+                      : (detail['status'] == 'Holiday' ||
+                            detail['status'] == 'H')
+                      ? (isDark
+                            ? Colors.cyan.shade900.withValues(alpha: 0.5)
+                            : const Color(0xFFECFEFF))
                       : (isDark
                             ? Colors.orange.shade900.withValues(alpha: 0.5)
                             : const Color(0xFFFFF7ED)),
@@ -950,14 +1052,27 @@ class _AttendanceMonthDetailPageState extends State<AttendanceMonthDetailPage> {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: (detail['status'] == 'Present')
+                    color:
+                        (detail['status'] == 'Present' ||
+                            detail['status'] == 'P')
                         ? (isDark
                               ? Colors.green.shade300
                               : const Color(0xFF10B981))
-                        : (detail['status'] == 'Absent')
+                        : (detail['status'] == 'Absent' ||
+                              detail['status'] == 'A')
                         ? (isDark
                               ? Colors.red.shade300
                               : const Color(0xFFEF4444))
+                        : (detail['status'] == 'Outing' ||
+                              detail['status'] == 'O')
+                        ? (isDark
+                              ? Colors.purple.shade300
+                              : const Color(0xFF8B5CF6))
+                        : (detail['status'] == 'Holiday' ||
+                              detail['status'] == 'H')
+                        ? (isDark
+                              ? Colors.cyan.shade300
+                              : const Color(0xFF06B6D4))
                         : (isDark
                               ? Colors.orange.shade300
                               : const Color(0xFFF97316)),

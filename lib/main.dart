@@ -4,6 +4,7 @@ import 'package:student_app/staff_app/pages/home_dashboard_page.dart';
 import 'package:student_app/staff_app/pages/login_page.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:student_app/home/home_page.dart';
+import 'package:student_app/student_app/signIn_page.dart';
 
 // Student Services & Theme
 import 'package:student_app/student_app/services/session_service.dart';
@@ -13,8 +14,10 @@ import 'package:student_app/student_app/services/student_profile_service.dart';
 // We primarily initialize Staff's ThemeController for Get.find usage.
 
 // Staff Controllers
-import 'package:student_app/staff_app/controllers/theme_controller.dart';
+import 'package:student_app/staff_app/controllers/theme_controller.dart'
+    as staff;
 import 'package:student_app/staff_app/controllers/auth_controller.dart';
+import 'package:student_app/theme_controllers.dart';
 
 // Staff Theme
 import 'package:student_app/staff_app/theme/app_theme.dart';
@@ -43,8 +46,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
 
+  // Initialize Student Theme Choice
+  await StudentThemeController.init();
+
   // 🌗 Global controller (NOT user-specific) - Staff App
-  Get.put(ThemeController(), permanent: true);
+  Get.put(staff.ThemeController(), permanent: true);
 
   // 🔐 AuthController MUST NOT be permanent (multi-user safe) - Staff App
   Get.lazyPut<AuthController>(() => AuthController());
@@ -67,7 +73,7 @@ class SsJcApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Bind to Staff ThemeController for app-wide theme
-    final themeController = Get.find<ThemeController>();
+    final themeController = Get.find<staff.ThemeController>();
 
     return Obx(
       () => GetMaterialApp(
@@ -81,8 +87,13 @@ class SsJcApp extends StatelessWidget {
             ? ThemeMode.dark
             : ThemeMode.light,
 
-        // 🚀 Entry Point: Role Selection
-        home: const HomePage(),
+        // 🚀 Entry Point: Auto-redirect if student is logged in, else Role Selection
+        home: isLoggedIn
+            ? ThemeControllerWrapper(
+                themeController: StudentThemeController.themeMode,
+                child: const StudentLoginWrapper(),
+              )
+            : const HomePage(),
 
         getPages: [
           // 🔑 AUTH FLOW

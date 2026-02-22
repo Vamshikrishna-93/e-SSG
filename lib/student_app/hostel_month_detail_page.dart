@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:student_app/student_app/model/hostel_attendance.dart';
 import 'package:student_app/student_app/services/hostel_attendance_service.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
 
 class HostelMonthDetailPage extends StatefulWidget {
   final MonthlyAttendance monthData;
@@ -701,14 +704,69 @@ class _HostelMonthDetailPageState extends State<HostelMonthDetailPage> {
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton.icon(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'PDF download functionality coming soon',
+                        onPressed: () async {
+                          try {
+                            // Show loading indicator
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Preparing report..."),
                               ),
-                            ),
-                          );
+                            );
+
+                            final data =
+                                await HostelAttendanceService.downloadHostelAttendanceReport(
+                                  year: '2024-2025',
+                                );
+
+                            // Get directory to save file
+                            final directory = await getTemporaryDirectory();
+                            final filePath =
+                                '${directory.path}/hostel_attendance_report.pdf';
+                            final file = File(filePath);
+
+                            // Write bytes to file
+                            await file.writeAsBytes(data);
+
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "Report ready: hostel_attendance_report.pdf (${(data.length / 1024).toStringAsFixed(2)} KB)",
+                                  ),
+                                  action: SnackBarAction(
+                                    label: "Open",
+                                    textColor: Colors.white,
+                                    onPressed: () {
+                                      OpenFilex.open(filePath);
+                                    },
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).hideCurrentSnackBar();
+                              String errorMsg = e.toString();
+                              if (errorMsg.contains('MissingPluginException') ||
+                                  errorMsg.contains('Unsupported operation')) {
+                                errorMsg =
+                                    "App restart required to activate download plugin. Please stop and re-run the app.";
+                              }
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(errorMsg),
+                                  backgroundColor: Colors.red,
+                                  duration: const Duration(seconds: 5),
+                                ),
+                              );
+                            }
+                          }
                         },
                         icon: const Icon(Icons.download, size: 14),
                         label: const Text(

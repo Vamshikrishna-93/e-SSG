@@ -17,36 +17,7 @@ class WeeklyTimetablePage extends StatelessWidget {
           final theme = Theme.of(context);
           return Scaffold(
             backgroundColor: theme.scaffoldBackgroundColor,
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: Icon(
-                Icons.calendar_today,
-                color: theme.brightness == Brightness.dark
-                    ? Colors.blue.shade300
-                    : Colors.blue.shade700,
-                size: 24,
-              ),
-              title: Text(
-                "Weekly Time Table",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: theme.textTheme.bodyLarge!.color,
-                ),
-              ),
-              actions: [
-                IconButton(
-                  icon: Icon(
-                    Icons.close,
-                    color: theme.textTheme.bodyLarge!.color,
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ),
+
             body: SafeArea(
               child: Column(
                 children: [

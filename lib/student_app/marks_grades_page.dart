@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:student_app/student_app/exam_summary_dialog.dart';
-import 'package:student_app/student_app/student_app_bar.dart';
 import 'package:student_app/student_app/studentdrawer.dart';
 import 'package:student_app/student_app/widgets/marks_widgets.dart';
+import 'package:student_app/student_app/services/exams_service.dart';
 import 'package:student_app/theme_controllers.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
 
 class MarksGradesPage extends StatefulWidget {
   final Map<String, dynamic> exam;
@@ -29,7 +32,6 @@ class _MarksGradesPageState extends State<MarksGradesPage> {
 
           return Scaffold(
             backgroundColor: theme.scaffoldBackgroundColor,
-            appBar: const StudentAppBar(title: ""),
             drawer: const StudentDrawerPage(),
             body: SafeArea(
               child: SingleChildScrollView(
@@ -68,12 +70,23 @@ class _MarksGradesPageState extends State<MarksGradesPage> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "Marks & Grades",
-                  style: textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: textTheme.bodyLarge?.color,
-                  ),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => Navigator.pop(context),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      "Marks & Grades",
+                      style: textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: textTheme.bodyLarge?.color,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -106,9 +119,54 @@ class _MarksGradesPageState extends State<MarksGradesPage> {
             ),
             const SizedBox(width: 12),
             ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () async {
+                try {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Preparing report...")),
+                  );
+
+                  final data = await ExamsService.downloadExamReport(
+                    widget.examId,
+                  );
+
+                  final directory = await getTemporaryDirectory();
+                  final filePath =
+                      '${directory.path}/exam_report_${widget.examId}.pdf';
+                  final file = File(filePath);
+                  await file.writeAsBytes(data);
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Report ready: exam_report_${widget.examId}.pdf",
+                        ),
+                        action: SnackBarAction(
+                          label: "Open",
+                          textColor: Colors.white,
+                          onPressed: () {
+                            OpenFilex.open(filePath);
+                          },
+                        ),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Download failed: $e"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
               icon: const Icon(Icons.file_download_outlined, size: 18),
-              label: const Text("Download All"),
+              label: const Text("Download Report"),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2563EB),
                 foregroundColor: Colors.white,
@@ -729,7 +787,52 @@ class _MarksGradesPageState extends State<MarksGradesPage> {
             const SizedBox(width: 8),
             InkWell(
               borderRadius: BorderRadius.circular(20),
-              onTap: () {},
+              onTap: () async {
+                try {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Preparing report...")),
+                  );
+
+                  final data = await ExamsService.downloadExamReport(
+                    widget.examId,
+                  );
+
+                  final directory = await getTemporaryDirectory();
+                  final filePath =
+                      '${directory.path}/exam_report_${widget.examId}.pdf';
+                  final file = File(filePath);
+                  await file.writeAsBytes(data);
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Report ready: exam_report_${widget.examId}.pdf",
+                        ),
+                        action: SnackBarAction(
+                          label: "Open",
+                          textColor: Colors.white,
+                          onPressed: () {
+                            OpenFilex.open(filePath);
+                          },
+                        ),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Download failed: $e"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
               child: const Padding(
                 padding: EdgeInsets.all(6),
                 child: Icon(

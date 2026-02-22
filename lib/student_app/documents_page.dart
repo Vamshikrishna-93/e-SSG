@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:student_app/student_app/services/documents_service.dart';
 import 'package:student_app/student_app/student_app_bar.dart';
 import 'package:student_app/student_app/upload_document_dialog.dart';
+import 'package:student_app/theme_controllers.dart';
 
 class DocumentsPage extends StatefulWidget {
   const DocumentsPage({super.key});
@@ -124,70 +125,77 @@ class _DocumentsPageState extends State<DocumentsPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bg,
-      appBar: const StudentAppBar(title: ""),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Error: $_errorMessage"),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _fetchData,
-                    child: const Text("Retry"),
+    return ThemeControllerWrapper(
+      themeController: StudentThemeController.themeMode,
+      child: Builder(
+        builder: (context) {
+          return Scaffold(
+            backgroundColor: bg,
+            appBar: const StudentAppBar(title: ""),
+            body: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _errorMessage != null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("Error: $_errorMessage"),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _fetchData,
+                          child: const Text("Retry"),
+                        ),
+                      ],
+                    ),
+                  )
+                : SafeArea(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 20,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _header(),
+                          const SizedBox(height: 24),
+                          _statCard(
+                            title: "Total Documents",
+                            count: totalDocs,
+                            icon: Icons.folder_outlined,
+                            color: const Color(0xFF2563EB),
+                          ),
+                          _statCard(
+                            title: "Verified",
+                            count: verifiedDocs,
+                            icon: Icons.check_circle_outline,
+                            color: const Color(0xFF22C55E),
+                          ),
+                          _statCard(
+                            title: "Pending",
+                            count: pendingDocs,
+                            icon: Icons.access_time,
+                            color: const Color(0xFFF59E0B),
+                          ),
+                          _statCard(
+                            title: "Rejected",
+                            count: rejectedDocs,
+                            icon: Icons.warning_amber_rounded,
+                            color: const Color(0xFFEF4444),
+                          ),
+                          const SizedBox(height: 28),
+                          _tabsSection(),
+                          const SizedBox(height: 28),
+                          _categoriesSection(),
+                          const SizedBox(height: 28),
+                          _verificationProgress(),
+                        ],
+                      ),
+                    ),
                   ),
-                ],
-              ),
-            )
-          : SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 20,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _header(),
-                    const SizedBox(height: 24),
-                    _statCard(
-                      title: "Total Documents",
-                      count: totalDocs,
-                      icon: Icons.folder_outlined,
-                      color: const Color(0xFF2563EB),
-                    ),
-                    _statCard(
-                      title: "Verified",
-                      count: verifiedDocs,
-                      icon: Icons.check_circle_outline,
-                      color: const Color(0xFF22C55E),
-                    ),
-                    _statCard(
-                      title: "Pending",
-                      count: pendingDocs,
-                      icon: Icons.access_time,
-                      color: const Color(0xFFF59E0B),
-                    ),
-                    _statCard(
-                      title: "Rejected",
-                      count: rejectedDocs,
-                      icon: Icons.warning_amber_rounded,
-                      color: const Color(0xFFEF4444),
-                    ),
-                    const SizedBox(height: 28),
-                    _tabsSection(),
-                    const SizedBox(height: 28),
-                    _categoriesSection(),
-                    const SizedBox(height: 28),
-                    _verificationProgress(),
-                  ],
-                ),
-              ),
-            ),
+          );
+        },
+      ),
     );
   }
 

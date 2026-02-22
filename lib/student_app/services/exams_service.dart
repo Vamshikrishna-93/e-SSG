@@ -156,6 +156,41 @@ class ExamsService {
     }
   }
 
+  static Future<Map<String, dynamic>> getExamReportData(String examId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('access_token');
+      final String? studentId = prefs.getString('student_id');
+
+      if (token == null || studentId == null) {
+        throw Exception('User or Student ID not found. Please log in again.');
+      }
+
+      final url = Uri.parse(
+        '${ApiConfig.studentApiBaseUrl}/exam/$examId/download-report',
+      );
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception(
+          'Failed to fetch report data (Status: ${response.statusCode})',
+        );
+      }
+    } catch (e) {
+      throw Exception('Error fetching report data: $e');
+    }
+  }
+
   static Future<List<int>> downloadExamReport(String examId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -166,21 +201,25 @@ class ExamsService {
         throw Exception('User or Student ID not found. Please log in again.');
       }
 
+      final url = Uri.parse(
+        '${ApiConfig.studentApiBaseUrl}/exam/$examId/download-report',
+      );
+
       final response = await http.get(
-        Uri.parse(
-          '${ApiConfig.studentApiBaseUrl}/exam/$examId/download-report',
-        ),
+        url,
         headers: {
           'Authorization': 'Bearer $token',
+          'Accept': '*/*',
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
         },
       );
 
       if (response.statusCode == 200) {
         return response.bodyBytes;
       } else {
-        throw Exception('Failed to download report: ${response.statusCode}');
+        throw Exception(
+          'Failed to download report (Status: ${response.statusCode})',
+        );
       }
     } catch (e) {
       throw Exception('Error downloading report: $e');

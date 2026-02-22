@@ -9,29 +9,51 @@ class HostelAttendanceService {
       '/student-hostel-attendance-grid';
 
   static Future<HostelAttendance> getHostelAttendance({
-    String year = "2024-2025",
+    String? year,
+    bool forceRefresh = false,
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('access_token');
+      final String? studentId = prefs.getString('student_id');
 
-      if (token == null) {
+      if (token == null || studentId == null) {
         throw Exception('User or Student ID not found. Please log in again.');
       }
 
+      final String cacheKey = year != null && year.isNotEmpty
+          ? 'hostel_attendance_${studentId}_$year'
+          : 'hostel_attendance_$studentId';
+
+      if (!forceRefresh) {
+        final String? cachedData = prefs.getString(cacheKey);
+        if (cachedData != null) {
+          return HostelAttendance.fromJson(jsonDecode(cachedData));
+        }
+      }
+
+      String url =
+          '${ApiConfig.studentApiBaseUrl}$_hostelAttendanceEndpoint/$studentId';
+      if (year != null && year.isNotEmpty) {
+        url += '?year=$year';
+      }
+
+      print('Fetching Hostel Attendance for student $studentId from: $url');
       final response = await http.get(
-        Uri.parse(
-          '${ApiConfig.studentApiBaseUrl}$_hostelAttendanceEndpoint/$year',
-        ),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         },
       );
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
+        // Cache the response
+        await prefs.setString(cacheKey, response.body);
         return HostelAttendance.fromJson(decoded);
       } else {
         throw Exception(
@@ -44,24 +66,34 @@ class HostelAttendanceService {
   }
 
   static Future<List<int>> downloadHostelAttendanceReport({
-    String year = "2024-2025",
+    String? year,
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('access_token');
+      final String? studentId = prefs.getString('student_id');
 
-      if (token == null) {
+      if (token == null || studentId == null) {
         throw Exception('User or Student ID not found. Please log in again.');
       }
 
+      String url =
+          '${ApiConfig.studentApiBaseUrl}/student-hostel-attendance-download/$studentId';
+      if (year != null && year.isNotEmpty) {
+        url += '?year=$year';
+      }
+
+      print(
+        'Downloading Hostel Attendance Report for student $studentId from: $url',
+      );
       final response = await http.get(
-        Uri.parse(
-          '${ApiConfig.studentApiBaseUrl}/student-hostel-attendance-download/$year',
-        ),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
+          'Accept': '*application/json',
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         },
       );
 

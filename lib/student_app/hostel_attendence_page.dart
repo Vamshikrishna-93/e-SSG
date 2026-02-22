@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:student_app/student_app/services/hostel_attendance_service.dart';
+import 'dart:math' as math;
 import 'package:student_app/student_app/student_app_bar.dart';
 import 'package:student_app/student_app/hostel_month_detail_page.dart';
 import 'package:student_app/student_app/model/hostel_attendance.dart';
-import 'dart:math' as math;
+import 'package:student_app/student_app/services/hostel_attendance_service.dart';
+import 'dart:async';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
@@ -25,21 +26,29 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
   bool _isLoading = true;
   HostelAttendance? _attendanceData;
 
-  String hostelName = "ADARSA";
-  String floor = "2ND FLOOR A&B BLOCKS";
-  String room = "B-204";
-  String warden = "JENNIPOGU ABHI RAM";
+  String hostelName = "VRB CAMPUS";
+  String floor = "4-florr";
+  String room = "408";
+  String warden = "V.Dhana Lakshmi";
 
   // Added missing variables
   int currentStreak = 0;
   int bestStreak = 0;
   int leavesTaken = 0;
   int nightOuts = 0;
-  List<String> trendMonths = [];
-  List<double> trendData = [];
   double overallAttendance = 0.0;
   int nightsInHostel = 0;
   int nightsAbsent = 0;
+
+  // Track full dataset for filtering
+  List<String> _allTrendMonths = [];
+  List<double> _allTrendData = [];
+
+  // Variables used in the UI/Chart
+  List<String> trendMonths = [];
+  List<double> trendData = [];
+
+  Timer? _refreshTimer;
 
   @override
   void initState() {
@@ -47,24 +56,36 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchAttendance();
     });
+    // Refresh data every 5 minutes
+    _refreshTimer = Timer.periodic(const Duration(minutes: 3), (_) {
+      _fetchAttendance();
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    _horizontalScrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchAttendance() async {
     setState(() => _isLoading = true);
+
     try {
       final data = await HostelAttendanceService.getHostelAttendance(
-        year: "2024-2025",
+        forceRefresh: true,
       );
+
       if (mounted) {
         setState(() {
           _attendanceData = data;
 
-          hostelName = data.hostelName ?? hostelName;
-          floor = data.floorName ?? floor;
-          room = data.roomName ?? room;
-          warden = data.wardenName ?? warden;
+          hostelName = data.hostelName ?? "N/A";
+          floor = data.floorName ?? "N/A";
+          room = data.roomName ?? "N/A";
+          warden = data.wardenName ?? "N/A";
 
-          // Populate synthesized variables
           currentStreak = data.currentStreak ?? 0;
           bestStreak = data.bestStreak ?? 0;
           leavesTaken = data.totalLeaves ?? 0;
@@ -73,27 +94,53 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
           nightsInHostel = data.totalPresent ?? 0;
           nightsAbsent = data.totalAbsent ?? 0;
 
-          // Populate trend data
-          trendMonths = data.attendance
-              .map((m) => m.monthName.substring(0, 3))
-              .toList()
-              .reversed
-              .toList();
-          trendData = data.attendance
-              .map((m) => m.percentage)
-              .toList()
-              .reversed
-              .toList();
+          // Extract trend data from monthly attendance
+          _allTrendMonths = data.attendance.map((m) {
+            if (m.monthName.length >= 3) {
+              return m.monthName.substring(0, 3);
+            }
+            return m.monthName;
+          }).toList();
+          _allTrendData = data.attendance.map((m) => m.percentage).toList();
 
+          _applyPeriodFilter();
           _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        debugPrint("Error fetching hostel attendance: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load attendance: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
+  }
+
+  void _applyPeriodFilter() {
+    setState(() {
+      if (selectedPeriod == "Last 6 Months") {
+        trendMonths = _allTrendMonths.length > 6
+            ? _allTrendMonths.sublist(_allTrendMonths.length - 6)
+            : _allTrendMonths;
+        trendData = _allTrendData.length > 6
+            ? _allTrendData.sublist(_allTrendData.length - 6)
+            : _allTrendData;
+      } else if (selectedPeriod == "Last 3 Months") {
+        trendMonths = _allTrendMonths.length > 3
+            ? _allTrendMonths.sublist(_allTrendMonths.length - 3)
+            : _allTrendMonths;
+        trendData = _allTrendData.length > 3
+            ? _allTrendData.sublist(_allTrendData.length - 3)
+            : _allTrendData;
+      } else {
+        trendMonths = List.from(_allTrendMonths);
+        trendData = List.from(_allTrendData);
+      }
+    });
   }
 
   String _getPerformanceStatus(double percentage) {
@@ -108,12 +155,6 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
     if (percentage >= 75) return const Color(0xFFF97316);
     if (percentage >= 60) return const Color(0xFFF59E0B);
     return const Color(0xFFEF4444);
-  }
-
-  @override
-  void dispose() {
-    _horizontalScrollController.dispose();
-    super.dispose();
   }
 
   @override
@@ -274,65 +315,8 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
-                        onPressed: () async {
-                          try {
-                            // Show loading indicator
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Preparing report..."),
-                              ),
-                            );
-
-                            final data =
-                                await HostelAttendanceService.downloadHostelAttendanceReport(
-                                  year: "2024-2025",
-                                );
-
-                            // Get directory to save file
-                            final directory = await getTemporaryDirectory();
-                            final filePath =
-                                '${directory.path}/hostel_attendance_2024_2025.pdf';
-                            final file = File(filePath);
-
-                            // Write bytes to file
-                            await file.writeAsBytes(data);
-
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(
-                                context,
-                              ).hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    "Report downloaded: hostel_attendance_2024_2025.pdf (${(data.length / 1024).toStringAsFixed(2)} KB)",
-                                  ),
-                                  action: SnackBarAction(
-                                    label: "Open",
-                                    textColor: Colors.white,
-                                    onPressed: () {
-                                      OpenFilex.open(filePath);
-                                    },
-                                  ),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Failed to download: $e"),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
-                        },
-                        icon: const Icon(
-                          Icons.print,
-                          size: 18,
-                          color: Colors.black87,
-                        ),
+                        onPressed: _downloadAndOpenReport,
+                        icon: const Icon(Icons.download, size: 18),
                         label: const Text(
                           'Download Report',
                           style: TextStyle(
@@ -360,7 +344,7 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: _fetchAttendance,
-                        icon: const Icon(Icons.download, size: 18),
+                        icon: const Icon(Icons.refresh, size: 18),
                         label: const Text(
                           'Refresh Data',
                           style: TextStyle(
@@ -381,64 +365,10 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () async {
-                          try {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Preparing report..."),
-                              ),
-                            );
-
-                            final data =
-                                await HostelAttendanceService.downloadHostelAttendanceReport(
-                                  year: "2024-2025",
-                                );
-
-                            final directory = await getTemporaryDirectory();
-                            final filePath =
-                                '${directory.path}/hostel_attendance_2024_2025.pdf';
-                            final file = File(filePath);
-
-                            await file.writeAsBytes(data);
-
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(
-                                context,
-                              ).hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    "Report downloaded: hostel_attendance_2024_2025.pdf (${(data.length / 1024).toStringAsFixed(2)} KB)",
-                                  ),
-                                  action: SnackBarAction(
-                                    label: "Open",
-                                    textColor: Colors.white,
-                                    onPressed: () {
-                                      OpenFilex.open(filePath);
-                                    },
-                                  ),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Failed to download: $e"),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
-                        },
-                        icon: const Icon(
-                          Icons.print,
-                          size: 18,
-                          color: Colors.black87,
-                        ),
+                        onPressed: _downloadAndOpenReport,
+                        icon: const Icon(Icons.download, size: 18),
                         label: const Text(
-                          'Print Report',
+                          'Download Report',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -462,6 +392,54 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
         ],
       ),
     );
+  }
+
+  Future<void> _downloadAndOpenReport() async {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Preparing report...")));
+
+    try {
+      final bytes =
+          await HostelAttendanceService.downloadHostelAttendanceReport();
+
+      // Save the file
+      final directory = await getApplicationDocumentsDirectory();
+      final fileName =
+          "Hostel_Attendance_Report_${DateTime.now().millisecondsSinceEpoch}.pdf";
+      final file = File('${directory.path}/$fileName');
+      await file.writeAsBytes(bytes);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Report downloaded. Opening..."),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Open the file
+        await OpenFilex.open(file.path);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        String errorMsg = e.toString();
+        if (errorMsg.contains('MissingPluginException') ||
+            errorMsg.contains('Unsupported operation')) {
+          errorMsg =
+              "App restart required to activate download plugin. Please stop and re-run the app.";
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to download or open: $errorMsg"),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildHostelDetailsCard(bool isMobile) {
@@ -975,37 +953,59 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              selectedPeriod,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF1E293B),
+                    PopupMenuButton<String>(
+                      onSelected: (value) {
+                        setState(() {
+                          selectedPeriod = value;
+                          _applyPeriodFilter();
+                        });
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: "All Months",
+                          child: Text("All Months"),
+                        ),
+                        const PopupMenuItem(
+                          value: "Last 6 Months",
+                          child: Text("Last 6 Months"),
+                        ),
+                        const PopupMenuItem(
+                          value: "Last 3 Months",
+                          child: Text("Last 3 Months"),
+                        ),
+                      ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                selectedPeriod,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF1E293B),
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.arrow_drop_down,
-                            size: 16,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ],
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.arrow_drop_down,
+                              size: 16,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -1031,34 +1031,56 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
                         ),
                       ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            selectedPeriod,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
+                    PopupMenuButton<String>(
+                      onSelected: (value) {
+                        setState(() {
+                          selectedPeriod = value;
+                          _applyPeriodFilter();
+                        });
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: "All Months",
+                          child: Text("All Months"),
+                        ),
+                        const PopupMenuItem(
+                          value: "Last 6 Months",
+                          child: Text("Last 6 Months"),
+                        ),
+                        const PopupMenuItem(
+                          value: "Last 3 Months",
+                          child: Text("Last 3 Months"),
+                        ),
+                      ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              selectedPeriod,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.arrow_drop_down,
+                              size: 18,
                               color: Color(0xFF1E293B),
                             ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.arrow_drop_down,
-                            size: 18,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -1329,9 +1351,8 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildStatItem(
-                      label: 'Leaves Remaining',
-                      value:
-                          '$nightOuts', // Using nightOuts as data source but labeling as per UI req
+                      label: 'Night Outs',
+                      value: '$nightOuts',
                       color: const Color(0xFF8B5CF6), // Purple
                     ),
                   ),
@@ -1596,8 +1617,10 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        HostelMonthDetailPage(monthData: data),
+                    builder: (context) => HostelMonthDetailPage(
+                      monthData: data,
+                      overallData: _attendanceData,
+                    ),
                   ),
                 );
               },
@@ -1835,6 +1858,7 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
                         MaterialPageRoute(
                           builder: (context) => HostelMonthDetailPage(
                             monthData: _attendanceData!.attendance.first,
+                            overallData: _attendanceData,
                           ),
                         ),
                       );

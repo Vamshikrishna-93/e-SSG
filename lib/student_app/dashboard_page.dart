@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
 import 'package:student_app/theme_controllers.dart';
 import 'package:student_app/student_app/announcement_page.dart';
 import 'package:student_app/student_app/model/class_attendance.dart';
@@ -45,25 +46,45 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    _fetchDashboardData();
+    // 1. Initial load from cache (instant)
+    _fetchDashboardData(forceRefresh: false);
+
+    // 2. Background sync from server (automatic update)
+    _fetchDashboardData(forceRefresh: true);
   }
 
-  Future<void> _fetchDashboardData() async {
+  Future<void> _fetchDashboardData({bool forceRefresh = false}) async {
     try {
-      // Fetch Summary for Cards
-      final summary = await AttendanceService.getAttendanceSummary();
-      // Fetch Grid for Chart
-      final grid = await AttendanceService.getAttendance();
-      // Fetch Remarks
-      final remarks = await RemarksService.getRemarks();
-      // Fetch Hostel Attendance
-      final hostelGrid = await HostelAttendanceService.getHostelAttendance();
+      // Fetch all data in parallel
+      final results = await Future.wait([
+        AttendanceService.getAttendanceSummary(forceRefresh: forceRefresh),
+        AttendanceService.getAttendance(forceRefresh: forceRefresh),
+        RemarksService.getRemarks(forceRefresh: forceRefresh),
+        HostelAttendanceService.getHostelAttendance(forceRefresh: forceRefresh),
+      ]);
+
+      final summary = results[0] as Map<String, dynamic>;
+      final grid = results[1] as ClassAttendance;
+      final remarks = results[2] as List<dynamic>;
+      final hostelGrid = results[3] as HostelAttendance;
 
       if (mounted) {
+        // Sort remarks by date descending (newest first)
+        final List<dynamic> sortedRemarks = List.from(remarks);
+        sortedRemarks.sort((a, b) {
+          final dateA =
+              DateTime.tryParse(a['created_at']?.toString() ?? '') ??
+              DateTime(0);
+          final dateB =
+              DateTime.tryParse(b['created_at']?.toString() ?? '') ??
+              DateTime(0);
+          return dateB.compareTo(dateA);
+        });
+
         setState(() {
           _attendanceData = summary;
           _processChartData(grid);
-          _remarks = remarks;
+          _remarks = sortedRemarks;
           _processHostelChartData(hostelGrid);
           _isLoading = false;
         });
@@ -133,6 +154,9 @@ class _DashboardPageState extends State<DashboardPage> {
       case TimeRange.last6Months:
         monthsToShow = 6;
         break;
+      case TimeRange.lastMonth:
+        monthsToShow = 1;
+        break;
       case TimeRange.academicYear:
         monthsToShow = _allChartData.length;
         break;
@@ -176,6 +200,8 @@ class _DashboardPageState extends State<DashboardPage> {
         _allHostelChartData.add({
           'present': present,
           'absent': absent,
+          'holidays': m.holidays,
+          'outings': m.outings,
           'total': total,
           'totalHostelDays': present + absent,
           'month': monthName,
@@ -200,6 +226,9 @@ class _DashboardPageState extends State<DashboardPage> {
         break;
       case TimeRange.last6Months:
         monthsToShow = 6;
+        break;
+      case TimeRange.lastMonth:
+        monthsToShow = 1;
         break;
       case TimeRange.academicYear:
         monthsToShow = _allHostelChartData.length;
@@ -233,6 +262,8 @@ class _DashboardPageState extends State<DashboardPage> {
         return 'Last 6 Months';
       case TimeRange.last3Months:
         return 'Last 3 Months';
+      case TimeRange.lastMonth:
+        return 'Last Month';
     }
   }
 
@@ -765,6 +796,10 @@ class _DashboardPageState extends State<DashboardPage> {
                                         value: TimeRange.last3Months,
                                         child: Text('Last 3 Months'),
                                       ),
+                                      PopupMenuItem<TimeRange>(
+                                        value: TimeRange.lastMonth,
+                                        child: Text('Last Month'),
+                                      ),
                                     ],
                               ),
                             ],
@@ -921,6 +956,10 @@ class _DashboardPageState extends State<DashboardPage> {
                                         value: TimeRange.last3Months,
                                         child: Text('Last 3 Months'),
                                       ),
+                                      PopupMenuItem<TimeRange>(
+                                        value: TimeRange.lastMonth,
+                                        child: Text('Last Month'),
+                                      ),
                                     ],
                               ),
                             ],
@@ -956,10 +995,17 @@ class _DashboardPageState extends State<DashboardPage> {
                                 color: Colors.green,
                                 label: "Present",
                               ),
-                              const SizedBox(width: 24),
                               DashboardLegendItem(
                                 color: Colors.red,
                                 label: "Absent",
+                              ),
+                              DashboardLegendItem(
+                                color: Colors.amber,
+                                label: "Outings",
+                              ),
+                              DashboardLegendItem(
+                                color: Colors.blue,
+                                label: "Holidays",
                               ),
                             ],
                           ),
@@ -996,13 +1042,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     buttonText: "View All Exams",
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => const UpcomingExams(
-                          color: Colors.blue,
-                          date: '',
-                          title: '',
-                        ),
-                      ),
+                      MaterialPageRoute(builder: (_) => const UpcomingExams()),
                     ),
                   ),
                   const SizedBox(height: 20),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:student_app/student_app/services/student_profile_service.dart';
+import 'package:student_app/theme_controllers.dart';
 
 class ChangePasswordPage extends StatefulWidget {
   const ChangePasswordPage({super.key});
@@ -83,146 +84,159 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return ThemeControllerWrapper(
+      themeController: StudentThemeController.themeMode,
+      child: Builder(
+        builder: (context) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: isDark
-          ? const Color(0xFF0F172A)
-          : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: Text(
-          "Change Password",
-          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: isDark ? Colors.white : const Color(0xFF1E293B),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              // Header Decoration
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB).withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.lock_reset_rounded,
-                  size: 48,
-                  color: Color(0xFF2563EB),
-                ),
+          return Scaffold(
+            backgroundColor: isDark
+                ? const Color(0xFF0F172A)
+                : const Color(0xFFF8FAFC),
+            appBar: AppBar(
+              title: Text(
+                "Change Password",
+                style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
               ),
-              const SizedBox(height: 32),
+              centerTitle: true,
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              foregroundColor: isDark ? Colors.white : const Color(0xFF1E293B),
+            ),
+            body: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  children: [
+                    // Header Decoration
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2563EB).withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.lock_reset_rounded,
+                        size: 48,
+                        color: Color(0xFF2563EB),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
 
-              // Form Card
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+                    // Form Card
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(
+                              isDark ? 0.3 : 0.05,
+                            ),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildPasswordField(
+                              label: "Current Password",
+                              hint: "Enter current password",
+                              controller: _currentPasswordController,
+                              obscure: _obscureCurrent,
+                              onToggle: () => setState(
+                                () => _obscureCurrent = !_obscureCurrent,
+                              ),
+                              isDark: isDark,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildPasswordField(
+                              label: "New Password",
+                              hint: "Enter new password",
+                              controller: _newPasswordController,
+                              obscure: _obscureNew,
+                              onToggle: () =>
+                                  setState(() => _obscureNew = !_obscureNew),
+                              isDark: isDark,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildPasswordField(
+                              label: "Confirm New Password",
+                              hint: "Confirm new password",
+                              controller: _confirmPasswordController,
+                              obscure: _obscureConfirm,
+                              onToggle: () => setState(
+                                () => _obscureConfirm = !_obscureConfirm,
+                              ),
+                              isDark: isDark,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Please confirm password";
+                                }
+                                if (value != _newPasswordController.text) {
+                                  return "Passwords do not match";
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 32),
+
+                            // Update Button
+                            SizedBox(
+                              height: 56,
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _updatePassword,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF2563EB),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: 24,
+                                        width: 24,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : Text(
+                                        "Update Password",
+                                        style: GoogleFonts.inter(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      "Ensure your new password is secure and not used elsewhere.",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        color: isDark ? Colors.white54 : Colors.grey.shade600,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildPasswordField(
-                        label: "Current Password",
-                        hint: "Enter current password",
-                        controller: _currentPasswordController,
-                        obscure: _obscureCurrent,
-                        onToggle: () =>
-                            setState(() => _obscureCurrent = !_obscureCurrent),
-                        isDark: isDark,
-                      ),
-                      const SizedBox(height: 20),
-                      _buildPasswordField(
-                        label: "New Password",
-                        hint: "Enter new password",
-                        controller: _newPasswordController,
-                        obscure: _obscureNew,
-                        onToggle: () =>
-                            setState(() => _obscureNew = !_obscureNew),
-                        isDark: isDark,
-                      ),
-                      const SizedBox(height: 20),
-                      _buildPasswordField(
-                        label: "Confirm New Password",
-                        hint: "Confirm new password",
-                        controller: _confirmPasswordController,
-                        obscure: _obscureConfirm,
-                        onToggle: () =>
-                            setState(() => _obscureConfirm = !_obscureConfirm),
-                        isDark: isDark,
-                        validator: (value) {
-                          if (value == null || value.isEmpty)
-                            return "Please confirm password";
-                          if (value != _newPasswordController.text)
-                            return "Passwords do not match";
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Update Button
-                      SizedBox(
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _updatePassword,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2563EB),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Text(
-                                  "Update Password",
-                                  style: GoogleFonts.inter(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
-              const SizedBox(height: 24),
-              Text(
-                "Ensure your new password is secure and not used elsewhere.",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  color: isDark ? Colors.white54 : Colors.grey.shade600,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

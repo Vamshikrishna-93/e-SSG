@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:student_app/student_app/class_attendance_page.dart';
-import 'package:student_app/student_app/dashboard_page.dart';
 import 'package:student_app/student_app/documents_page.dart';
 import 'package:student_app/student_app/exams_page.dart';
+import 'package:student_app/student_app/dashboard_page.dart';
 import 'package:student_app/student_app/hostel_attendence_page.dart';
 import 'package:student_app/student_app/hostel_fee_page.dart';
 import 'package:student_app/student_app/outings_permissions_page.dart';
@@ -19,7 +19,6 @@ class StudentDrawerPage extends StatelessWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-
         leading: IconButton(
           icon: const Icon(Icons.menu),
           onPressed: () => Navigator.pop(context),
@@ -31,7 +30,6 @@ class StudentDrawerPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🔹 LOGO BELOW APP BAR
               const SizedBox(height: 16),
               Column(
                 mainAxisSize: MainAxisSize.min,
@@ -48,9 +46,7 @@ class StudentDrawerPage extends StatelessWidget {
                     padding: const EdgeInsets.all(10),
                     child: Image.asset('assets/logo.png', fit: BoxFit.contain),
                   ),
-
                   const SizedBox(height: 8),
-
                   Text(
                     'Sri Saraswathi College',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -60,7 +56,6 @@ class StudentDrawerPage extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),

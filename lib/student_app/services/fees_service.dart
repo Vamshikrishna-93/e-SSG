@@ -13,7 +13,7 @@ class FeesService {
       // Use the token from the prompt as default/fallback
       final String token =
           prefs.getString('access_token') ??
-          'MTYyNjR8SVlIbWlWRjMzbno3ZGJwb3BIWXRySEtPaERkM2x2Y01GUnlGUmthNnwxNzY3MjQ2NDcyfDg4ZmQ4YTQ0YjQ4NGQ1YTJlNGFmMTEzYTAwN2VlYTdlYmE4MDBjM2Q5N2U4ZTljMjU5YmY5NjJhMjliODliNzA=';
+          'MjA1OTl8aTdYQWNCQndzUlF5SDUxbTFhclZWU3hkRnRPbXlpcmh4UnBjWlR6ZXwxNzY5NzU0Njc5fGEyODBmOTk3MGQxOWZiOGY2ZjU0ZjJjMWQwZDAwNTMzMWNjOGE2YmVhOWIzZDczNTE2Zjk4NWJhMjcwOGY0MWE=';
 
       final String studentId = prefs.getString('student_id') ?? '16264';
 

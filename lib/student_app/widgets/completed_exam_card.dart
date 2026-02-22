@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:student_app/student_app/model/exam_item.dart';
 import 'package:student_app/student_app/marks_grades_page.dart';
 import 'package:student_app/student_app/services/exams_service.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
 
 class CompletedExamCard extends StatelessWidget {
   final ExamModel exam;
@@ -243,14 +246,37 @@ class CompletedExamCard extends StatelessWidget {
                   child: InkWell(
                     onTap: () async {
                       try {
+                        // Show loading indicator
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Preparing report...")),
+                        );
+
                         final data = await ExamsService.downloadExamReport(
                           exam.id,
                         );
+
+                        // Get directory to save file
+                        final directory = await getTemporaryDirectory();
+                        final filePath =
+                            '${directory.path}/exam_report_${exam.id}.pdf';
+                        final file = File(filePath);
+
+                        // Write bytes to file
+                        await file.writeAsBytes(data);
+
                         if (context.mounted) {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                "Report downloaded (${(data.length / 1024).toStringAsFixed(2)} KB)",
+                                "Report ready: exam_report_${exam.id}.pdf (${(data.length / 1024).toStringAsFixed(2)} KB)",
+                              ),
+                              action: SnackBarAction(
+                                label: "Open",
+                                textColor: Colors.white,
+                                onPressed: () {
+                                  OpenFilex.open(filePath);
+                                },
                               ),
                               backgroundColor: Colors.green,
                             ),
@@ -258,10 +284,18 @@ class CompletedExamCard extends StatelessWidget {
                         }
                       } catch (e) {
                         if (context.mounted) {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          String errorMsg = e.toString();
+                          if (errorMsg.contains('MissingPluginException') ||
+                              errorMsg.contains('Unsupported operation')) {
+                            errorMsg =
+                                "App restart required to activate download plugin. Please stop and re-run the app.";
+                          }
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text("Failed to download: $e"),
+                              content: Text("Download failed: $errorMsg"),
                               backgroundColor: Colors.red,
+                              duration: const Duration(seconds: 5),
                             ),
                           );
                         }

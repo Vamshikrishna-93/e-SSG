@@ -33,7 +33,7 @@ class HostelAttendance {
 
   factory HostelAttendance.fromJson(Map<String, dynamic> json) {
     final root = json['data'] ?? json;
-    
+
     List<dynamic> list = [];
     Map<String, dynamic> stats = {};
 
@@ -41,9 +41,14 @@ class HostelAttendance {
       list = root;
       stats = json;
     } else if (root is Map<String, dynamic>) {
-      list = root['attendance'] ?? root['monthlyData'] ?? root['data_list'] ?? [];
+      list =
+          root['attendance'] ?? root['monthlyData'] ?? root['data_list'] ?? [];
       if (list.isEmpty && root['data'] is List) {
         list = root['data'];
+      }
+      // If still empty and root map has Day_ keys, it's a single month object
+      if (list.isEmpty && root.keys.any((k) => k.startsWith('Day_'))) {
+        list = [root];
       }
       stats = root;
     }
@@ -56,25 +61,40 @@ class HostelAttendance {
       return int.tryParse(s) ?? double.tryParse(s)?.toInt();
     }
 
-    final attendanceList = list.map((m) => MonthlyAttendance.fromJson(m is Map<String, dynamic> ? m : {})).toList();
+    final attendanceList = list
+        .map(
+          (m) => MonthlyAttendance.fromJson(m is Map<String, dynamic> ? m : {}),
+        )
+        .toList();
 
     final hostelInfo = json['hostel_info'] as Map<String, dynamic>?;
 
     var result = HostelAttendance(
       success: json['success'] == true,
       attendance: attendanceList,
-      overallPercentage: safeDouble(stats['overall_percentage'] ?? stats['overall_perc']),
+      overallPercentage: safeDouble(
+        stats['overall_percentage'] ?? stats['overall_perc'],
+      ),
       totalPresent: safeInt(stats['total_present'] ?? stats['present']),
-      totalDays: safeInt(stats['total_days'] ?? stats['total'] ?? stats['working_days']),
+      totalDays: safeInt(
+        stats['total_days'] ?? stats['total'] ?? stats['working_days'],
+      ),
       totalAbsent: safeInt(stats['total_absent'] ?? stats['absent']),
       totalLeaves: safeInt(stats['total_leaves'] ?? stats['leaves']),
       totalNightOuts: safeInt(stats['total_night_outs'] ?? stats['night_outs']),
       currentStreak: safeInt(stats['current_streak'] ?? stats['streak']),
       bestStreak: safeInt(stats['best_streak'] ?? stats['max_streak']),
-      hostelName: hostelInfo?['hostel_name']?.toString() ?? stats['hostel_name']?.toString(),
-      floorName: hostelInfo?['floorname']?.toString() ?? stats['floor_name']?.toString(),
-      roomName: hostelInfo?['roomname']?.toString() ?? stats['room_name']?.toString(),
-      wardenName: hostelInfo?['incharge']?.toString() ?? stats['warden_name']?.toString(),
+      hostelName:
+          hostelInfo?['hostel_name']?.toString() ??
+          stats['hostel_name']?.toString(),
+      floorName:
+          hostelInfo?['floorname']?.toString() ??
+          stats['floor_name']?.toString(),
+      roomName:
+          hostelInfo?['roomname']?.toString() ?? stats['room_name']?.toString(),
+      wardenName:
+          hostelInfo?['incharge']?.toString() ??
+          stats['warden_name']?.toString(),
     );
 
     // Synthesize stats if missing from root but present in list
@@ -139,6 +159,7 @@ class MonthlyAttendance {
       if (s.isEmpty) return fallback;
       return int.tryParse(s) ?? double.tryParse(s)?.toInt() ?? fallback;
     }
+
     double safeDouble(dynamic v, double fallback) {
       return double.tryParse(clean(v)) ?? fallback;
     }
@@ -149,8 +170,14 @@ class MonthlyAttendance {
     int h = safeInt(json['holidays'] ?? json['holiday_days'], 0);
     int o = safeInt(json['outings'] ?? json['outing_days'], 0);
     int l = safeInt(json['leaves'] ?? json['leave_days'], 0);
-    int t = safeInt(json['total'] ?? json['working_days'] ?? json['total_working_days'], (p + a + h + o + l));
-    double perc = safeDouble(json['percentage'] ?? json['attendance_percentage'], t > 0 ? (p / t) * 100 : 0.0);
+    int t = safeInt(
+      json['total'] ?? json['working_days'] ?? json['total_working_days'],
+      (p + a + h + o + l),
+    );
+    double perc = safeDouble(
+      json['percentage'] ?? json['attendance_percentage'],
+      t > 0 ? (p / t) * 100 : 0.0,
+    );
 
     List<DayAttendance> synthDetails = [];
     if (json.keys.any((k) => k.startsWith('Day_'))) {
@@ -173,13 +200,16 @@ class MonthlyAttendance {
             so++;
           } else if (status == 'SO' || status == 'M') {
             // Mapping SO/M to Night Out for now, or could be others
-            so++; 
+            so++;
           }
 
-          synthDetails.add(DayAttendance(
-            date: "${json['month_name'] ?? json['month'] ?? json['Month'] ?? ''} $dayStr",
-            status: status,
-          ));
+          synthDetails.add(
+            DayAttendance(
+              date:
+                  "${json['month_name'] ?? json['month'] ?? json['Month'] ?? ''} $dayStr",
+              status: status,
+            ),
+          );
         }
       });
       // Only override if they were zero/missing
@@ -193,7 +223,8 @@ class MonthlyAttendance {
     }
 
     return MonthlyAttendance(
-      monthName: (json['month_name'] ?? json['month'] ?? json['Month'] ?? '').toString(),
+      monthName: (json['month_name'] ?? json['month'] ?? json['Month'] ?? '')
+          .toString(),
       present: p,
       absent: a,
       holidays: h,
