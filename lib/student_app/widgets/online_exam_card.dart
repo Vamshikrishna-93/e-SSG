@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:student_app/student_app/exam_portal_writing_page.dart';
 import 'package:student_app/student_app/exam_writing_page.dart';
 import 'package:student_app/student_app/model/exam_item.dart';
@@ -25,19 +24,6 @@ class OnlineExamCard extends StatefulWidget {
 
 class _OnlineExamCardState extends State<OnlineExamCard> {
   bool _isDownloading = false;
-
-  /// Checks if the exam is scheduled for today
-  bool _isExamToday() {
-    try {
-      final now = DateTime.now();
-      final examDate = DateFormat("yyyy-MM-dd").parse(widget.exam.date);
-      return examDate.year == now.year &&
-          examDate.month == now.month &&
-          examDate.day == now.day;
-    } catch (e) {
-      return false;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
