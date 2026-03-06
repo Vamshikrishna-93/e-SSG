@@ -17,7 +17,6 @@ class _UpcomingExamsState extends State<UpcomingExams> {
   @override
   void initState() {
     super.initState();
-    // Use the dynamic data from ExamModel, falling back to an empty list if not yet loaded
     exams = ExamModel.upcomingExams;
   }
 
@@ -32,231 +31,205 @@ class _UpcomingExamsState extends State<UpcomingExams> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ===== SCROLLABLE CONTENT =====
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    /* ---------------- BACK BUTTON ---------------- */
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 12, 8, 0),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              Icons.arrow_back,
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyLarge?.color,
-                            ),
-                            onPressed: () => Navigator.pop(context),
-                            tooltip: "Back",
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            "",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyLarge?.color,
-                            ),
-                          ),
-                        ],
-                      ),
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          // Purple Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(
+              top: 20,
+              bottom: 25,
+              left: 16,
+              right: 16,
+            ),
+            decoration: const BoxDecoration(
+              color: Color(0xFF7E3FF2),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+            ),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.3),
+                      shape: BoxShape.circle,
                     ),
-                    /* ---------------- HEADER ---------------- */
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              "All Upcoming Exams (${exams.length})",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.bodyLarge?.color,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    child: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: 20,
                     ),
-                    Divider(
-                      height: 1,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey.shade700
-                          : Colors.grey.shade300,
-                    ),
+                  ),
+                ),
+                const SizedBox(width: 15),
+                const Text(
+                  "Upcoming Exams",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
 
-                    /* ---------------- LIST ---------------- */
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: List.generate(
-                          pageData.length,
-                          (index) => Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: ExamCard(item: pageData[index]),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 20),
+                  Text(
+                    "Upcoming Exams(${exams.length})",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+
+                  // Exams List
+                  ...List.generate(
+                    pageData.length,
+                    (index) => ExamCard(item: pageData[index]),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Pagination Info
+                  const Center(
+                    child: Text(
+                      "Page 1 of 2",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Center(
+                    child: Text(
+                      "Showing ${(currentPage - 1) * itemsPerPage + 1}-${((currentPage - 1) * itemsPerPage + pageData.length)} of ${exams.length} exams",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+
+                  // Pagination Controls
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: currentPage > 1
+                            ? () => setState(() => currentPage--)
+                            : null,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: currentPage > 1
+                                ? const Color(0xFF7E3FF2)
+                                : const Color(0xFFF3F1FF),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            "Previous",
+                            style: TextStyle(
+                              color: currentPage > 1
+                                  ? Colors.white
+                                  : Colors.white70,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-
-                    Divider(
-                      height: 1,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey.shade700
-                          : Colors.grey.shade300,
-                    ),
-
-                    /* ---------------- PAGINATION ---------------- */
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 20,
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            "Page $currentPage of $totalPages",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyLarge?.color,
+                      const SizedBox(width: 10),
+                      Container(height: 25, width: 1, color: Colors.black12),
+                      const SizedBox(width: 15),
+                      ...List.generate(totalPages, (index) {
+                        final page = index + 1;
+                        final isActive = page == currentPage;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 0),
+                          child: GestureDetector(
+                            onTap: () => setState(() => currentPage = page),
+                            child: Container(
+                              width: 30,
+                              height: 30,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? const Color(0xFF7E3FF2)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: Text(
+                                "$page",
+                                style: TextStyle(
+                                  color: isActive
+                                      ? Colors.white
+                                      : Colors.black54,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            "Showing ${(currentPage - 1) * itemsPerPage + 1}"
-                            "-${((currentPage - 1) * itemsPerPage + pageData.length)} "
-                            "of ${exams.length} exams",
+                        );
+                      }),
+                      const SizedBox(width: 15),
+                      Container(height: 25, width: 1, color: Colors.black12),
+                      const SizedBox(width: 15),
+                      GestureDetector(
+                        onTap: currentPage < totalPages
+                            ? () => setState(() => currentPage++)
+                            : null,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: currentPage < totalPages
+                                ? const Color(0xFF7E3FF2)
+                                : const Color(0xFFF3F1FF),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            "Next",
                             style: TextStyle(
-                              fontSize: 13,
-                              color:
-                                  Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? Colors.grey.shade400
-                                  : Colors.grey.shade600,
+                              color: currentPage < totalPages
+                                  ? Colors.white
+                                  : Colors.white70,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(height: 16),
-
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              // PREVIOUS
-                              OutlinedButton.icon(
-                                onPressed: currentPage > 1
-                                    ? () => setState(() => currentPage--)
-                                    : null,
-                                icon: const Icon(Icons.chevron_left, size: 18),
-                                label: const Text("Previous"),
-                              ),
-
-                              // PAGE NUMBERS
-                              Row(
-                                children: List.generate(totalPages, (index) {
-                                  final page = index + 1;
-                                  final isActive = page == currentPage;
-
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 4,
-                                    ),
-                                    child: GestureDetector(
-                                      onTap: () =>
-                                          setState(() => currentPage = page),
-                                      child: Container(
-                                        width: 36,
-                                        height: 36,
-                                        alignment: Alignment.center,
-                                        decoration: BoxDecoration(
-                                          color: isActive
-                                              ? const Color(0xFF2563EB)
-                                              : Theme.of(context).cardColor,
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          border: Border.all(
-                                            color: const Color(0xFF2563EB),
-                                          ),
-                                        ),
-                                        child: Text(
-                                          "$page",
-                                          style: TextStyle(
-                                            color: isActive
-                                                ? Colors.white
-                                                : const Color(0xFF2563EB),
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }),
-                              ),
-
-                              // NEXT
-                              OutlinedButton.icon(
-                                onPressed: currentPage < totalPages
-                                    ? () => setState(() => currentPage++)
-                                    : null,
-                                label: const Text("Next"),
-                                icon: const Icon(Icons.chevron_right, size: 18),
-                              ),
-                            ],
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                ],
               ),
             ),
-
-            // ===== FIXED CLOSE BUTTON =====
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              color: Theme.of(context).cardColor,
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Theme.of(context).brightness == Brightness.dark
-                        ? Colors.grey.shade700
-                        : Colors.grey.shade600,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 22,
-                      vertical: 12,
-                    ),
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text(
-                    "Close",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
-/* ================= CARD ================= */
 
 class ExamCard extends StatelessWidget {
   final ExamModel item;
@@ -266,62 +239,58 @@ class ExamCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.black.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.black.withOpacity(0.08)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 45,
+            height: 45,
             decoration: BoxDecoration(
               color: item.color,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.assignment, color: Colors.white, size: 22),
+            child: const Icon(
+              Icons.assignment_outlined,
+              color: Colors.white,
+              size: 22,
+            ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   item.title,
-                  style: TextStyle(
-                    fontSize: 15,
+                  style: const TextStyle(
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                    color: Colors.black87,
+                    height: 1.3,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Row(
                   children: [
                     Icon(
-                      Icons.calendar_today,
-                      size: 14,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey.shade400
-                          : Colors.grey.shade600,
+                      Icons.calendar_month_outlined,
+                      size: 16,
+                      color: Colors.black.withOpacity(0.5),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     Text(
                       item.date,
                       style: TextStyle(
-                        fontSize: 13,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade600,
+                        fontSize: 12,
+                        color: Colors.black.withOpacity(0.6),
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],

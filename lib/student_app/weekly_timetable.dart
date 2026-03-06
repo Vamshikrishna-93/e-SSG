@@ -5,473 +5,212 @@ class WeeklyTimetablePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get current day (for demo, using Monday as today)
-    final today = DateTime.now();
-    final currentDayIndex = today.weekday - 1; // 0 = Monday, 6 = Sunday
-
-    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Current Day Indicator
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              color: theme.cardColor,
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    color: theme.brightness == Brightness.dark
-                        ? Colors.blue.shade300
-                        : Colors.blue.shade700,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _getDayName(currentDayIndex),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: theme.textTheme.bodyLarge!.color,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          // Purple Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(
+              top: 40,
+              bottom: 25,
+              left: 16,
+              right: 16,
+            ),
+            decoration: const BoxDecoration(
+              color: Color(0xFF7E3FF2),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+            ),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: theme.brightness == Brightness.dark
-                          ? Colors.blue.shade900
-                          : Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: theme.brightness == Brightness.dark
-                            ? Colors.blue.shade700
-                            : Colors.blue.shade200,
-                        width: 1,
-                      ),
+                      color: Colors.white.withOpacity(0.3),
+                      shape: BoxShape.circle,
                     ),
-                    child: Text(
-                      "Today",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: theme.brightness == Brightness.dark
-                            ? Colors.blue.shade300
-                            : Colors.blue.shade700,
-                      ),
+                    child: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: 20,
                     ),
                   ),
-                ],
-              ),
-            ),
-
-            // Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _DaySchedule(
-                      dayName: "Monday",
-                      isToday: currentDayIndex == 0,
-                      schedules: _getMondaySchedule(),
-                    ),
-                    _DaySchedule(
-                      dayName: "Tuesday",
-                      isToday: currentDayIndex == 1,
-                      schedules: _getTuesdaySchedule(),
-                    ),
-                    _DaySchedule(
-                      dayName: "Wednesday",
-                      isToday: currentDayIndex == 2,
-                      schedules: _getWednesdaySchedule(),
-                    ),
-                    _DaySchedule(
-                      dayName: "Thursday",
-                      isToday: currentDayIndex == 3,
-                      schedules: _getThursdaySchedule(),
-                    ),
-                    _DaySchedule(
-                      dayName: "Friday",
-                      isToday: currentDayIndex == 4,
-                      schedules: _getFridaySchedule(),
-                    ),
-                    _DaySchedule(
-                      dayName: "Saturday",
-                      isToday: currentDayIndex == 5,
-                      schedules: _getSaturdaySchedule(),
-                      isLast: true,
-                    ),
-                  ],
                 ),
-              ),
-            ),
-
-            // Back to Day View Button
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: theme.cardColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -2),
+                const SizedBox(width: 15),
+                const Text(
+                  "Weekly Time Table",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                ],
-              ),
-              child: const Center(child: _BackToDayViewButton()),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _getDayName(int index) {
-    const days = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    if (index < 0 || index >= days.length) return "Monday";
-    return days[index];
-  }
-
-  List<ScheduleItem> _getMondaySchedule() {
-    return [
-      ScheduleItem("Maths", "09:00 - 09:45", "Mr. Ramesh"),
-      ScheduleItem(
-        "Physics",
-        "09:50 - 10:35",
-        "Ms. Anjali",
-        isHighlighted: true,
-      ),
-      ScheduleItem("Chemistry", "10:40 - 11:25", "Dr. Suresh"),
-      ScheduleItem("English", "11:30 - 12:15", "Mrs. Kavitha"),
-      ScheduleItem("Lunch Break", "12:15 - 01:00", null),
-      ScheduleItem("Biology", "01:00 - 01:45", "Mr. Prakash"),
-      ScheduleItem("Computer Science", "01:50 - 02:35", "Ms. Swathi"),
-      ScheduleItem("Social", "02:40 - 03:25", "Mr. Naresh"),
-    ];
-  }
-
-  List<ScheduleItem> _getTuesdaySchedule() {
-    return [
-      ScheduleItem("Maths", "09:00 - 09:45", "Mr. Ramesh"),
-      ScheduleItem("Physics", "09:50 - 10:35", "Ms. Anjali"),
-      ScheduleItem("Chemistry", "10:40 - 11:25", "Dr. Suresh"),
-      ScheduleItem("English", "11:30 - 12:15", "Mrs. Kavitha"),
-      ScheduleItem("Lunch Break", "12:15 - 01:00", null),
-      ScheduleItem("Biology", "01:00 - 01:45", "Mr. Prakash"),
-      ScheduleItem("Computer Science", "01:50 - 02:35", "Ms. Swathi"),
-      ScheduleItem(
-        "Social",
-        "02:40 - 03:25",
-        "Mr. Naresh",
-        isHighlighted: true,
-      ),
-    ];
-  }
-
-  List<ScheduleItem> _getWednesdaySchedule() {
-    return [
-      ScheduleItem("Maths", "09:00 - 09:45", "Mr. Ramesh"),
-      ScheduleItem(
-        "Physics",
-        "09:50 - 10:35",
-        "Ms. Anjali",
-        isHighlighted: true,
-      ),
-      ScheduleItem("Chemistry", "10:40 - 11:25", "Dr. Suresh"),
-      ScheduleItem("English", "11:30 - 12:15", "Mrs. Kavitha"),
-      ScheduleItem("Lunch Break", "12:15 - 01:00", null),
-      ScheduleItem("Biology", "01:00 - 01:45", "Mr. Prakash"),
-      ScheduleItem("Computer Science", "01:50 - 02:35", "Ms. Swathi"),
-      ScheduleItem("Social", "02:40 - 03:25", "Mr. Naresh"),
-    ];
-  }
-
-  List<ScheduleItem> _getThursdaySchedule() {
-    return [
-      ScheduleItem("Maths", "09:00 - 09:45", "Mr. Ramesh"),
-      ScheduleItem(
-        "Physics",
-        "09:50 - 10:35",
-        "Ms. Anjali",
-        isHighlighted: true,
-      ),
-      ScheduleItem("Chemistry", "10:40 - 11:25", "Dr. Suresh"),
-      ScheduleItem("English", "11:30 - 12:15", "Mrs. Kavitha"),
-      ScheduleItem("Lunch Break", "12:15 - 01:00", null),
-      ScheduleItem("Biology", "01:00 - 01:45", "Mr. Prakash"),
-      ScheduleItem("Computer Science", "01:50 - 02:35", "Ms. Swathi"),
-      ScheduleItem("Social", "02:40 - 03:25", "Mr. Naresh"),
-    ];
-  }
-
-  List<ScheduleItem> _getFridaySchedule() {
-    return [
-      ScheduleItem("Maths", "09:00 - 09:45", "Mr. Ramesh"),
-      ScheduleItem(
-        "Physics",
-        "09:50 - 10:35",
-        "Ms. Anjali",
-        isHighlighted: true,
-      ),
-      ScheduleItem("Chemistry", "10:40 - 11:25", "Dr. Suresh"),
-      ScheduleItem("English", "11:30 - 12:15", "Mrs. Kavitha"),
-      ScheduleItem("Lunch Break", "12:15 - 01:00", null),
-      ScheduleItem("Biology", "01:00 - 01:45", "Mr. Prakash"),
-      ScheduleItem("Computer Science", "01:50 - 02:35", "Ms. Swathi"),
-      ScheduleItem("Social", "02:40 - 03:25", "Mr. Naresh"),
-    ];
-  }
-
-  List<ScheduleItem> _getSaturdaySchedule() {
-    return [
-      ScheduleItem("Maths", "09:00 - 09:45", "Mr. Ramesh"),
-      ScheduleItem(
-        "Physics",
-        "09:50 - 10:35",
-        "Ms. Anjali",
-        isHighlighted: true,
-      ),
-      ScheduleItem("Chemistry", "10:40 - 11:25", "Dr. Suresh"),
-      ScheduleItem("English", "11:30 - 12:15", "Mrs. Kavitha"),
-      ScheduleItem("Lunch Break", "12:15 - 01:00", null),
-      ScheduleItem("Biology", "01:00 - 01:45", "Mr. Prakash"),
-      ScheduleItem("Computer Science", "01:50 - 02:35", "Ms. Swathi"),
-      ScheduleItem("Social", "02:40 - 03:25", "Mr. Naresh"),
-    ];
-  }
-}
-
-class ScheduleItem {
-  final String subject;
-  final String time;
-  final String? instructor;
-  final bool isHighlighted;
-
-  ScheduleItem(
-    this.subject,
-    this.time,
-    this.instructor, {
-    this.isHighlighted = false,
-  });
-}
-
-class _DaySchedule extends StatelessWidget {
-  final String dayName;
-  final List<ScheduleItem> schedules;
-  final bool isToday;
-  final bool isLast;
-
-  const _DaySchedule({
-    required this.dayName,
-    required this.schedules,
-    this.isToday = false,
-    this.isLast = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Day Header
-        Padding(
-          padding: EdgeInsets.only(bottom: 12, top: isLast ? 0 : 16),
-          child: Row(
-            children: [
-              Icon(
-                Icons.calendar_today,
-                color: theme.brightness == Brightness.dark
-                    ? Colors.blue.shade300
-                    : Colors.blue.shade700,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                dayName,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: theme.brightness == Brightness.dark
-                      ? Colors.blue.shade300
-                      : Colors.blue.shade700,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        // Schedule Cards
-        ...schedules.asMap().entries.map((entry) {
-          final index = entry.key;
-          final schedule = entry.value;
-          return _ScheduleCard(
-            subject: schedule.subject,
-            time: schedule.time,
-            instructor: schedule.instructor,
-            isHighlighted: schedule.isHighlighted,
-            isLast: index == schedules.length - 1,
-          );
-        }),
-      ],
-    );
-  }
-}
 
-class _ScheduleCard extends StatelessWidget {
-  final String subject;
-  final String time;
-  final String? instructor;
-  final bool isHighlighted;
-  final bool isLast;
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Day Section Header
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF7E3FF2).withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.calendar_month,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        "Friday",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFCEEAD6),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          "Today",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF0D652D),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
 
-  const _ScheduleCard({
-    required this.subject,
-    required this.time,
-    this.instructor,
-    this.isHighlighted = false,
-    this.isLast = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isHighlighted
-              ? (theme.brightness == Brightness.dark
-                    ? Colors.blue.shade700
-                    : Colors.blue)
-              : theme.dividerColor,
-          width: isHighlighted ? 2 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+                  // Schedule Cards
+                  _buildScheduleCard(
+                    subject: "Maths",
+                    time: "09:00 - 09:45",
+                    teacher: "Mr. Ramesh",
+                  ),
+                  _buildScheduleCard(
+                    subject: "Maths",
+                    time: "09:00 - 09:45",
+                    teacher: "Mr. Ramesh",
+                  ),
+                  _buildScheduleCard(
+                    subject: "Maths",
+                    time: "09:00 - 09:45",
+                    teacher: "Mr. Ramesh",
+                  ),
+                  _buildScheduleCard(
+                    subject: "Maths",
+                    time: "09:00 - 09:45",
+                    teacher: "Mr. Ramesh",
+                  ),
+                  _buildScheduleCard(
+                    subject: "Maths",
+                    time: "09:00 - 09:45",
+                    teacher: "Mr. Ramesh",
+                  ),
+                  _buildScheduleCard(
+                    subject: "Maths",
+                    time: "09:00 - 09:45",
+                    teacher: "Mr. Ramesh",
+                  ),
+                  _buildScheduleCard(
+                    subject: "Maths",
+                    time: "09:00 - 09:45",
+                    teacher: "Mr. Ramesh",
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildScheduleCard({
+    required String subject,
+    required String time,
+    required String teacher,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.black.withOpacity(0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Subject
           Row(
             children: [
-              const Icon(Icons.description, color: Colors.blue, size: 20),
+              const Icon(
+                Icons.description_outlined,
+                color: Color(0xFF2196F3),
+                size: 18,
+              ),
               const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  subject,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: theme.textTheme.bodyLarge!.color,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Time
-          Row(
-            children: [
-              Icon(
-                Icons.access_time,
-                size: 16,
-                color: theme.textTheme.bodySmall!.color,
-              ),
-              const SizedBox(width: 6),
               Text(
-                time,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: theme.textTheme.bodySmall!.color,
+                subject,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          // Instructor
+          Text(
+            time,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black87,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
-              Icon(
-                Icons.person,
-                size: 16,
-                color: theme.textTheme.bodySmall!.color,
-              ),
-              const SizedBox(width: 6),
+              const Icon(Icons.person_outline, color: Colors.black54, size: 18),
+              const SizedBox(width: 8),
               Text(
-                instructor ?? "-",
-                style: TextStyle(
+                teacher,
+                style: const TextStyle(
                   fontSize: 14,
-                  color: theme.textTheme.bodySmall!.color,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _BackToDayViewButton extends StatelessWidget {
-  const _BackToDayViewButton();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return OutlinedButton.icon(
-      onPressed: () {
-        Navigator.pop(context);
-      },
-      icon: Icon(
-        Icons.calendar_today,
-        color: theme.brightness == Brightness.dark
-            ? Colors.blue.shade300
-            : const Color(0xFF2563EB),
-        size: 18,
-      ),
-      label: Text(
-        "Back to Day View",
-        style: TextStyle(
-          color: theme.brightness == Brightness.dark
-              ? Colors.blue.shade300
-              : const Color(0xFF2563EB),
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      style: OutlinedButton.styleFrom(
-        side: BorderSide(
-          color: theme.brightness == Brightness.dark
-              ? Colors.blue.shade300
-              : const Color(0xFF2563EB),
-          width: 1.5,
-        ),
-        backgroundColor: theme.cardColor,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }

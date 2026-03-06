@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:student_app/staff_app/widgets/skeleton.dart';
+import '../widgets/skeleton.dart';
 import '../controllers/hostel_controller.dart';
 import '../controllers/branch_controller.dart';
 
@@ -30,15 +29,9 @@ class AddHostelAttendancePage extends StatefulWidget {
 
 class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
   final HostelController hostelCtrl = Get.find<HostelController>();
-
-  // Mock student data - replace with actual API data
-  final List<Map<String, dynamic>> students = [];
   final Map<int, String> attendanceStatus = {};
-
-  bool isLoading = false;
   String selectedDate = DateTime.now().toIso8601String().split('T')[0];
 
-  // Attendance status options
   final List<String> statusOptions = [
     'Present',
     'Missing',
@@ -48,35 +41,25 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
     'Self Home',
   ];
 
-  // DARK COLORS (matching dashboard)
-  static const Color dark1 = Color(0xFF1a1a2e);
-  static const Color dark2 = Color(0xFF16213e);
-  static const Color dark3 = Color(0xFF0f3460);
-  static const Color purpleDark = Color(0xFF533483);
-
   @override
   void initState() {
     super.initState();
     if (widget.date != null) {
       selectedDate = widget.date!;
     }
-    // Initialize all students as 'Present' by default
-    for (int i = 0; i < students.length; i++) {
-      attendanceStatus[i] = 'Present';
-    }
   }
 
   Future<void> _getStudents() async {
     await hostelCtrl.loadRoomStudents(
-      shift: '1', // Default shift
+      shift: '1',
       date: selectedDate,
-      roomId: widget.room ?? '',
+      roomId: widget.room ?? '101',
     );
 
-    // Initialize attendance status to 'Present' for all students
     for (final student in hostelCtrl.roomStudents) {
       attendanceStatus[student.sid] = 'Present';
     }
+    setState(() {});
   }
 
   Future<void> _submitAttendance() async {
@@ -85,10 +68,6 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
 
     for (final student in hostelCtrl.roomStudents) {
       sids.add(student.sid);
-      // Map full status names to single chars if needed by backend (API usually expects 'P', 'A', 'O', etc.)
-      // Assuming backend accepts full words or we map them here.
-      // Based on screenshot 3, it sends "A" for Absent.
-      // Let's map them.
       String status = attendanceStatus[student.sid] ?? 'Present';
       String statusCode = 'P';
       switch (status) {
@@ -96,8 +75,7 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
           statusCode = 'P';
           break;
         case 'Missing':
-          statusCode =
-              'A'; // or 'M'? Screenshot shows 'A' button, table has 'Missing'. Let's use 'A' for Absent/Missing
+          statusCode = 'A';
           break;
         case 'Outing':
           statusCode = 'O';
@@ -117,43 +95,31 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
       statuses.add(statusCode);
     }
 
-    // 1. Find Branch ID
     final BranchController branchCtrl = Get.put(BranchController());
-    // If branches aren't loaded, we might need to load them first or rely on pre-loaded data
-    if (branchCtrl.branches.isEmpty) {
-      await branchCtrl.loadBranches();
-    }
+    if (branchCtrl.branches.isEmpty) await branchCtrl.loadBranches();
 
-    final branchName = widget.branch;
+    final branchName = widget.branch ?? 'SSJC-VIDHYA BHAVAN';
     final branchObj = branchCtrl.branches.firstWhereOrNull(
       (b) => b.branchName == branchName,
     );
-    final String branchId =
-        branchObj?.id.toString() ?? '1'; // Default to 1 or handle error
+    final String branchId = branchObj?.id.toString() ?? '1';
 
-    // 2. Find Hostel ID (Building ID)
-    // Ensure hostels are loaded for the branch
-    if (hostelCtrl.hostels.isEmpty) {
-      // We might need to load them if not present, but usually they are if we are here.
-      // If not, we can try to load them if we have a branch ID
-      if (branchObj != null) {
-        await hostelCtrl.loadHostelsByBranch(branchObj.id);
-      }
+    if (hostelCtrl.hostels.isEmpty && branchObj != null) {
+      await hostelCtrl.loadHostelsByBranch(branchObj.id);
     }
 
-    final hostelName = widget.hostel;
+    final hostelName = widget.hostel ?? 'VIDHYA BHAVAN';
     final hostelObj = hostelCtrl.hostels.firstWhereOrNull(
       (h) => h.buildingName == hostelName,
     );
     final String hostelId = hostelObj?.id.toString() ?? '1';
 
-    // 3. Find Floor ID and Room ID
-    final floorId = hostelCtrl.getFloorIdFromName(widget.floor ?? '');
-    final roomId = hostelCtrl.getRoomIdFromName(widget.room ?? '');
+    final floorId = hostelCtrl.getFloorIdFromName(widget.floor ?? '1-FLOOR');
+    final roomId = hostelCtrl.getRoomIdFromName(widget.room ?? '101');
 
     final success = await hostelCtrl.submitAttendance(
       branchId: branchId,
-      hostel: hostelId, // Building ID
+      hostel: hostelId,
       floor: floorId,
       room: roomId,
       shift: '1',
@@ -168,8 +134,6 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-
-      // Refresh summary to reflect new numbers and navigate back
       await hostelCtrl.loadRoomAttendanceSummary(
         branch: branchId,
         date: selectedDate,
@@ -177,453 +141,402 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
         floor: floorId,
         room: roomId,
       );
-
-      // Wait a bit for snackbar to be seen or just go back
       Get.back();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-        systemNavigationBarColor: Colors.transparent,
-        systemNavigationBarIconBrightness: isDark
-            ? Brightness.light
-            : Brightness.dark,
-      ),
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        resizeToAvoidBottomInset: false,
-        backgroundColor: const Color(0xFF16213e),
-
-        // ---------------- APP BAR ----------------
-        appBar: AppBar(
-          backgroundColor: isDark
-              ? Colors.black.withOpacity(0.4)
-              : Colors.white.withOpacity(0.9),
-          elevation: 0,
-          title: Text(
-            "Add Hostel Attendance",
-            style: TextStyle(
-              color: isDark ? Colors.white : Colors.black,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back,
-              color: isDark ? Colors.white : Colors.black,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-
-        // ---------------- BODY ----------------
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration(
-            gradient: isDark
-                ? const LinearGradient(
-                    colors: [dark1, dark2, dark3, purpleDark],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : const LinearGradient(
-                    colors: [Color(0xFFF5F6FA), Color(0xFFE8ECF4)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-          ),
-          child: SafeArea(
-            child: Column(
-              children: [
-                // Filter Summary Cards
-                _buildFilterSummary(isDark),
-
-                // Get Students Button
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: Obx(
-                      () => ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isDark
-                              ? Colors.cyanAccent
-                              : const Color(0xFF533483),
-                          foregroundColor: isDark ? Colors.black : Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        icon: hostelCtrl.isLoading.value
-                            ? null
-                            : const Icon(Icons.search),
-                        label: Text(
-                          hostelCtrl.isLoading.value
-                              ? "Loading..."
-                              : "Get Students",
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        onPressed: hostelCtrl.isLoading.value
-                            ? null
-                            : _getStudents,
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          _buildHeader(context),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      "Filter Summary",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
                     ),
                   ),
-                ),
-
-                Expanded(
-                  child: Obx(() {
-                    if (hostelCtrl.isLoading.value) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: SkeletonLoader(itemCount: 5),
-                      );
+                  const SizedBox(height: 14),
+                  _buildFilterSummary(),
+                  const SizedBox(height: 16),
+                  _buildGetStudentsButton(),
+                  const SizedBox(height: 20),
+                  Obx(() {
+                    if (!hostelCtrl.isLoading.value &&
+                        hostelCtrl.roomStudents.isEmpty) {
+                      return const SizedBox.shrink();
                     }
-                    if (hostelCtrl.roomStudents.isEmpty) {
-                      return Center(
-                        child: Text(
-                          'Click "Get Students" to load student list',
-                          style: TextStyle(
-                            color: isDark ? Colors.white70 : Colors.black54,
-                            fontSize: 16,
-                          ),
-                        ),
-                      );
-                    }
-                    return _buildStudentTable(isDark);
+                    return Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF3F0FF),
+                        borderRadius: BorderRadius.all(Radius.circular(28)),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: Column(
+                        children: [
+                          if (hostelCtrl.isLoading.value)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              child: SkeletonList(itemCount: 3),
+                            )
+                          else
+                            _buildStudentList(),
+                        ],
+                      ),
+                    );
                   }),
-                ),
-
-                // Submit Button
-                Obx(
-                  () => hostelCtrl.roomStudents.isNotEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                              ),
-                              onPressed: _submitAttendance,
-                              child: const Text(
-                                'Submit Attendance',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
+          _buildBottomSubmitButton(),
+        ],
       ),
     );
   }
 
-  Widget _buildFilterSummary(bool isDark) {
+  Widget _buildHeader(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withOpacity(0.08)
-            : Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isDark ? Colors.white24 : Colors.grey.shade300,
+      width: double.infinity,
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 10,
+        bottom: 32,
+        left: 20,
+        right: 20,
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFF7C3AED), // Brand Purple
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            'Filter Summary',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black,
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+                size: 22,
+              ),
             ),
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _filterChip(isDark, 'Branch', widget.branch ?? 'Not Selected'),
-              _filterChip(isDark, 'Hostel', widget.hostel ?? 'Not Selected'),
-              _filterChip(isDark, 'Floor', widget.floor ?? 'Not Selected'),
-              _filterChip(isDark, 'Room', widget.room ?? 'Not Selected'),
-              _filterChip(isDark, 'Date', selectedDate),
-            ],
+          const SizedBox(width: 16),
+          const Text(
+            "Add Hostel Attendance",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _filterChip(bool isDark, String label, String value) {
+  Widget _buildFilterSummary() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF16213e) : Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isDark ? Colors.cyanAccent : const Color(0xFF533483),
-        ),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey.withOpacity(0.12)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Text(
-        '$label: $value',
-        style: TextStyle(
-          color: isDark ? Colors.white : Colors.black,
-          fontSize: 12,
+      child: Column(
+        children: [
+          _summaryRow("Branch", widget.branch ?? 'SSJC-VIDHYA BHAVAN'),
+          const SizedBox(height: 8),
+          _summaryRow("Hostel", widget.hostel ?? 'VIDHYA BHAVAN'),
+          const SizedBox(height: 8),
+          _summaryRow("Floor", widget.floor ?? '1-FLOOR'),
+          const SizedBox(height: 8),
+          _summaryRow("Room", widget.room ?? '101'),
+          const SizedBox(height: 8),
+          _summaryRow(
+            "Date",
+            selectedDate.isEmpty ? '2026-02-28' : selectedDate,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryRow(String label, String value) {
+    return Row(
+      children: [
+        Text(
+          "$label : ",
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+            color: Colors.black,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 14, color: Colors.black87),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGetStudentsButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        width: double.infinity,
+        height: 52,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFF8B5CF6),
+              Color(0xFFC084FC),
+            ], // Refined Purple Gradient
+          ),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF7C3AED).withOpacity(0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _getStudents,
+            borderRadius: BorderRadius.circular(12),
+            child: const Center(
+              child: Text(
+                "Get Students",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildStudentTable(bool isDark) {
-    return SingleChildScrollView(
+  Widget _buildStudentList() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isDark ? Colors.white24 : Colors.grey.shade300,
-          ),
-        ),
-        child: Column(
-          children: [
-            // Table Header
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF16213e) : Colors.grey.shade200,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(14),
-                  topRight: Radius.circular(14),
-                ),
+      itemCount: hostelCtrl.roomStudents.length,
+      itemBuilder: (context, index) {
+        final student = hostelCtrl.roomStudents[index];
+        return Container(
+          margin: const EdgeInsets.only(bottom: 20),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-              child: Row(
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  SizedBox(
-                    width: 40,
-                    child: Text(
-                      'S No.',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black,
-                        fontSize: 12,
-                      ),
+                  Text(
+                    "S.NO: ${index + 1}",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
                     ),
                   ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      'Attendance Status',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      'Admission No.',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      'Student Name',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      'Phone Number',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black,
-                        fontSize: 12,
-                      ),
+                  Text(
+                    "Adm No : ${student.admno}",
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
-            ),
-
-            // Table Rows
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: hostelCtrl.roomStudents.length,
-              itemBuilder: (context, index) {
-                final student = hostelCtrl.roomStudents[index];
-                return Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: isDark ? Colors.white12 : Colors.grey.shade200,
-                      ),
+              const SizedBox(height: 12),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: Colors.grey.withOpacity(0.12),
+              ),
+              const SizedBox(height: 16),
+              _studentInfoRow("Student Name", student.studentName),
+              const SizedBox(height: 10),
+              _studentInfoRow("Phone Number", student.phone ?? '8923454677'),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  const Text(
+                    "Attendance Status : ",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.black,
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 40,
-                        child: Text(
-                          '${index + 1}',
-                          style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? Colors.white.withOpacity(0.05)
-                                : Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: DropdownButton<String>(
-                            value: attendanceStatus[student.sid] ?? 'Present',
-                            isExpanded: true,
-                            underline: const SizedBox(),
-                            dropdownColor: isDark ? dark2 : Colors.white,
-                            style: TextStyle(
-                              color: _getStatusColor(
-                                attendanceStatus[student.sid] ?? 'Present',
-                                isDark,
-                              ),
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            items: statusOptions.map((status) {
-                              return DropdownMenuItem(
-                                value: status,
-                                child: Text(
-                                  status,
-                                  style: TextStyle(
-                                    color: _getStatusColor(status, isDark),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                attendanceStatus[student.sid] = value!;
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          student.admno,
-                          style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: InkWell(
-                          onTap: () {
-                            // TODO: Navigate to student details
-                          },
-                          child: Text(
-                            student.studentName,
-                            style: const TextStyle(
-                              color: Color(0xFFE040FB), // Vibrant pink/purple
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          student.phone ?? '',
-                          style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                  const Spacer(),
+                  _buildStatusDropdown(student.sid),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _studentInfoRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "$label : ",
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+            color: Colors.black,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black54,
+              fontWeight: FontWeight.w400,
             ),
-          ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusDropdown(int sid) {
+    final currentStatus = attendanceStatus[sid] ?? 'Present';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      height: 34,
+      decoration: BoxDecoration(
+        color: const Color(0xFFDCFCE7), // Light green badge
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: currentStatus,
+          icon: const Padding(
+            padding: EdgeInsets.only(left: 4),
+            child: Icon(
+              Icons.keyboard_arrow_down,
+              color: Color(0xFF166534),
+              size: 20,
+            ),
+          ),
+          style: const TextStyle(
+            color: Color(0xFF166534),
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+          onChanged: (String? newValue) {
+            setState(() {
+              attendanceStatus[sid] = newValue!;
+            });
+          },
+          items: statusOptions.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(value: value, child: Text(value));
+          }).toList(),
         ),
       ),
     );
   }
 
-  // ---------------- HELPER METHODS ----------------
-
-  Color _getStatusColor(String status, bool isDark) {
-    switch (status) {
-      case 'Present':
-        return Colors.greenAccent;
-      case 'Missing':
-        return Colors.redAccent;
-      case 'Outing':
-        return Colors.orangeAccent;
-      case 'Home Pass':
-        return Colors.lightBlueAccent;
-      case 'Self Outing':
-        return Colors.cyanAccent;
-      case 'Self Home':
-        return Colors.pinkAccent;
-      default:
-        return isDark ? Colors.white : Colors.black;
-    }
+  Widget _buildBottomSubmitButton() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Container(
+        width: double.infinity,
+        height: 52,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF4DB6AC), Color(0xFFAED581)],
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _submitAttendance,
+            borderRadius: BorderRadius.circular(12),
+            child: const Center(
+              child: Text(
+                "Submit Attendance",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 17,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

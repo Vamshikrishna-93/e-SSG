@@ -66,7 +66,7 @@ class _AddRoomPageState extends State<AddRoomPage> {
                   "Add New Room",
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 22,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

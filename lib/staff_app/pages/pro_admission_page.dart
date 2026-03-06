@@ -16,16 +16,6 @@ class ProAdmissionPage extends StatelessWidget {
     {"pro": "B T NAIDU", "target": 125, "achieved": 100},
     {"pro": "JURI VENKATA RAO", "target": 150, "achieved": 90},
     {"pro": "ARUN KUMAR", "target": 120, "achieved": 85},
-    {"pro": "SUBBARAO-HRAO", "target": 250, "achieved": 186},
-    {"pro": "MEERA REDDY", "target": 200, "achieved": 137},
-    {"pro": "CHIRANJEEVI - NAGARAJU", "target": 125, "achieved": 112},
-    {"pro": "PARVEEN-NAGALAKSHMI", "target": 100, "achieved": 111},
-    {"pro": "AO SRINIVAS-BASAVAIAH", "target": 180, "achieved": 104},
-    {"pro": "RAMESH -HARI-MADDIPADU", "target": 100, "achieved": 104},
-    {"pro": "N SRINU-TANGUTUR", "target": 180, "achieved": 103},
-    {"pro": "B T NAIDU", "target": 125, "achieved": 100},
-    {"pro": "JURI VENKATA RAO", "target": 150, "achieved": 90},
-    {"pro": "ARUN KUMAR", "target": 120, "achieved": 85},
   ];
 
   static const List<Map<String, dynamic>> monthlyData = [
@@ -52,57 +42,55 @@ class ProAdmissionPage extends StatelessWidget {
           _buildHeader(context),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    childAspectRatio: 1.6,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
+                  // Analysis Cards Grid
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
                     children: [
                       _buildAnalysisCard(
                         "Target",
                         "5965",
-                        Icons.track_changes_sharp,
+                        Icons.track_changes_rounded,
                         [const Color(0xFF7079D1), const Color(0xFF5560B9)],
+                        context,
                       ),
                       _buildAnalysisCard(
                         "Paid",
                         "3060",
-                        Icons.monetization_on_outlined,
-                        [const Color(0xFFFDB75E), const Color(0xFFF7941D)],
+                        Icons.monetization_on_rounded,
+                        [const Color(0xFFFDB75E), const Color(0xFFF18C33)],
+                        context,
                       ),
                       _buildAnalysisCard(
                         "Not Paid",
                         "14",
-                        Icons.wallet_outlined,
+                        Icons.account_balance_wallet_rounded,
                         [const Color(0xFF4DBB91), const Color(0xFF13A871)],
+                        context,
                       ),
                       _buildAnalysisCard(
                         "Local",
                         "698",
-                        Icons.location_on_outlined,
+                        Icons.location_on_rounded,
                         [const Color(0xFF4DC4F4), const Color(0xFF1A9FD9)],
+                        context,
+                      ),
+                      _buildAnalysisCard(
+                        "Non-Local",
+                        "0",
+                        Icons.directions_bus_rounded,
+                        [const Color(0xFFEE638F), const Color(0xFFD81B60)],
+                        context,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: (MediaQuery.of(context).size.width - 44) / 2,
-                    child: _buildAnalysisCard(
-                      "Non-Local",
-                      "0",
-                      Icons.directions_bus_outlined,
-                      [const Color(0xFFE54D7E), const Color(0xFFD81B60)],
-                    ),
-                  ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 35),
                   _buildSectionHeader("Pro Admissions Analysis"),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   _buildLegend([
                     {
                       "label": "Total Admissions",
@@ -113,11 +101,16 @@ class ProAdmissionPage extends StatelessWidget {
                       "color": const Color(0xFF6371D1),
                     },
                   ]),
-                  const SizedBox(height: 20),
-                  _buildScrollableChart(_buildAnalysisChart()),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 25),
+                  // Removed ScrollView - making it direct
+                  SizedBox(
+                    height: 260,
+                    width: double.infinity,
+                    child: _buildAnalysisChart(),
+                  ),
+                  const SizedBox(height: 45),
                   _buildSectionHeader("Pro Year on Year Analytics"),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   _buildLegend([
                     {
                       "label": "2024-2025 Admissions",
@@ -128,15 +121,20 @@ class ProAdmissionPage extends StatelessWidget {
                       "color": const Color(0xFF1DB082),
                     },
                   ]),
-                  const SizedBox(height: 20),
-                  _buildScrollableChart(_buildYearOnYearChart()),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 25),
+                  // Removed ScrollView
+                  SizedBox(
+                    height: 260,
+                    width: double.infinity,
+                    child: _buildYearOnYearChart(),
+                  ),
+                  const SizedBox(height: 45),
                   _buildSectionHeader(
                     "Admissions Month on Month\n(Session Wise)",
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 35),
                   _buildMonthOnMonthChart(),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 50),
                 ],
               ),
             ),
@@ -150,56 +148,49 @@ class ProAdmissionPage extends StatelessWidget {
     return Text(
       title,
       style: const TextStyle(
-        fontSize: 18,
+        fontSize: 19,
         fontWeight: FontWeight.bold,
         color: Color(0xFFC62828),
+        letterSpacing: -0.2,
       ),
     );
   }
 
   Widget _buildLegend(List<Map<String, dynamic>> items) {
-    return Row(
+    return Wrap(
+      spacing: 20,
+      runSpacing: 8,
       children: items.map((item) {
-        return Padding(
-          padding: const EdgeInsets.only(right: 20),
-          child: Row(
-            children: [
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: item['color'] as Color,
-                  shape: BoxShape.circle,
-                ),
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                color: item['color'] as Color,
+                shape: BoxShape.circle,
               ),
-              const SizedBox(width: 8),
-              Text(
-                item['label'] as String,
-                style: const TextStyle(fontSize: 12, color: Colors.black87),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              item['label'] as String,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
               ),
-            ],
-          ),
+            ),
+          ],
         );
       }).toList(),
-    );
-  }
-
-  Widget _buildScrollableChart(Widget chart) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Container(
-        width: admissionsData.length * 30.0 + 60,
-        height: 300,
-        padding: const EdgeInsets.only(right: 16),
-        child: chart,
-      ),
     );
   }
 
   Widget _buildAnalysisChart() {
     return BarChart(
       BarChartData(
-        alignment: BarChartAlignment.spaceAround,
+        alignment: BarChartAlignment.spaceEvenly,
         maxY: 320,
         barTouchData: BarTouchData(enabled: true),
         titlesData: FlTitlesData(
@@ -207,20 +198,21 @@ class ProAdmissionPage extends StatelessWidget {
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 80,
+              reservedSize: 85,
               getTitlesWidget: (value, meta) {
                 if (value.toInt() >= 0 &&
                     value.toInt() < admissionsData.length) {
                   return SideTitleWidget(
                     meta: meta,
-                    space: 10,
+                    space: 5,
                     child: RotatedBox(
                       quarterTurns: 3,
                       child: Text(
                         admissionsData[value.toInt()]['pro'],
                         style: const TextStyle(
-                          fontSize: 8,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 7.5,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
                         ),
                       ),
                     ),
@@ -238,7 +230,11 @@ class ProAdmissionPage extends StatelessWidget {
               getTitlesWidget: (value, meta) {
                 return Text(
                   value.toInt().toString(),
-                  style: const TextStyle(color: Colors.black54, fontSize: 10),
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
                 );
               },
             ),
@@ -268,8 +264,11 @@ class ProAdmissionPage extends StatelessWidget {
             barRods: [
               BarChartRodData(
                 toY: achieved + remaining,
-                width: 12,
-                borderRadius: BorderRadius.zero,
+                width: 9,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(2),
+                  topRight: Radius.circular(2),
+                ),
                 rodStackItems: [
                   BarChartRodStackItem(0, achieved, const Color(0xFF1DB082)),
                   BarChartRodStackItem(
@@ -289,7 +288,7 @@ class ProAdmissionPage extends StatelessWidget {
   Widget _buildYearOnYearChart() {
     return BarChart(
       BarChartData(
-        alignment: BarChartAlignment.spaceAround,
+        alignment: BarChartAlignment.spaceEvenly,
         maxY: 1500,
         barTouchData: BarTouchData(enabled: true),
         titlesData: FlTitlesData(
@@ -297,20 +296,21 @@ class ProAdmissionPage extends StatelessWidget {
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 80,
+              reservedSize: 85,
               getTitlesWidget: (value, meta) {
                 if (value.toInt() >= 0 &&
                     value.toInt() < admissionsData.length) {
                   return SideTitleWidget(
                     meta: meta,
-                    space: 10,
+                    space: 5,
                     child: RotatedBox(
                       quarterTurns: 3,
                       child: Text(
                         admissionsData[value.toInt()]['pro'],
                         style: const TextStyle(
-                          fontSize: 8,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 7.5,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
                         ),
                       ),
                     ),
@@ -328,7 +328,11 @@ class ProAdmissionPage extends StatelessWidget {
               getTitlesWidget: (value, meta) {
                 return Text(
                   value.toInt().toString(),
-                  style: const TextStyle(color: Colors.black54, fontSize: 10),
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
                 );
               },
             ),
@@ -348,7 +352,6 @@ class ProAdmissionPage extends StatelessWidget {
         ),
         borderData: FlBorderData(show: false),
         barGroups: List.generate(admissionsData.length, (index) {
-          // Dummy logic for Year on Year data
           double yValue = 300.0 + (index % 5) * 200.0;
           if (index == 8) yValue = 1200;
           if (index == 15) yValue = 1100;
@@ -358,9 +361,12 @@ class ProAdmissionPage extends StatelessWidget {
             barRods: [
               BarChartRodData(
                 toY: yValue,
-                width: 12,
+                width: 9,
                 color: const Color(0xFF1A9FD9),
-                borderRadius: BorderRadius.zero,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(2),
+                  topRight: Radius.circular(2),
+                ),
               ),
             ],
           );
@@ -380,19 +386,25 @@ class ProAdmissionPage extends StatelessWidget {
           titlesData: FlTitlesData(
             show: true,
             bottomTitles: AxisTitles(
-              axisNameWidget: const Text(
-                "Months",
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+              axisNameWidget: const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  "Months",
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                ),
               ),
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
                   if (value >= 0 && value < monthlyData.length) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8),
+                    return SideTitleWidget(
+                      meta: meta,
                       child: Text(
                         monthlyData[value.toInt()]['month'],
-                        style: const TextStyle(fontSize: 10),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     );
                   }
@@ -403,16 +415,20 @@ class ProAdmissionPage extends StatelessWidget {
             leftTitles: AxisTitles(
               axisNameWidget: const Text(
                 "Admissions Count",
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
               ),
               sideTitles: SideTitles(
                 showTitles: true,
-                reservedSize: 25,
+                reservedSize: 30,
                 interval: 5,
                 getTitlesWidget: (value, meta) {
                   return Text(
                     value.toInt().toString(),
-                    style: const TextStyle(color: Colors.black54, fontSize: 10),
+                    style: const TextStyle(
+                      color: Colors.black54,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
                   );
                 },
               ),
@@ -441,8 +457,11 @@ class ProAdmissionPage extends StatelessWidget {
               barRods: [
                 BarChartRodData(
                   toY: current + previous,
-                  width: 12,
-                  borderRadius: BorderRadius.zero,
+                  width: 14,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(2),
+                    topRight: Radius.circular(2),
+                  ),
                   rodStackItems: [
                     if (current > 0)
                       BarChartRodStackItem(0, current, const Color(0xFF4DC4F4)),
@@ -466,15 +485,15 @@ class ProAdmissionPage extends StatelessWidget {
     return Container(
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 10,
-        bottom: 20,
+        bottom: 25,
         left: 16,
         right: 16,
       ),
       decoration: const BoxDecoration(
         color: Color(0xFF8147E7),
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
+          bottomLeft: Radius.circular(35),
+          bottomRight: Radius.circular(35),
         ),
       ),
       child: Row(
@@ -490,7 +509,7 @@ class ProAdmissionPage extends StatelessWidget {
               child: const Icon(
                 Icons.arrow_back,
                 color: Colors.white,
-                size: 20,
+                size: 22,
               ),
             ),
           ),
@@ -499,7 +518,7 @@ class ProAdmissionPage extends StatelessWidget {
             "Pro Admission",
             style: TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -513,8 +532,12 @@ class ProAdmissionPage extends StatelessWidget {
     String value,
     IconData icon,
     List<Color> colors,
+    BuildContext context,
   ) {
+    double cardWidth = (MediaQuery.of(context).size.width - 44) / 2;
     return Container(
+      width: cardWidth,
+      height: cardWidth / 1.7,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -522,16 +545,23 @@ class ProAdmissionPage extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: colors.last.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Stack(
         children: [
           Positioned(
-            top: -15,
-            right: -15,
+            top: -20,
+            right: -20,
             child: Container(
-              width: 70,
-              height: 70,
+              width: 90,
+              height: 90,
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.15),
                 shape: BoxShape.circle,
@@ -539,54 +569,40 @@ class ProAdmissionPage extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 10,
-            right: 10,
+            top: 15,
+            right: 15,
             child: Container(
-              width: 40,
-              height: 40,
+              width: 45,
+              height: 45,
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
+              child: Icon(icon, color: Colors.white, size: 28),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        value,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(10),
+                const SizedBox(height: 6),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
                   ),
-                  child: Icon(icon, color: Colors.white, size: 24),
                 ),
               ],
             ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:student_app/staff_app/controllers/auth_controller.dart';
-import 'package:student_app/staff_app/widgets/skeleton.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,18 +13,26 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController userCtrl = TextEditingController();
   final TextEditingController passCtrl = TextEditingController();
   bool obscure = true;
-  bool isStaffLogin = true;
+  bool isStaff = true; // Visual toggle state
 
   late final AuthController auth;
 
   @override
   void initState() {
     super.initState();
-    auth = Get.isRegistered<AuthController>()
-        ? Get.find<AuthController>()
-        : Get.put(AuthController());
+    auth = Get.find<AuthController>();
     userCtrl.clear();
     passCtrl.clear();
+
+    // Auto-toggle based on input length
+    userCtrl.addListener(() {
+      final text = userCtrl.text.trim();
+      if (text.length == 10) {
+        if (isStaff) setState(() => isStaff = false);
+      } else if (text.length == 6) {
+        if (!isStaff) setState(() => isStaff = true);
+      }
+    });
   }
 
   @override
@@ -41,37 +48,37 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // ---------------- BACKGROUND BLOBS ----------------
+          // ---------------- BACKGROUND DECORATIONS ----------------
           Positioned(
             top: -100,
-            left: -100,
+            left: -50,
             child: _buildBlob(300, [
-              const Color(0xFF8B5CF6),
-              const Color(0xFFC084FC),
+              const Color(0xFF8A2BE2),
+              const Color(0xFFE247D6).withOpacity(0.5),
             ]),
           ),
           Positioned(
             top: -50,
-            right: -150,
-            child: _buildBlob(400, [
-              const Color(0xFF7C3AED).withOpacity(0.8),
-              const Color(0xFFA78BFA).withOpacity(0.5),
+            right: -80,
+            child: _buildBlob(250, [
+              const Color(0xFF9D50BB),
+              const Color(0xFF6E48AA),
             ]),
           ),
           Positioned(
-            bottom: -150,
-            right: -100,
-            child: _buildBlob(450, [
-              const Color(0xFF8B5CF6),
-              const Color(0xFFC084FC),
+            bottom: -100,
+            right: -50,
+            child: _buildBlob(350, [
+              const Color(0xFF8A2BE2),
+              const Color(0xFFE247D6),
             ]),
           ),
           Positioned(
-            bottom: 100,
-            left: 50,
-            child: _buildBlob(80, [
-              const Color(0xFF8B5CF6).withOpacity(0.8),
-              const Color(0xFFDDD6FE),
+            bottom: 120,
+            left: 180,
+            child: _buildBlob(60, [
+              const Color(0xFF8A2BE2),
+              const Color(0xFF8A2BE2).withOpacity(0.6),
             ]),
           ),
 
@@ -79,12 +86,11 @@ class _LoginPageState extends State<LoginPage> {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 25),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const SizedBox(height: 20),
-                    // CARD CONTAINER
+                    // ---------------- LOGIN CARD ----------------
                     Container(
                       padding: const EdgeInsets.all(30),
                       decoration: BoxDecoration(
@@ -92,77 +98,268 @@ class _LoginPageState extends State<LoginPage> {
                         borderRadius: BorderRadius.circular(35),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 30,
-                            offset: const Offset(0, 10),
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 20,
+                            spreadRadius: 5,
                           ),
                         ],
                         border: Border.all(
                           color: Colors.grey.shade100,
-                          width: 1.5,
+                          width: 2,
                         ),
                       ),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "Welcome to SSJC!",
-                            style: TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.black,
+                          const Center(
+                            child: Text(
+                              "Welcome to SSJC!",
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 30),
 
-                          // TOGGLE BUTTON
-                          _buildLoginToggle(),
-
-                          const SizedBox(height: 30),
-
-                          // USERNAME FIELD
-                          _buildInputLabel("Username"),
-                          const SizedBox(height: 8),
-                          _buildInputField(
-                            controller: userCtrl,
-                            hintText: "Enter your email address",
+                          // ---------- LOGIN TOGGLE ----------
+                          Container(
+                            height: 55,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF3F3F3),
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => setState(() => isStaff = true),
+                                    child: Container(
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: isStaff
+                                            ? const Color(0xFF8A2BE2)
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                      child: Text(
+                                        "Staff Login",
+                                        style: TextStyle(
+                                          color: isStaff
+                                              ? Colors.white
+                                              : Colors.black87,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () =>
+                                        setState(() => isStaff = false),
+                                    child: Container(
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: !isStaff
+                                            ? const Color(0xFF8A2BE2)
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                      child: Text(
+                                        "Student Login",
+                                        style: TextStyle(
+                                          color: !isStaff
+                                              ? Colors.white
+                                              : Colors.black87,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                          const SizedBox(height: 25),
 
-                          const SizedBox(height: 20),
-
-                          // PASSWORD FIELD
-                          _buildInputLabel("Password"),
-                          const SizedBox(height: 8),
-                          _buildInputField(
-                            controller: passCtrl,
-                            hintText: "Enter your password",
-                            isPassword: true,
+                          // ---------- USERNAME ----------
+                          const Text(
+                            "Username",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
                           ),
-
-                          const SizedBox(height: 12),
-
-                          // FORGOT PASSWORD
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () {},
-                              child: const Text(
-                                "Forgot Password",
-                                style: TextStyle(
-                                  color: Color(0xFFF87171),
-                                  fontWeight: FontWeight.w600,
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 15),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF7F7F7),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: TextField(
+                              controller: userCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                hintText: isStaff
+                                    ? "Enter Staff ID (6 digits)"
+                                    : "Enter Mobile Number (10 digits)",
+                                hintStyle: const TextStyle(
+                                  color: Colors.black26,
+                                  fontSize: 14,
                                 ),
                               ),
                             ),
                           ),
-
                           const SizedBox(height: 20),
 
-                          // SIGN IN BUTTON
-                          _buildSignInButton(),
+                          // ---------- PASSWORD ----------
+                          const Text(
+                            "Password",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 15),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF7F7F7),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: TextField(
+                              controller: passCtrl,
+                              obscureText: obscure,
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                hintText: "Enter your password",
+                                hintStyle: const TextStyle(
+                                  color: Colors.black26,
+                                  fontSize: 14,
+                                ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    obscure
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                    color: Colors.black54,
+                                    size: 20,
+                                  ),
+                                  onPressed: () =>
+                                      setState(() => obscure = !obscure),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+
+                          // ---------- FORGOT PASSWORD ----------
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () {}, // Logic not added as requested
+                              child: const Text(
+                                "Forgot Password",
+                                style: TextStyle(
+                                  color: Colors.redAccent,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+
+                          // ---------- SIGN IN BUTTON ----------
+                          Obx(
+                            () => Container(
+                              width: double.infinity,
+                              height: 55,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF8A2BE2),
+                                    Color(0xFFBB86FC),
+                                  ],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFF8A2BE2,
+                                    ).withOpacity(0.3),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                ),
+                                onPressed: auth.isLoading.value
+                                    ? null
+                                    : () async {
+                                        FocusScope.of(context).unfocus();
+                                        final username = userCtrl.text.trim();
+                                        final password = passCtrl.text.trim();
+
+                                        if (username.isEmpty ||
+                                            password.isEmpty) {
+                                          Get.snackbar(
+                                            "Error",
+                                            "Please enter username & password",
+                                            backgroundColor: Colors.red,
+                                            colorText: Colors.white,
+                                          );
+                                          return;
+                                        }
+
+                                        if (username.length != 6 &&
+                                            username.length != 10) {
+                                          Get.snackbar(
+                                            "Invalid Input",
+                                            "Username must be 6 digits (Staff) or 10 digits (Student)",
+                                            backgroundColor: Colors.orange,
+                                            colorText: Colors.white,
+                                          );
+                                          return;
+                                        }
+
+                                        await auth.login(username, password);
+                                      },
+                                child: auth.isLoading.value
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Text(
+                                        "Sign In",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -183,170 +380,6 @@ class _LoginPageState extends State<LoginPage> {
           colors: colors,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoginToggle() {
-    return Container(
-      height: 55,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3F4F6),
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => isStaffLogin = true),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  gradient: isStaffLogin
-                      ? const LinearGradient(
-                          colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
-                        )
-                      : null,
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  "Staff Login",
-                  style: TextStyle(
-                    color: isStaffLogin ? Colors.white : Colors.black54,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => isStaffLogin = false),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  gradient: !isStaffLogin
-                      ? const LinearGradient(
-                          colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
-                        )
-                      : null,
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  "Student Login",
-                  style: TextStyle(
-                    color: !isStaffLogin ? Colors.white : Colors.black54,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInputLabel(String label) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInputField({
-    required TextEditingController controller,
-    required String hintText,
-    bool isPassword = false,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: isPassword ? obscure : false,
-        style: const TextStyle(fontWeight: FontWeight.w500),
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          hintText: hintText,
-          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-          suffixIcon: isPassword
-              ? IconButton(
-                  icon: Icon(
-                    obscure ? Icons.visibility_off : Icons.visibility,
-                    color: Colors.black87,
-                    size: 20,
-                  ),
-                  onPressed: () => setState(() => obscure = !obscure),
-                )
-              : null,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSignInButton() {
-    return Obx(
-      () => GestureDetector(
-        onTap: auth.isLoading.value
-            ? null
-            : () async {
-                FocusScope.of(context).unfocus();
-                final username = userCtrl.text.trim();
-                final password = passCtrl.text.trim();
-                if (username.isEmpty || password.isEmpty) {
-                  Get.snackbar(
-                    "Error",
-                    "Enter credentials",
-                    backgroundColor: Colors.red,
-                    colorText: Colors.white,
-                  );
-                  return;
-                }
-                await auth.login(username, password);
-              },
-        child: Container(
-          width: double.infinity,
-          height: 55,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF9333EA), Color(0xFFC084FC)],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF9333EA).withOpacity(0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Center(
-            child: auth.isLoading.value
-                ? const StaffLoadingAnimation()
-                : const Text(
-                    "Sign In",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-          ),
         ),
       ),
     );

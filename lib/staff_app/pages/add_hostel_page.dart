@@ -66,7 +66,7 @@ class _AddHostelPageState extends State<AddHostelPage> {
                   "Add Hostel",
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 22,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

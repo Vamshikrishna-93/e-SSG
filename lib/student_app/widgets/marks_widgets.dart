@@ -197,79 +197,49 @@ class GradeDistributionChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PieChart(
-      PieChartData(
-        sectionsSpace: 2,
-        centerSpaceRadius: 0,
-        startDegreeOffset: -90,
-        sections: _sections(),
-      ),
+    return Column(
+      children: [
+        Expanded(
+          child: PieChart(
+            PieChartData(
+              sectionsSpace: 0,
+              centerSpaceRadius: 0,
+              sections: _sections(),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   List<PieChartSectionData> _sections() {
     return [
-      PieChartSectionData(
-        value: 38,
-        color: const Color(0xFF7ED33C), // A
-        radius: 70,
-        title: "A: 38%",
-        titleStyle: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF7ED33C),
-        ),
-        titlePositionPercentageOffset: 1.3,
-      ),
-      PieChartSectionData(
-        value: 25,
-        color: const Color(0xFF58C313), // A+
-        radius: 70,
-        title: "A+: 25%",
-        titleStyle: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF58C313),
-        ),
-        titlePositionPercentageOffset: 1.3,
-      ),
-      PieChartSectionData(
-        value: 12,
-        color: const Color(0xFFFF6B6B), // C+
-        radius: 70,
-        title: "C+: 12%",
-        titleStyle: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFFFF6B6B),
-        ),
-        titlePositionPercentageOffset: 1.3,
-      ),
-      PieChartSectionData(
-        value: 13,
-        color: const Color(0xFFFFC066), // B
-        radius: 70,
-        title: "B: 13%",
-        titleStyle: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFFFFC066),
-        ),
-        titlePositionPercentageOffset: 1.3,
-      ),
-      PieChartSectionData(
-        value: 12,
-        color: const Color(0xFFFFA63A), // B+
-        radius: 70,
-        title: "B+: 12%",
-        titleStyle: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFFFFA63A),
-        ),
-        titlePositionPercentageOffset: 1.3,
-      ),
+      _section(12, const Color(0xFFFB923C), "B+: 12%"),
+      _section(12, const Color(0xFFFDBA74), "B: 12%"),
+      _section(12, const Color(0xFFFB7185), "C+: 12%"),
+      _section(
+        52,
+        const Color(0xFF4ADE80),
+        "A+: 12%",
+      ), // Extended A+ for demo match
+      _section(12, const Color(0xFF84CC16), "A: 12%"),
     ];
+  }
+
+  PieChartSectionData _section(double value, Color color, String title) {
+    return PieChartSectionData(
+      value: value,
+      color: color,
+      radius: 80,
+      showTitle: true,
+      title: title,
+      titleStyle: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+        color: color,
+      ),
+      titlePositionPercentageOffset: 1.4,
+    );
   }
 }
 

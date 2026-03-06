@@ -109,11 +109,7 @@ class ApiService {
     } on FormatException {
       throw Exception("Invalid server response format");
     } catch (e) {
-      // If it's already an Exception, rethrow it
-      if (e is Exception) {
-        rethrow;
-      }
-      // Otherwise wrap it
+      if (e is Exception) rethrow;
       throw Exception(e.toString());
     }
   }

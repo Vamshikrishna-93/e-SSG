@@ -9,6 +9,7 @@ class AttendanceService {
   static const String _summaryEndpoint = '/getattendanceSummary';
 
   static Future<ClassAttendance> getAttendance({
+    String? year,
     bool forceRefresh = false,
   }) async {
     try {
@@ -21,7 +22,9 @@ class AttendanceService {
         throw Exception('User or Student ID not found. Please log in again.');
       }
 
-      final String cacheKey = 'class_attendance_grid_$studentId';
+      final String cacheKey = year != null && year.isNotEmpty
+          ? 'class_attendance_grid_${studentId}_$year'
+          : 'class_attendance_grid_$studentId';
 
       if (!forceRefresh) {
         final String? cachedData = prefs.getString(cacheKey);
@@ -34,13 +37,15 @@ class AttendanceService {
         }
       }
 
-      print(
-        'Fetching Class Attendance for student $studentId from: ${ApiConfig.studentApiBaseUrl}$_attendanceGridEndpoint/$studentId',
-      );
+      String url =
+          '${ApiConfig.studentApiBaseUrl}$_attendanceGridEndpoint/$studentId';
+      if (year != null && year.isNotEmpty) {
+        url += '?year=$year';
+      }
+
+      print('Fetching Class Attendance for student $studentId from: $url');
       final response = await http.get(
-        Uri.parse(
-          '${ApiConfig.studentApiBaseUrl}$_attendanceGridEndpoint/$studentId',
-        ),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

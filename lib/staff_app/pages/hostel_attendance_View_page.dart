@@ -68,16 +68,11 @@ class _HostelAttendanceFilterPageState
           _buildHeader(context),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  _buildFilterContainer(context),
-                  const SizedBox(height: 30),
-                  _buildNoDataState(context),
-                ],
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: _buildFilterContainer(context),
             ),
           ),
+          _buildBottomButtons(context),
         ],
       ),
     );
@@ -98,11 +93,11 @@ class _HostelAttendanceFilterPageState
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+          colors: [Color(0xFF8B5CF6), Color(0xFF6B21A8)],
         ),
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
+          bottomLeft: Radius.circular(35),
+          bottomRight: Radius.circular(35),
         ),
       ),
       child: Row(
@@ -110,26 +105,26 @@ class _HostelAttendanceFilterPageState
           GestureDetector(
             onTap: () => Get.back(),
             child: Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.arrow_back,
+                Icons.arrow_back_ios_new_rounded,
                 color: Colors.white,
-                size: 22,
+                size: 18,
               ),
             ),
           ),
           const SizedBox(width: 20),
           const Text(
-            "Hostel Attendance",
+            "Hotel Attendance",
             style: TextStyle(
               color: Colors.white,
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
+              letterSpacing: 0.8,
             ),
           ),
         ],
@@ -142,72 +137,61 @@ class _HostelAttendanceFilterPageState
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F3FF), // Light Lavender
-        borderRadius: BorderRadius.circular(24),
+        color: const Color(0xFFF3EFFF), // Very Light Lavender
+        borderRadius: BorderRadius.circular(30),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Branch
           Obx(
-            () => _buildDropdownField(
+            () => _buildInputField(
               label: "Branch",
               hint: "Select Branch",
-              items: branchCtrl.branches.map((b) => b.branchName).toList(),
               value: _branch,
+              items: branchCtrl.branches.map((b) => b.branchName).toList(),
               onChanged: (v) => setState(() => _branch = v),
             ),
           ),
-          const SizedBox(height: 18),
-
-          // Hostel
-          _buildDropdownField(
+          const SizedBox(height: 15),
+          _buildInputField(
             label: "Hostel",
             hint: "Select Hostel",
-            items: hostels,
             value: _hostel,
+            items: hostels,
             onChanged: (v) => setState(() => _hostel = v),
           ),
-          const SizedBox(height: 18),
-
-          // Floor
-          _buildDropdownField(
+          const SizedBox(height: 15),
+          _buildInputField(
             label: "Floor",
             hint: "Select Floor",
-            items: floors,
             value: _floor,
+            items: floors,
             onChanged: (v) => setState(() => _floor = v),
           ),
-          const SizedBox(height: 18),
-
-          // Room
-          _buildDropdownField(
+          const SizedBox(height: 15),
+          _buildInputField(
             label: "Room",
             hint: "Select Room",
-            items: rooms,
             value: _room,
+            items: rooms,
             onChanged: (v) => setState(() => _room = v),
           ),
-          const SizedBox(height: 18),
-
-          // Month
-          _buildDropdownField(
+          const SizedBox(height: 15),
+          _buildInputField(
             label: "Month",
             hint: "Select Month",
-            items: months,
             value: _month,
+            items: months,
             onChanged: (v) => setState(() => _month = v),
           ),
-          const SizedBox(height: 30),
-
-          // GET STUDENTS BUTTON
-          _buildGradientButton(),
+          const SizedBox(height: 25),
+          _buildGetStudentsButton(),
         ],
       ),
     );
   }
 
-  Widget _buildDropdownField({
+  Widget _buildInputField({
     required String label,
     required String hint,
     required List<String> items,
@@ -217,37 +201,61 @@ class _HostelAttendanceFilterPageState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF374151), // Dark Grey
+            ),
           ),
         ),
-        const SizedBox(height: 8),
         Container(
+          height: 60,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.withOpacity(0.2)),
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(
+              color: Colors.grey.withOpacity(0.15),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: value,
               hint: Text(
                 hint,
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+                style: const TextStyle(
+                  color: Color(0xFF6B7280),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                ),
               ),
               isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down, color: Colors.blue),
+              icon: const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: Colors.black,
+                size: 28,
+              ),
               items: items.map((String text) {
                 return DropdownMenuItem<String>(
                   value: text,
                   child: Text(
                     text,
-                    style: const TextStyle(fontSize: 14, color: Colors.black87),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: Color(0xFF1F2937),
+                    ),
                   ),
                 );
               }).toList(),
@@ -259,123 +267,148 @@ class _HostelAttendanceFilterPageState
     );
   }
 
-  Widget _buildGradientButton() {
-    return GestureDetector(
-      onTap: () {
-        if (_branch != null &&
-            _hostel != null &&
-            _floor != null &&
-            _room != null &&
-            _month != null) {
-          Get.toNamed('/hostelAttendanceResult');
-        } else {
-          Get.snackbar(
-            "Selection Required",
-            "Please select all fields to fetch attendance",
-            backgroundColor: Colors.orange.withOpacity(0.1),
-            colorText: Colors.orange.shade800,
-          );
-        }
-      },
-      child: Container(
-        width: double.infinity,
-        height: 55,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF8B5CF6).withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
+  Widget _buildGetStudentsButton() {
+    return Container(
+      width: double.infinity,
+      height: 55,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF7B4DFF).withOpacity(0.7),
+            const Color(0xFFC486FF),
           ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
         ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "Get Students",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () {
+            if (_branch != null &&
+                _hostel != null &&
+                _floor != null &&
+                _room != null &&
+                _month != null) {
+              Get.toNamed('/hostelAttendanceResult');
+            } else {
+              Get.snackbar(
+                "Info",
+                "Please select all fields",
+                backgroundColor: Colors.white,
+              );
+            }
+          },
+          child: const Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Get Students",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+              ],
             ),
-            SizedBox(width: 10),
-            Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  // ================= NO DATA STATE =================
+  // ================= BOTTOM BUTTONS =================
 
-  Widget _buildNoDataState(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const SizedBox(height: 20),
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: 140,
-              height: 140,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF5F3FF),
-                shape: BoxShape.circle,
+  Widget _buildBottomButtons(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey.withOpacity(0.1))),
+      ),
+      child: Row(
+        children: [
+          // Add Attendance
+          Expanded(
+            child: Container(
+              height: 55,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF7B4DFF), Color(0xFFC486FF)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => Get.toNamed('/addHostelAttendance'),
+                  borderRadius: BorderRadius.circular(12),
+                  child: const Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add, color: Colors.white, size: 22),
+                        SizedBox(width: 4),
+                        Text(
+                          "Add Attendance",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
-            const Icon(
-              Icons
-                  .hotel_rounded, // Changed to hotel icon for Hostel Attendance
-              size: 80,
-              color: Color(0xFFC084FC),
-            ),
-            Positioned(
-              right: 20,
-              top: 20,
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
+          ),
+          const SizedBox(width: 12),
+          // Check Status
+          Expanded(
+            child: Container(
+              height: 55,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF4DB6AC), Color(0xFFAED581)],
                 ),
-                child: const Icon(
-                  Icons.question_mark_rounded,
-                  size: 20,
-                  color: Colors.redAccent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => Get.toNamed('/hostelAttendanceStatus'),
+                  borderRadius: BorderRadius.circular(12),
+                  child: const Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.white, size: 22),
+                        SizedBox(width: 4),
+                        Text(
+                          "Check Status",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        const Text(
-          "No Attendance Data",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          "Select filters and click 'Get Students' to view attendance",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey.shade600,
-            height: 1.5,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

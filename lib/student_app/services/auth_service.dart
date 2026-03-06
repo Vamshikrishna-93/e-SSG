@@ -11,43 +11,54 @@ class AuthService {
   }) async {
     try {
       final url = Uri.parse("${ApiConfig.baseUrl}${ApiConfig.login}");
-      print("Attempting login to: $url");
-      print("Payload: ${jsonEncode({'mobile': mobile, 'password': password})}");
 
-      final response = await http.post(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "User-Agent":
-              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        },
-        body: jsonEncode({'mobile': mobile, 'password': password}),
-      );
-
-      print("Response Status: ${response.statusCode}");
-      print("Response Body: ${response.body}");
+      final response = await http
+          .post(
+            url,
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json",
+              "User-Agent":
+                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+            body: jsonEncode({'mobile': mobile, 'password': password}),
+          )
+          .timeout(const Duration(seconds: 20));
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
 
-        if (body is Map && body['success'] == true) {
+        if (body['success'] == true) {
+          final Map<String, dynamic> innerData =
+              (body["data"] ?? {}) as Map<String, dynamic>;
+          final Map<String, dynamic> normalizedData = {
+            "success": true,
+            "access_token": innerData["token"],
+            "userid": innerData["sid"],
+            "role": "student",
+            "login_type": "student",
+            "permissions": [],
+            ...innerData,
+          };
+
+          // 1. Save to SharedPreferences for student_app services compatibility
           final prefs = await SharedPreferences.getInstance();
-          if (body['data'] != null && body['data'] is Map) {
-            if (body['data']['token'] != null) {
-              await prefs.setString("access_token", body['data']['token']);
-            }
-            if (body['data']['sid'] != null) {
-              await prefs.setString(
-                "student_id",
-                body['data']['sid'].toString(),
-              );
-            }
-          }
-          // Fetch and set profile data globally after successful login
-          // ignore: unawaited_futures
-          StudentProfileService.fetchAndSetProfileData();
-          return {'success': true, 'message': 'Login Successful'};
+          await prefs.setString(
+            "access_token",
+            normalizedData["access_token"].toString(),
+          );
+          await prefs.setString(
+            "student_id",
+            normalizedData["userid"].toString(),
+          );
+
+          // 2. Save to GetStorage for AuthWrapper & AuthController
+          // We'll return the normalized data to the controller so it can handle app-wide storage
+
+          // Fetch student profile data to ensure it's ready immediately
+          await StudentProfileService.fetchAndSetProfileData();
+
+          return normalizedData;
         } else {
           return {
             'success': false,
@@ -61,7 +72,6 @@ class AuthService {
         };
       }
     } catch (e) {
-      print("Login Exception: $e");
       return {'success': false, 'message': 'Connection error: $e'};
     }
   }

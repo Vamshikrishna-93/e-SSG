@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:student_app/staff_app/pages/login_page.dart';
 import 'package:student_app/student_app/change_password_page.dart';
 import 'package:student_app/student_app/profile_page.dart';
-import 'package:student_app/student_app/signIn_page.dart';
 import 'package:student_app/student_app/services/session_service.dart';
 import 'package:student_app/student_app/services/student_profile_service.dart';
 import 'package:student_app/student_app/studentdrawer.dart';
@@ -104,14 +104,24 @@ class StudentAppBar extends StatelessWidget implements PreferredSizeWidget {
                     imageUrl != null && imageUrl.startsWith('data:image');
                 return CircleAvatar(
                   radius: 18,
-                  backgroundImage: imageUrl != null && imageUrl.isNotEmpty
+                  backgroundColor: Theme.of(
+                    context,
+                  ).primaryColor.withOpacity(0.1),
+                  backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
                       ? (isBase64
                                 ? MemoryImage(
                                     base64Decode(imageUrl.split(',').last),
                                   )
                                 : NetworkImage(imageUrl))
                             as ImageProvider
-                      : const NetworkImage("https://i.pravatar.cc/150"),
+                      : null,
+                  child: (imageUrl == null || imageUrl.isEmpty)
+                      ? Icon(
+                          Icons.person,
+                          size: 20,
+                          color: Theme.of(context).primaryColor,
+                        )
+                      : null,
                 );
               },
             ),
@@ -227,7 +237,7 @@ class StudentAppBar extends StatelessWidget implements PreferredSizeWidget {
                       MaterialPageRoute(
                         builder: (_) => ThemeControllerWrapper(
                           themeController: StudentThemeController.themeMode,
-                          child: const SignInPage(),
+                          child: const LoginPage(),
                         ),
                       ),
                       (route) => false,

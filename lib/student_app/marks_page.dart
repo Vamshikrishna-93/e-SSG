@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:student_app/student_app/student_app_bar.dart';
-import 'package:student_app/student_app/theme/student_theme.dart';
+import 'package:get/get.dart';
 import 'package:student_app/student_app/studentdrawer.dart';
 import 'package:student_app/student_app/widgets/marks_widgets.dart';
 
@@ -12,993 +11,889 @@ class MarksPage extends StatefulWidget {
 }
 
 class _MarksPageState extends State<MarksPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String selectedSemester = "All Semesters";
   String selectedPeriod = "Monthly";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      key: _scaffoldKey,
+      backgroundColor: const Color(0xFFF9FAFB),
       drawer: const StudentDrawerPage(),
-      appBar: const StudentAppBar(title: ""),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Card (Dynamic Design)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: StudentTheme.containerBorderColor(context),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.black.withValues(alpha: 0.3)
-                          : Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Icon(
-                            Icons.check_circle_outline_rounded,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "Marks",
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF6366F1),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "Academic Performance Overview - 2024 Batch",
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color:
-                                      Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? Colors.grey.shade400
-                                      : Colors.grey.shade600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // Refresh Button
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        // Sync logic
-                      },
-                      icon: const Icon(Icons.refresh_rounded, size: 20),
-                      label: const Text(
-                        "Refresh",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6366F1),
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 44),
-                        elevation: 2,
-                        shadowColor: const Color(
-                          0xFF6366F1,
-                        ).withValues(alpha: 0.3),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Download Report Button
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        // Download logic
-                      },
-                      icon: const Icon(Icons.print_rounded, size: 20),
-                      label: const Text(
-                        "Download Report",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Theme.of(
-                          context,
-                        ).textTheme.bodyLarge?.color,
-                        side: BorderSide(
-                          color: StudentTheme.containerBorderColor(context),
-                        ),
-                        minimumSize: const Size(double.infinity, 44),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        backgroundColor:
-                            Theme.of(context).brightness == Brightness.dark
-                            ? Colors.grey.shade800.withValues(alpha: 0.3)
-                            : Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Stats Cards
-              MarksStatCard(
-                title: "Overall Percentage",
-                value: "83.40 %",
-                valueColor: const Color(0xFF2563EB),
-                description: 'Consistent Improvement',
-              ),
-              const SizedBox(height: 24),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch, // 🔑 important
+      body: Column(
+        children: [
+          _buildHeader(),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  MarksStatCard(
-                    title: "Current Grade",
-                    value: "A",
-                    valueColor: Colors.green,
-                    description: "Excellent Performance",
-                  ),
+                  _buildTopActions(),
                   const SizedBox(height: 24),
-                  MarksStatCard(
-                    title: "Class Rank",
-                    value: "4/85",
-                    valueColor: Colors.purple,
-                    description: "Top 5% of the class",
-                  ),
+                  _buildStatCards(),
+                  const SizedBox(height: 24),
+                  _buildFiltersCard(),
+                  const SizedBox(height: 24),
+                  _buildPerformanceTrend(),
+                  const SizedBox(height: 24),
+                  _buildGradeDistribution(),
+                  const SizedBox(height: 24),
+                  _buildSubjectPerformance(),
+                  const SizedBox(height: 24),
+                  _buildExamHistory(),
+                  const SizedBox(height: 24),
+                  _buildAchievements(),
+                  const SizedBox(height: 100),
                 ],
               ),
-
-              const SizedBox(height: 24),
-
-              // Attendance in Exams Card
-              Container(
-                width: double.infinity, // 🔑 forces full screen width
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: StudentTheme.containerBorderColor(context),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.black.withValues(alpha: 0.3)
-                          : Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Attendance in Exams",
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      "100 %",
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF14B8A6),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "Perfect attendance record",
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Filters Card
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: StudentTheme.containerBorderColor(context),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.black.withValues(alpha: 0.3)
-                          : Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Semester Dropdown
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: StudentTheme.containerBorderColor(context),
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            selectedSemester,
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyLarge?.color,
-                            ),
-                          ),
-                          Icon(
-                            Icons.arrow_drop_down,
-                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // Date Range
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: StudentTheme.containerBorderColor(
-                                  context,
-                                ),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Start date",
-                                  style: TextStyle(
-                                    color:
-                                        Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? Colors.grey.shade400
-                                        : Colors.grey.shade600,
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.calendar_today,
-                                  size: 18,
-                                  color:
-                                      Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? Colors.grey.shade400
-                                      : Colors.grey.shade600,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.arrow_forward,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.grey.shade400
-                              : Colors.grey.shade600,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: StudentTheme.containerBorderColor(
-                                  context,
-                                ),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "End date",
-                                  style: TextStyle(
-                                    color:
-                                        Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? Colors.grey.shade400
-                                        : Colors.grey.shade600,
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.calendar_today,
-                                  size: 18,
-                                  color:
-                                      Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? Colors.grey.shade400
-                                      : Colors.grey.shade600,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    // Search Field
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: StudentTheme.containerBorderColor(context),
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              "Search subjects...",
-                              style: TextStyle(
-                                color:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.grey.shade400
-                                    : Colors.grey.shade600,
-                              ),
-                            ),
-                          ),
-                          Icon(
-                            Icons.search,
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                ? Colors.grey.shade400
-                                : Colors.grey.shade600,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Performance Trend Card
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: StudentTheme.containerBorderColor(context),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.black.withValues(alpha: 0.3)
-                          : Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Performance Trend",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: StudentTheme.containerBorderColor(context),
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Text(
-                                selectedPeriod,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.bodyLarge?.color,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.arrow_drop_down,
-                                size: 18,
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.bodyLarge?.color,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(height: 200, child: const PerformanceTrendChart()),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Grade Distribution Card
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: StudentTheme.containerBorderColor(context),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.black.withValues(alpha: 0.3)
-                          : Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Grade Distribution",
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    const SizedBox(
-                      height: 220,
-                      child: const GradeDistributionChart(),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Subject-wise Performance Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: StudentTheme.containerBorderColor(context),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.black.withValues(alpha: 0.3)
-                          : Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    /// HEADER (FIXED)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            "Subject-wise Performance",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: [
-                            OutlinedButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.filter_list, size: 14),
-                              label: const Text("Filter"),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 6,
-                                ),
-                                visualDensity: VisualDensity.compact,
-                              ),
-                            ),
-                            OutlinedButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.download, size: 16),
-                              label: const Text("Export"),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 6,
-                                ),
-                                visualDensity: VisualDensity.compact,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    /// PERFORMANCE BANNER (SAFE)
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: const BoxDecoration(
-                              color: Colors.green,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              "Your overall performance is Excellent! Keep up the good work.",
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.green.shade200
-                                    : Colors.green.shade900,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    /// TABLE HEADER (FIXED)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.grey.shade800.withValues(alpha: 0.5)
-                            : Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: const [
-                          HeaderCell(title: "Subject", flex: 3),
-                          HeaderCell(title: "Marks", flex: 2, centered: true),
-                          HeaderCell(
-                            title: "Percentage",
-                            flex: 3,
-                            centered: true,
-                          ),
-                          HeaderCell(title: "Grade", flex: 2, alignRight: true),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    SubjectRow(
-                      subject: "Mathematics",
-                      marks: "85/100",
-                      percentage: 85,
-                      grade: "A",
-                      gradeColor: Colors.blue,
-                    ),
-                    const SizedBox(height: 12),
-                    SubjectRow(
-                      subject: "Physics",
-                      marks: "78/100",
-                      percentage: 78,
-                      grade: "B+",
-                      gradeColor: Colors.orange,
-                    ),
-                    const SizedBox(height: 12),
-                    SubjectRow(
-                      subject: "Chemistry",
-                      marks: "92/100",
-                      percentage: 92,
-                      grade: "A+",
-                      gradeColor: Colors.green,
-                      isExcellent: true,
-                    ),
-                    const SizedBox(height: 12),
-                    SubjectRow(
-                      subject: "English",
-                      marks: "72/100",
-                      percentage: 72,
-                      grade: "B",
-                      gradeColor: Colors.orange,
-                    ),
-                    const SizedBox(height: 12),
-                    SubjectRow(
-                      subject: "Computer Science",
-                      marks: "88/100",
-                      percentage: 88,
-                      grade: "A",
-                      gradeColor: Colors.blue,
-                    ),
-                    const SizedBox(height: 12),
-                    SubjectRow(
-                      subject: "Biology",
-                      marks: "68/100",
-                      percentage: 68,
-                      grade: "C+",
-                      gradeColor: Colors.red,
-                    ),
-                    const SizedBox(height: 12),
-                    SubjectRow(
-                      subject: "Social Studies",
-                      marks: "81/100",
-                      percentage: 81,
-                      grade: "A-",
-                      gradeColor: Colors.red,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Exam History Card
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: StudentTheme.containerBorderColor(context),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.black.withValues(alpha: 0.3)
-                          : Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Exam History",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: StudentTheme.containerBorderColor(context),
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              const Text(
-                                "All Exams",
-                                style: TextStyle(fontSize: 12),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.arrow_drop_down,
-                                size: 18,
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.bodyLarge?.color,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // Best Performance & Need Improvement
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color:
-                                  Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? Colors.green.withOpacity(0.1)
-                                  : Colors.green.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              "Best Performance: Chemistry - 92% (Rank 1)",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.green.shade200
-                                    : Colors.green.shade900,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color:
-                                  Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? Colors.orange.withOpacity(0.1)
-                                  : Colors.orange.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              "Need Improvement: Biology - 68% (Rank 9)",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.orange.shade200
-                                    : Colors.orange.shade900,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // Exam History Table
-                    ExamHistoryRow(
-                      examName: "Mid Term - Mar 2024",
-                      marks: "580/650",
-                      percentage: "89.23%",
-                      grade: "A+",
-                      rank: "Rank: 3",
-                      gradeColor: Colors.green,
-                      rankColor: Colors.green,
-                    ),
-                    const SizedBox(height: 12),
-                    ExamHistoryRow(
-                      examName: "Unit Test - Feb 2024",
-                      marks: "168/200",
-                      percentage: "84%",
-                      grade: "A",
-                      rank: "Rank: 5",
-                      gradeColor: Colors.blue,
-                      rankColor: Colors.blue,
-                    ),
-                    const SizedBox(height: 12),
-                    ExamHistoryRow(
-                      examName: "Final Term - Dec 2023",
-                      marks: "610/700",
-                      percentage: "87.14%",
-                      grade: "A",
-                      rank: "Rank: 4",
-                      gradeColor: Colors.blue,
-                      rankColor: Colors.blue,
-                    ),
-                    const SizedBox(height: 12),
-                    ExamHistoryRow(
-                      examName: "Quarterly - Oct 2023",
-                      marks: "425/500",
-                      percentage: "85%",
-                      grade: "A",
-                      rank: "Rank: 6",
-                      gradeColor: Colors.blue,
-                      rankColor: Colors.blue,
-                    ),
-                    const SizedBox(height: 12),
-                    ExamHistoryRow(
-                      examName: "Pre Board - Sep 2023",
-                      marks: "510/600",
-                      percentage: "85%",
-                      grade: "A",
-                      rank: "Rank: 7",
-                      gradeColor: Colors.blue,
-                      rankColor: Colors.blue,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Achievements Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.black.withValues(alpha: 0.3)
-                          : Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Achievements",
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    AchievementCard(
-                      icon: Icons.star,
-                      iconColor: Colors.amber,
-                      title: "Top 5 Rank",
-                      description: "Consistently in top 5 positions",
-                      backgroundColor: Colors.blue.shade50,
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    AchievementCard(
-                      icon: Icons.trending_up,
-                      iconColor: Colors.green,
-                      title: "Perfect Attendance",
-                      description: "100% exam attendance record",
-                      backgroundColor: Colors.green.shade50,
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    AchievementCard(
-                      icon: Icons.star,
-                      iconColor: Colors.orange,
-                      title: "Subject Topper",
-                      description: "Chemistry & Computer Science",
-                      backgroundColor: Colors.orange.shade50,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-            ],
+            ),
           ),
+        ],
+      ),
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 45, 16, 20),
+      decoration: const BoxDecoration(
+        color: Color(0xFF7E3FF2),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
         ),
       ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ),
+          const SizedBox(width: 15),
+          const Icon(Icons.bar_chart, color: Colors.white, size: 24),
+          const SizedBox(width: 8),
+          const Text(
+            "Marks",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopActions() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Marks",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          "Academic Performance overview - 2024 batch",
+          style: TextStyle(fontSize: 14, color: Colors.black54),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionBtn(
+                label: "Print Report",
+                icon: Icons.print_outlined,
+                color: const Color(0xFFA78BFA),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildActionBtn(
+                label: "Download All",
+                icon: Icons.download_outlined,
+                color: const Color(0xFF4ADE80),
+                isGradient: true,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionBtn({
+    required String label,
+    required IconData icon,
+    required Color color,
+    bool isGradient = false,
+  }) {
+    return Container(
+      height: 44,
+      decoration: BoxDecoration(
+        color: isGradient ? null : color,
+        gradient: isGradient
+            ? const LinearGradient(
+                colors: [Color(0xFF4ADE80), Color(0xFF84CC16)],
+              )
+            : null,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: Colors.white, size: 18),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCards() {
+    return Column(
+      children: [
+        _buildStatCard(
+          title: "Overall Percentage",
+          value: "83.40%",
+          sub: "Consistent Improvement",
+          valueColor: const Color(0xFF2563EB),
+        ),
+        const SizedBox(height: 16),
+        _buildStatCard(
+          title: "Current Grade",
+          value: "A",
+          sub: "Excellent Performance",
+          valueColor: const Color(0xFF22C55E),
+        ),
+        const SizedBox(height: 16),
+        _buildStatCard(
+          title: "Class Rank",
+          value: "4/85",
+          sub: "Top 5% of the class",
+          valueColor: const Color(0xFF8B5CF6),
+        ),
+        const SizedBox(height: 16),
+        _buildStatCard(
+          title: "Attendance in Exams",
+          value: "100 %",
+          sub: "Perfect attendance record",
+          valueColor: const Color(0xFF14B8A6),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required String title,
+    required String value,
+    required String sub,
+    required Color valueColor,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black.withOpacity(0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 14, color: Colors.black87),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: valueColor,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            sub,
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFiltersCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black.withOpacity(0.1)),
+      ),
+      child: Column(
+        children: [
+          _buildMiniFilterDropdown("All Semesters"),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _buildDatePicker("Start Date")),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Icon(
+                  Icons.arrow_forward,
+                  size: 16,
+                  color: Colors.black54,
+                ),
+              ),
+              Expanded(child: _buildDatePicker("End Date")),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildSearchBar("Search Staff name / ID"),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniFilterDropdown(String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black.withOpacity(0.1)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            value,
+            style: const TextStyle(fontSize: 14, color: Colors.black87),
+          ),
+          const Icon(Icons.keyboard_arrow_down, color: Colors.black54),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDatePicker(String hint) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black.withOpacity(0.1)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            hint,
+            style: const TextStyle(fontSize: 14, color: Colors.black54),
+          ),
+          const Icon(
+            Icons.calendar_month_outlined,
+            size: 18,
+            color: Colors.black54,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar(String hint) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black.withOpacity(0.1)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            hint,
+            style: const TextStyle(fontSize: 14, color: Colors.black54),
+          ),
+          const Icon(Icons.search, size: 20, color: Colors.black54),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPerformanceTrend() {
+    return _buildSection(
+      title: "Performance Trend",
+      action: _buildMiniDropdown("Monthly"),
+      child: const SizedBox(height: 180, child: PerformanceTrendChart()),
+    );
+  }
+
+  Widget _buildGradeDistribution() {
+    return _buildSection(
+      title: "Grade Distribution",
+      child: const SizedBox(height: 220, child: GradeDistributionChart()),
+    );
+  }
+
+  Widget _buildSubjectPerformance() {
+    return _buildSection(
+      title: "Subject-wise Performance",
+      child: Column(
+        children: [
+          Row(
+            children: [
+              _buildWhiteBtn("Filters", Icons.filter_list),
+              const SizedBox(width: 12),
+              _buildWhiteBtn("Export", Icons.ios_share),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildPerformanceBanner(),
+          const SizedBox(height: 16),
+          _buildSubjectTableHeader(),
+          const SizedBox(height: 8),
+          _buildSubjectRowItem("Mathematics", "85/100", 85, "A", Colors.blue),
+          _buildSubjectRowItem("Physics", "78/100", 78, "B+", Colors.orange),
+          _buildSubjectRowItem(
+            "Chemistry",
+            "92/100",
+            85,
+            "A+",
+            Colors.green,
+            showTick: true,
+          ),
+          _buildSubjectRowItem("English", "72/100", 72, "B", Colors.orange),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPerformanceBanner() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8F5E9),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, color: Color(0xFF4CAF50)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              "Your overall performance is Excellent! Keep up the good work.",
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.green.shade900,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubjectTableHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: const [
+          Expanded(flex: 3, child: _TableHeaderCell("Subject")),
+          Expanded(flex: 2, child: _TableHeaderCell("Marks")),
+          Expanded(flex: 3, child: _TableHeaderCell("Percentage")),
+          SizedBox(width: 10),
+          Text(
+            "Grade",
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+            ),
+          ),
+          Icon(Icons.swap_vert, size: 14, color: Colors.black54),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubjectRowItem(
+    String subject,
+    String marks,
+    int percentage,
+    String grade,
+    Color gradeColor, {
+    bool showTick = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black.withOpacity(0.1)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Text(
+              subject,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              marks,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 6,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: percentage / 100,
+                      backgroundColor: Colors.grey.shade100,
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        Color(0xFF2196F3),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (showTick)
+                      const Icon(
+                        Icons.check_circle,
+                        size: 10,
+                        color: Colors.green,
+                      ),
+                    if (showTick) const SizedBox(width: 2),
+                    Text(
+                      "$percentage%",
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          _buildGradeBadgeItem(grade, gradeColor),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGradeBadgeItem(String grade, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        grade,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExamHistory() {
+    return _buildSection(
+      title: "Exam History",
+      action: _buildMiniDropdown("All Exams"),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              _buildMiniSummaryBox(
+                "Best Performance:",
+                "Chemistry - 92%(Rank 1)",
+                const Color(0xFFE8F5E9),
+                Colors.green,
+              ),
+              const SizedBox(width: 12),
+              _buildMiniSummaryBox(
+                "Need Improvement:",
+                "Biology - 68%(Rank 9)",
+                const Color(0xFFFFF3E0),
+                Colors.orange,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildHistoryRow("Mid Term- Mar 2024", "580/650 89.23%", "A+", "3"),
+          _buildHistoryRow("Unit Test- Feb 2024", "160/200 84%", "A+", "5"),
+          _buildHistoryRow("Unit Test- Feb 2024", "160/200 84%", "A+", "5"),
+          _buildHistoryRow("Unit Test- Feb 2024", "160/200 84%", "A+", "5"),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniSummaryBox(
+    String title,
+    String sub,
+    Color bg,
+    Color textCol,
+  ) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 10,
+                color: textCol,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(sub, style: TextStyle(fontSize: 10, color: textCol)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHistoryRow(
+    String name,
+    String stats,
+    String grade,
+    String rank,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black.withOpacity(0.1)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              name,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Text(
+            stats,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(width: 12),
+          _buildGradeBadgeItem(grade, Colors.green),
+          const SizedBox(width: 12),
+          Text(
+            "Rank: $rank",
+            style: const TextStyle(
+              fontSize: 11,
+              color: Colors.green,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAchievements() {
+    return _buildSection(
+      title: "Achievements",
+      child: Column(
+        children: [
+          _buildAchievementCardItem(
+            "Top 5 Ranks",
+            "Consistently in top 5 positions",
+            Icons.star,
+            Colors.orange,
+            const Color(0xFFE3F2FD),
+          ),
+          const SizedBox(height: 12),
+          _buildAchievementCardItem(
+            "Perfect Attendance",
+            "100% exam attendance record",
+            Icons.show_chart,
+            Colors.green,
+            const Color(0xFFE8F5E9),
+          ),
+          const SizedBox(height: 12),
+          _buildAchievementCardItem(
+            "Subject Topper",
+            "Chemistry & Computer Science",
+            Icons.star,
+            Colors.orange,
+            const Color(0xFFE3F2FD),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAchievementCardItem(
+    String title,
+    String desc,
+    IconData icon,
+    Color iconCol,
+    Color bg,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconCol.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: iconCol, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  desc,
+                  style: const TextStyle(fontSize: 12, color: Colors.black54),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSection({
+    required String title,
+    Widget? action,
+    required Widget child,
+  }) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.black.withOpacity(0.1)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              color: Color(0xFFEBE3FF),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                if (action != null) action,
+              ],
+            ),
+          ),
+          Padding(padding: const EdgeInsets.all(16), child: child),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniDropdown(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+          ),
+          const Icon(Icons.keyboard_arrow_down, size: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWhiteBtn(String label, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.black12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: Colors.black87),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: const BoxDecoration(
+        color: Color(0xFF7E3FF2),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      child: SafeArea(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(
+              Icons.home,
+              "Home",
+              onTap: () => Get.offNamed('/studentDashboard'),
+            ),
+            _buildNavItem(Icons.bar_chart, "Marks", isActive: true),
+            _buildNavItem(
+              Icons.assignment_outlined,
+              "Exams",
+              onTap: () => Get.offNamed('/studentExams'),
+            ),
+            _buildNavItem(
+              Icons.person,
+              "Profile",
+              onTap: () => Get.offNamed('/studentProfile'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(
+    IconData icon,
+    String label, {
+    bool isActive = false,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? Colors.white.withOpacity(0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 24),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TableHeaderCell extends StatelessWidget {
+  final String title;
+  const _TableHeaderCell(this.title);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: Colors.black54,
+          ),
+        ),
+        const Icon(Icons.swap_vert, size: 14, color: Colors.black54),
+      ],
     );
   }
 }

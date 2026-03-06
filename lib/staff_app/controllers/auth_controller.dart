@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:student_app/staff_app/utils/get_storage.dart';
+import 'package:student_app/student_app/services/student_profile_service.dart'
+    as student_profile;
+import 'package:student_app/student_app/services/auth_service.dart'
+    as student_auth;
 import '../api/api_service.dart';
 import 'profile_controller.dart';
 
@@ -12,11 +17,25 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true;
 
-      // ✅ CALL DEDICATED LOGIN API (MATCHES POSTMAN)
-      final response = await ApiService.login(
-        username: username,
-        password: password,
-      );
+      // 🔍 Decide which login service to call based on the username length
+      final Map<String, dynamic> response;
+      if (username.length == 10) {
+        debugPrint("Calling Student AuthService (10-digit)...");
+        response = await student_auth.AuthService.login(
+          mobile: username,
+          password: password,
+        );
+      } else if (username.length == 6) {
+        debugPrint("Calling Staff ApiService (6-digit)...");
+        response = await ApiService.login(
+          username: username,
+          password: password,
+        );
+      } else {
+        throw Exception(
+          "Username must be 6 digits (Staff) or 10 digits (Student)",
+        );
+      }
 
       // ✅ SUCCESS CHECK - Handle different success formats
       final isSuccess =
@@ -28,35 +47,49 @@ class AuthController extends GetxController {
         // 🔥 CLEAR PREVIOUS USER'S PROFILE DATA (MULTI-USER SUPPORT)
         _clearProfileController();
 
-        // 🔐 SAVE SESSION
+        // 🔐 SAVE SESSION (Tokens and IDs are handled in the API calls, but we ensure it here too)
         AppStorage.saveToken(response["access_token"]);
-        AppStorage.saveUserId(response["userid"]);
+        AppStorage.saveUserId(
+          response["userid"] is int
+              ? response["userid"]
+              : int.tryParse(response["userid"].toString()) ?? 0,
+        );
         AppStorage.setLoggedIn(true);
+
+        // 🔥 Save Role & Type for routing (Persistence)
+        final String role = (response['role'] ?? '').toString().toLowerCase();
+        AppStorage.saveUserRole(role);
+        if (response['login_type'] != null) {
+          AppStorage.saveLoginType(response['login_type'].toString());
+        }
 
         // 🔥 SAVE MULTI-USER SESSION
         AppStorage.saveUserSession({
           'user_login': username,
           'userid': response['userid'],
           'login_type': response['login_type'],
-          'role': response['role'],
-          'permissions': response['permissions'],
-          // We don't have name/avatar yet, ProfileController will fetch them later
+          'role':
+              response['role'] ?? (username.length == 10 ? 'student' : 'staff'),
+          'permissions': response['permissions'] ?? [],
         }, response["access_token"]);
 
-        // 🔥 FETCH PROFILE IMMEDIATELY AFTER LOGIN
-        // This ensures Dashboard/Drawer have user data right away
-        final profileController = Get.isRegistered<ProfileController>()
-            ? Get.find<ProfileController>()
-            : Get.put(ProfileController());
+        // 🔥 FETCH PROFILE (Staff app only, for student we rely on dashboard)
+        if (role != 'student') {
+          final profileController = Get.isRegistered<ProfileController>()
+              ? Get.find<ProfileController>()
+              : Get.put(ProfileController());
 
-        // Use await to ensure profile is fetched before moving to dashboard
-        // If it fails, we still go to dashboard but user info might be missing
-        profileController.fetchProfile().catchError((e) {
-          debugPrint("PROFILE FETCH FAILED AFTER LOGIN: $e");
-        });
+          profileController.fetchProfile().catchError((e) {
+            debugPrint("PROFILE FETCH FAILED AFTER LOGIN: $e");
+          });
+        }
 
-        // 🚀 GO TO DASHBOARD
-        Get.offAllNamed('/dashboard');
+        // 🚀 GO TO THE CORRECT DASHBOARD
+        if (role == 'student') {
+          Get.offAllNamed('/studentDashboard');
+        } else {
+          Get.offAllNamed('/dashboard');
+        }
       } else {
         // Extract error message
         final errorMsg =
@@ -123,16 +156,21 @@ class AuthController extends GetxController {
   }
 
   // ================= LOGOUT =================
-  void logout() {
-    // 🚀 1. Clear Session
+  Future<void> logout() async {
+    // 🚀 1. Clear Session (GetStorage)
     AppStorage.clear();
 
-    // 🧹 2. Clear related controllers
+    // 🚀 2. Clear SharedPreferences (for student app)
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    student_profile.StudentProfileService.resetProfileData();
+
+    // 🧹 3. Clear related controllers
     if (Get.isRegistered<ProfileController>()) {
       Get.delete<ProfileController>(force: true);
     }
 
-    // 🚪 3. GO BACK TO LOGIN (via auth wrapper — session is cleared so it shows LoginPage)
+    // 🚪 4. GO BACK TO LOGIN (via auth wrapper — session is cleared so it shows LoginPage)
     Get.offAllNamed('/authWrapper');
   }
 }

@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'dart:async';
-import 'package:student_app/student_app/announcement_page.dart';
+import 'package:get/get.dart';
 import 'package:student_app/student_app/model/class_attendance.dart';
 import 'package:student_app/student_app/model/hostel_attendance.dart';
 import 'package:student_app/student_app/services/attendance_service.dart';
+import 'package:student_app/student_app/services/exams_service.dart';
 import 'package:student_app/student_app/services/hostel_attendance_service.dart';
 import 'package:student_app/student_app/services/remarks_service.dart';
-import 'package:student_app/student_app/student_app_bar.dart';
-import 'package:student_app/student_app/full_day_timetable.dart';
 import 'package:student_app/student_app/upcoming_exams_page.dart';
-import 'package:student_app/student_app/student_calendar.dart';
-import 'package:student_app/student_app/services/exams_service.dart';
 import 'package:student_app/student_app/widgets/dashboard_widgets.dart';
+import 'package:student_app/student_app/student_calendar.dart';
+import 'package:student_app/student_app/announcement_page.dart';
+import 'package:student_app/student_app/studentdrawer.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -22,1326 +21,748 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isLoading = true;
-  Map<String, dynamic> _attendanceData = {};
-  Map<String, dynamic> _examStats = {};
-
-  // Graph Data
-  List<Map<String, dynamic>> _chartData = [];
-  List<Map<String, dynamic>> _allChartData = []; // Store all data
-  List<String> _chartMonths = [];
-  List<String> _allChartMonths = []; // Store all months
-  double _chartMaxValue = 30;
-  TimeRange _selectedTimeRange = TimeRange.academicYear;
-
-  List<dynamic> _remarks = [];
-
-  // Hostel Attendance Graph Data
+  List<Map<String, dynamic>> _classChartData = [];
   List<Map<String, dynamic>> _hostelChartData = [];
-  List<Map<String, dynamic>> _allHostelChartData = []; // Store all data
+  List<String> _classChartMonths = [];
   List<String> _hostelChartMonths = [];
-  List<String> _allHostelChartMonths = []; // Store all months
-  double _hostelChartMaxValue = 30;
-  TimeRange _selectedHostelTimeRange = TimeRange.academicYear;
+  List<dynamic> _remarks = [];
+  List<dynamic> _announcements = [];
+  List<dynamic> _exams = [];
+
+  String _classRange = "Academic Year";
+  String _hostelRange = "Academic Year";
+  final List<String> _rangeOptions = [
+    "This Month",
+    "3 Months",
+    "6 Months",
+    "Academic Year",
+  ];
+
+  final String _emptyIllustrationPath =
+      r'C:\Users\Vamsikrishna\.gemini\antigravity\brain\bbe2a901-f8d4-4d85-92c1-4990b498ac94\empty_state_illustration_1772721945968.png';
 
   @override
   void initState() {
     super.initState();
-    // 1. Initial load from cache (instant)
-    _fetchDashboardData(forceRefresh: false);
-
-    // 2. Background sync from server (automatic update)
-    _fetchDashboardData(forceRefresh: true);
+    _loadAllData();
   }
 
-  Future<void> _fetchDashboardData({bool forceRefresh = false}) async {
+  Future<void> _loadAllData() async {
     try {
-      // Fetch all data in parallel
       final results = await Future.wait([
-        AttendanceService.getAttendanceSummary(forceRefresh: forceRefresh),
-        AttendanceService.getAttendance(forceRefresh: forceRefresh),
-        RemarksService.getRemarks(forceRefresh: forceRefresh),
-        HostelAttendanceService.getHostelAttendance(forceRefresh: forceRefresh),
-        ExamsService.getExamStats().catchError((e) {
-          debugPrint("Error fetching exam stats: $e");
-          return <String, dynamic>{};
-        }),
+        AttendanceService.getAttendance(forceRefresh: true),
+        HostelAttendanceService.getHostelAttendance(forceRefresh: true),
+        RemarksService.getRemarks(forceRefresh: true).catchError((_) => []),
+        ExamsService.getExamStats().catchError((_) => <String, dynamic>{}),
       ]);
 
-      final summary = results[0] as Map<String, dynamic>;
-      final grid = results[1] as ClassAttendance;
+      final classAttendance = results[0] as ClassAttendance;
+      final hostelAttendance = results[1] as HostelAttendance;
       final remarks = results[2] as List<dynamic>;
-      final hostelGrid = results[3] as HostelAttendance;
-      final examStats = results[4] as Map<String, dynamic>;
 
       if (mounted) {
-        // Sort remarks by date descending (newest first)
-        final List<dynamic> sortedRemarks = List.from(remarks);
-        sortedRemarks.sort((a, b) {
-          final dateA =
-              DateTime.tryParse(a['created_at']?.toString() ?? '') ??
-              DateTime(0);
-          final dateB =
-              DateTime.tryParse(b['created_at']?.toString() ?? '') ??
-              DateTime(0);
-          return dateB.compareTo(dateA);
-        });
-
         setState(() {
-          _attendanceData = summary;
-          _examStats = examStats;
-          _processChartData(grid);
-          _remarks = sortedRemarks;
-          _processHostelChartData(hostelGrid);
+          _processAttendanceData(classAttendance, hostelAttendance);
+          _remarks = remarks;
+          _isLoading = false;
+          _announcements = [
+            {
+              "message": "Unit Test-2 will be conducted from 22nd July...",
+              "department": "Academic Office",
+              "color": const Color(0xFF3B82F6),
+            },
+            {
+              "message":
+                  "Hostel students must return to campus before 8:00 PM...",
+              "department": "Hostel Warden",
+              "color": const Color(0xFF06B6D4),
+            },
+          ];
+          _exams = [
+            {
+              "title": "Mathematics Unit Test",
+              "subtitle": "5th August, 2024",
+              "color": const Color(0xFF3B82F6),
+            },
+            {
+              "title": "Physics Monthly Assessment",
+              "subtitle": "5th August, 2024",
+              "color": const Color(0xFF06B6D4),
+            },
+          ];
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
           _isLoading = false;
         });
       }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        debugPrint("Error fetching dashboard data: $e");
-      }
     }
   }
 
-  void _processChartData(dynamic data) {
-    try {
-      if (data is! ClassAttendance) return;
-
-      final monthsList = data.attendance;
-
-      if (monthsList.isNotEmpty) {
-        _allChartData.clear();
-        _allChartMonths.clear();
-
-        double maxVal = 0;
-
-        // Store all data first
-        for (var m in monthsList) {
-          final monthName = m.monthName;
-          final present = m.present;
-          final absent = m.absent;
-          final holidays = m.holidays;
-          final outings = m.outings;
-          final total = m.total;
-
-          if (total > maxVal) maxVal = total.toDouble();
-
-          _allChartMonths.add(monthName);
-          _allChartData.add({
-            'present': present,
-            'absent': absent,
-            'holidays': holidays,
-            'outings': outings,
-            'total': total,
-            'month': monthName,
-          });
-        }
-
-        // Apply time range filter
-        _applyTimeRangeFilter();
-        _chartMaxValue = maxVal > 0 ? maxVal + 2 : 30; // Add buffer
-      }
-    } catch (e) {
-      print("Error processing chart data: $e");
-    }
-  }
-
-  void _applyTimeRangeFilter() {
-    _chartData.clear();
-    _chartMonths.clear();
-
-    int monthsToShow;
-    switch (_selectedTimeRange) {
-      case TimeRange.last3Months:
-        monthsToShow = 3;
-        break;
-      case TimeRange.last6Months:
-        monthsToShow = 6;
-        break;
-      case TimeRange.lastMonth:
-        monthsToShow = 1;
-        break;
-      case TimeRange.academicYear:
-        monthsToShow = _allChartData.length;
-        break;
-    }
-
-    final startIndex = _allChartData.length > monthsToShow
-        ? _allChartData.length - monthsToShow
-        : 0;
-
-    for (int i = startIndex; i < _allChartData.length; i++) {
-      if (i >= _allChartMonths.length) break;
-      final data = _allChartData[i];
-      final monthName = _allChartMonths[i];
-
-      // Extract short month name (first 3 chars)
-      final shortMonth = monthName.length > 3
-          ? monthName.substring(0, 3)
-          : monthName;
-
-      _chartMonths.add(shortMonth);
-      _chartData.add(data);
-    }
-  }
-
-  void _processHostelChartData(HostelAttendance data) {
-    try {
-      _allHostelChartData.clear();
-      _allHostelChartMonths.clear();
-
-      double maxVal = 0;
-
-      for (var m in data.attendance) {
-        final monthName = m.monthName;
-        final present = m.present;
-        final absent = m.absent;
-        final total = m.total;
-
-        if (total > maxVal) maxVal = total.toDouble();
-
-        _allHostelChartMonths.add(monthName);
-        _allHostelChartData.add({
-          'present': present,
-          'absent': absent,
-          'holidays': m.holidays,
-          'outings': m.outings,
-          'total': total,
-          'totalHostelDays': present + absent,
-          'month': monthName,
-        });
-      }
-
-      _applyHostelTimeRangeFilter();
-      _hostelChartMaxValue = maxVal > 0 ? maxVal + 2 : 30;
-    } catch (e) {
-      print("Error processing hostel chart data: $e");
-    }
-  }
-
-  void _applyHostelTimeRangeFilter() {
+  void _processAttendanceData(
+    ClassAttendance classData,
+    HostelAttendance hostelData,
+  ) {
+    _classChartData.clear();
+    _classChartMonths.clear();
     _hostelChartData.clear();
     _hostelChartMonths.clear();
 
-    int monthsToShow;
-    switch (_selectedHostelTimeRange) {
-      case TimeRange.last3Months:
-        monthsToShow = 3;
-        break;
-      case TimeRange.last6Months:
-        monthsToShow = 6;
-        break;
-      case TimeRange.lastMonth:
-        monthsToShow = 1;
-        break;
-      case TimeRange.academicYear:
-        monthsToShow = _allHostelChartData.length;
-        break;
+    // Map Class Attendance
+    List<MonthlyClassAttendance> classMonths = classData.attendance;
+    if (_classRange == "This Month") {
+      classMonths = classMonths.isNotEmpty ? [classMonths.last] : [];
+    } else if (_classRange == "3 Months") {
+      classMonths = classMonths.length >= 3
+          ? classMonths.sublist(classMonths.length - 3)
+          : classMonths;
+    } else if (_classRange == "6 Months") {
+      classMonths = classMonths.length >= 6
+          ? classMonths.sublist(classMonths.length - 6)
+          : classMonths;
     }
 
-    final startIndex = _allHostelChartData.length > monthsToShow
-        ? _allHostelChartData.length - monthsToShow
-        : 0;
-
-    for (int i = startIndex; i < _allHostelChartData.length; i++) {
-      if (i >= _allHostelChartMonths.length) break;
-      final data = _allHostelChartData[i];
-      final monthName = _allHostelChartMonths[i];
-
-      // Extract short month name (first 3 chars)
-      final shortMonth = monthName.length > 3
-          ? monthName.substring(0, 3)
-          : monthName;
-
-      _hostelChartMonths.add(shortMonth);
-      _hostelChartData.add(data);
+    for (var m in classMonths) {
+      _classChartMonths.add(m.monthName.substring(0, 3));
+      _classChartData.add({
+        'present': m.present,
+        'absent': m.absent,
+        'outings': m.outings,
+        'holidays': m.holidays,
+        'total': m.total,
+      });
     }
-  }
 
-  String _getTimeRangeLabel(TimeRange range) {
-    switch (range) {
-      case TimeRange.academicYear:
-        return 'Academic Year';
-      case TimeRange.last6Months:
-        return 'Last 6 Months';
-      case TimeRange.last3Months:
-        return 'Last 3 Months';
-      case TimeRange.lastMonth:
-        return 'Last Month';
+    // Map Hostel Attendance
+    List<MonthlyAttendance> hostelMonths = hostelData.attendance;
+    if (_hostelRange == "This Month") {
+      hostelMonths = hostelMonths.isNotEmpty ? [hostelMonths.last] : [];
+    } else if (_hostelRange == "3 Months") {
+      hostelMonths = hostelMonths.length >= 3
+          ? hostelMonths.sublist(hostelMonths.length - 3)
+          : hostelMonths;
+    } else if (_hostelRange == "6 Months") {
+      hostelMonths = hostelMonths.length >= 6
+          ? hostelMonths.sublist(hostelMonths.length - 6)
+          : hostelMonths;
+    }
+
+    for (var m in hostelMonths) {
+      _hostelChartMonths.add(m.monthName.substring(0, 3));
+      _hostelChartData.add({'present': m.present, 'absent': m.absent});
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: const StudentAppBar(),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title
-            Text(
-              "Student Dashboard",
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge!.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 4),
-            Text("Dashboard", style: const TextStyle(color: Colors.blue)),
-
-            const SizedBox(height: 20),
-
-            // Attendance Card
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Theme.of(context).dividerColor),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        // ignore: deprecated_member_use
-                        ? Colors.black.withOpacity(0.3)
-                        // ignore: deprecated_member_use
-                        : Colors.black.withOpacity(0.05),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
+      key: _scaffoldKey,
+      drawer: const StudentDrawerPage(),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF8B5CF6), // Deep vibrant purple
+              Color(0xFFA78BFA), // Mid transition purple
+              Color(0xFFF3F4FB), // Lightest lavender/white
+              Color(0xFFF5F5FA), // Soft background tint
+            ],
+            stops: [0.0, 0.25, 0.45, 1.0],
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              _buildHeader(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    _buildAttendanceGrid(),
+                    const SizedBox(height: 16),
+                    _buildExamStats(),
+                    const SizedBox(height: 16),
+                    _buildRankState(),
+                    const SizedBox(height: 16),
+                    _buildTimeTable(),
+                    const SizedBox(height: 16),
+                    _buildClassAttendance(),
+                    const SizedBox(height: 16),
+                    _buildHostelAttendance(),
+                    const SizedBox(height: 16),
+                    _buildRemarks(),
+                    const SizedBox(height: 16),
+                    _buildAnnouncements(),
+                    const SizedBox(height: 16),
+                    _buildUpcomingExams(),
+                    const SizedBox(height: 16),
+                    _buildCalendar(),
+                    const SizedBox(height: 16),
+                    _buildEventsThisMonth(),
+                    const SizedBox(height: 120),
+                  ],
+                ),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {},
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Attendance",
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              if (_isLoading)
-                                const SizedBox(
-                                  height: 16,
-                                  width: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: _buildBottomNav(),
+      extendBody: true,
+    );
+  }
 
-                        AttendanceTile(
-                          icon: Icons.calendar_today,
-                          iconColor: Colors.blue,
-                          title: "Total Days",
-                          value:
-                              _attendanceData['total_working_days']
-                                  ?.toString() ??
-                              "-",
-                        ),
-                        AttendanceTile(
-                          icon: Icons.check_circle,
-                          iconColor: Colors.green,
-                          title: "Present",
-                          value: _attendanceData['present']?.toString() ?? "-",
-                        ),
-                        AttendanceTile(
-                          icon: Icons.directions_run,
-                          iconColor: Colors.cyan,
-                          title: "Outings",
-                          value: _attendanceData['outings']?.toString() ?? "-",
-                        ),
-                        AttendanceTile(
-                          icon: Icons.cancel,
-                          iconColor: Colors.red,
-                          title: "Absent",
-                          value: _attendanceData['absent']?.toString() ?? "-",
-                        ),
-                        AttendanceTile(
-                          icon: Icons.event,
-                          iconColor: Colors.amber,
-                          title: "Holidays",
-                          value: _attendanceData['holidays']?.toString() ?? "-",
-                          isLast: true,
-                        ),
-                      ],
-                    ),
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 45, 16, 12),
+      decoration: const BoxDecoration(color: Colors.transparent),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              GestureDetector(
+                onTap: () => _scaffoldKey.currentState?.openDrawer(),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.menu_open,
+                    color: Color(0xFF7C3AED), // Match dominant purple
+                    size: 24,
                   ),
                 ),
               ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Exam Stats Card
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.black.withOpacity(0.3)
-                        : Colors.black.withOpacity(0.05),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {},
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text(
-                            "Exam Stats",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyLarge?.color,
-                            ),
-                          ),
-                        ),
-
-                        AttendanceTile(
-                          icon: Icons.assignment,
-                          iconColor: Colors.blue,
-                          title: "Total Exam Questions",
-                          value:
-                              _examStats['summary']?['total_questions']
-                                  ?.toString() ??
-                              "-",
-                        ),
-                        AttendanceTile(
-                          icon: Icons.check_circle,
-                          iconColor: Colors.green,
-                          title: "Total Attempted Questions",
-                          value:
-                              _examStats['summary']?['attempted']?.toString() ??
-                              "-",
-                        ),
-                        AttendanceTile(
-                          icon: Icons.close,
-                          iconColor: Colors.amber,
-                          title: "Total Not Attempted",
-                          value:
-                              _examStats['summary']?['skipped']?.toString() ??
-                              "-",
-                        ),
-                        AttendanceTile(
-                          icon: Icons.add_circle,
-                          iconColor: Colors.cyan,
-                          title: "Total Correct Questions",
-                          value:
-                              _examStats['summary']?['correct']?.toString() ??
-                              "-",
-                        ),
-                        AttendanceTile(
-                          icon: Icons.remove_circle,
-                          iconColor: Colors.red,
-                          title: "Total Wrong Questions",
-                          value:
-                              _examStats['summary']?['wrong']?.toString() ??
-                              "-",
-                          isLast: true,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Rank Stats Card
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.black.withOpacity(0.3)
-                        : Colors.black.withOpacity(0.05),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {},
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text(
-                            "Rank Stats",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyLarge?.color,
-                            ),
-                          ),
-                        ),
-
-                        RankTile(
-                          icon: Icons.emoji_events,
-                          iconColor: Colors.blue,
-                          title: "Overall Rank",
-                          value:
-                              _attendanceData['overall_rank']?.toString() ??
-                              "12",
-                        ),
-                        RankTile(
-                          icon: Icons.account_tree,
-                          iconColor: Colors.green,
-                          title: "Branch Wise Rank",
-                          value:
-                              _attendanceData['branch_wise_rank']?.toString() ??
-                              "3",
-                        ),
-                        RankTile(
-                          icon: Icons.groups,
-                          iconColor: Colors.cyan,
-                          title: "Group Wise Rank",
-                          value:
-                              _attendanceData['group_wise_rank']?.toString() ??
-                              "5",
-                        ),
-                        RankTile(
-                          icon: Icons.menu_book,
-                          iconColor: Colors.amber,
-                          title: "Course Wise Rank",
-                          value:
-                              _attendanceData['course_wise_rank']?.toString() ??
-                              "8",
-                        ),
-                        RankTile(
-                          icon: Icons.layers,
-                          iconColor: Colors.red,
-                          title: "Batch Wise Rank",
-                          value:
-                              _attendanceData['batch_wise_rank']?.toString() ??
-                              "2",
-                          isLast: true,
-                          isHighlighted: true,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Time Table Card
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.black.withOpacity(0.3)
-                        : Colors.black.withOpacity(0.05),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          "Time Table",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Subject Cards
-                  TimeTableCard(
-                    subject: "Maths",
-                    time: "09:00 - 09:45",
-                    instructor: "Mr. Ramesh",
-                  ),
-                  TimeTableCard(
-                    subject: "Physics",
-                    time: "09:50 - 10:35",
-                    instructor: "Ms. Anjali",
-                  ),
-                  TimeTableCard(
-                    subject: "Chemistry",
-                    time: "10:40 - 11:25",
-                    instructor: "Dr. Suresh",
-                  ),
-                  TimeTableCard(
-                    subject: "English",
-                    time: "11:30 - 12:15",
-                    instructor: "Mrs. Kavitha",
-                    isLast: true,
-                  ),
-
-                  // View All Button
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Center(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const FullDayTimetablePage(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(
-                          Icons.calendar_today,
-                          color: Color(0xFF2563EB),
-                          size: 18,
-                        ),
-                        label: const Text(
-                          "View All",
-                          style: TextStyle(
-                            color: Color(0xFF2563EB),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(
-                            color: Color(0xFF2563EB),
-                            width: 1.5,
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                  const Icon(Icons.search, color: Colors.white, size: 28),
+                  const SizedBox(width: 16),
+                  Stack(
+                    children: [
+                      const Icon(
+                        Icons.notifications_none,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                      Positioned(
+                        right: 4,
+                        top: 4,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
                           ),
                         ),
                       ),
-                    ),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  const CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Colors.white24,
+                    child: Icon(Icons.person, color: Colors.white),
                   ),
                 ],
               ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            "Student Dashboard",
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
+          ),
+        ],
+      ),
+    );
+  }
 
-            const SizedBox(height: 20),
-
-            // Class Attendance Chart Card
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.black.withOpacity(0.3)
-                        : Colors.black.withOpacity(0.05),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
+  Widget _buildAttendanceGrid() {
+    return DashboardSection(
+      title: "Attendance",
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: ModernStatCard(
+                    title: "Total Days",
+                    value: "334",
+                    icon: Icons.calendar_month,
+                    gradientColors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
                   ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            "Class Attendance (Month-wise Days)",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyLarge?.color,
-                            ),
-                          ),
-                        ),
-                        PopupMenuButton<TimeRange>(
-                          initialValue: _selectedTimeRange,
-                          onSelected: (TimeRange value) {
-                            setState(() {
-                              _selectedTimeRange = value;
-                              _applyTimeRangeFilter();
-                            });
-                          },
-                          offset: const Offset(0, 40),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? Colors.grey.shade800
-                                  : Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  _getTimeRangeLabel(_selectedTimeRange),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Theme.of(
-                                      context,
-                                    ).textTheme.bodyLarge?.color,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.arrow_drop_down,
-                                  size: 18,
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.bodyLarge?.color,
-                                ),
-                              ],
-                            ),
-                          ),
-                          itemBuilder: (BuildContext context) =>
-                              <PopupMenuEntry<TimeRange>>[
-                                PopupMenuItem<TimeRange>(
-                                  value: TimeRange.academicYear,
-                                  child: Text('Academic Year'),
-                                ),
-                                PopupMenuItem<TimeRange>(
-                                  value: TimeRange.last6Months,
-                                  child: Text('Last 6 Months'),
-                                ),
-                                PopupMenuItem<TimeRange>(
-                                  value: TimeRange.last3Months,
-                                  child: Text('Last 3 Months'),
-                                ),
-                                PopupMenuItem<TimeRange>(
-                                  value: TimeRange.lastMonth,
-                                  child: Text('Last Month'),
-                                ),
-                              ],
-                        ),
-                      ],
-                    ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ModernStatCard(
+                    title: "Present",
+                    value: "89",
+                    icon: Icons.calendar_today,
+                    gradientColors: [Color(0xFF22C55E), Color(0xFF15803D)],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _chartData.isEmpty
-                        ? const SizedBox(
-                            height: 200,
-                            child: Center(child: Text("Loading chart data...")),
-                          )
-                        : AttendanceChart(
-                            months: _chartMonths,
-                            maxValue: _chartMaxValue.toInt(),
-                            data: _chartData,
-                            selectedRange: _selectedTimeRange,
-                          ),
-                  ),
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        DashboardLegendItem(
-                          color: Colors.green,
-                          label: "Present",
-                        ),
-                        DashboardLegendItem(color: Colors.red, label: "Absent"),
-                        DashboardLegendItem(
-                          color: Colors.amber,
-                          label: "Outings",
-                        ),
-                        DashboardLegendItem(
-                          color: Colors.blue,
-                          label: "Holidays",
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-
-            const SizedBox(height: 20),
-
-            // ... (Rest of existing content: Hostel Attendance, Remarks, Announcements)
-            // Keeping the rest of the file layout identical for brevity in this response, but assuming direct copy.
-            // To ensure completeness, I will restore the bottom part.
-
-            // Hostel Attendance Chart Card
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.black.withOpacity(0.3)
-                        : Colors.black.withOpacity(0.05),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: ModernStatCard(
+                    title: "Absent",
+                    value: "39",
+                    icon: Icons.calendar_today_outlined,
+                    gradientColors: [Color(0xFFEF4444), Color(0xFFB91C1C)],
                   ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            "Hostel Attendance (Month-wise Days)",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyLarge?.color,
-                            ),
-                          ),
-                        ),
-                        PopupMenuButton<TimeRange>(
-                          initialValue: _selectedHostelTimeRange,
-                          onSelected: (TimeRange value) {
-                            setState(() {
-                              _selectedHostelTimeRange = value;
-                              _applyHostelTimeRangeFilter();
-                            });
-                          },
-                          offset: const Offset(0, 40),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? Colors.grey.shade800
-                                  : Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  _getTimeRangeLabel(_selectedHostelTimeRange),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Theme.of(
-                                      context,
-                                    ).textTheme.bodyLarge?.color,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.arrow_drop_down,
-                                  size: 18,
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.bodyLarge?.color,
-                                ),
-                              ],
-                            ),
-                          ),
-                          itemBuilder: (BuildContext context) =>
-                              <PopupMenuEntry<TimeRange>>[
-                                PopupMenuItem<TimeRange>(
-                                  value: TimeRange.academicYear,
-                                  child: Text('Academic Year'),
-                                ),
-                                PopupMenuItem<TimeRange>(
-                                  value: TimeRange.last6Months,
-                                  child: Text('Last 6 Months'),
-                                ),
-                                PopupMenuItem<TimeRange>(
-                                  value: TimeRange.last3Months,
-                                  child: Text('Last 3 Months'),
-                                ),
-                                PopupMenuItem<TimeRange>(
-                                  value: TimeRange.lastMonth,
-                                  child: Text('Last Month'),
-                                ),
-                              ],
-                        ),
-                      ],
-                    ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ModernStatCard(
+                    title: "Outing",
+                    value: "6",
+                    icon: Icons.directions_walk,
+                    gradientColors: [Color(0xFF06B6D4), Color(0xFF0E7490)],
                   ),
-                  // Fallback or duplicate chart if needed, or static for now
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _hostelChartData.isEmpty
-                        ? const SizedBox(
-                            height: 200,
-                            child: Center(
-                              child: Text("Loading hostel attendance data..."),
-                            ),
-                          )
-                        : AttendanceChart(
-                            months: _hostelChartMonths,
-                            maxValue: _hostelChartMaxValue.toInt(),
-                            data: _hostelChartData,
-                            isHostel: true,
-                            selectedRange: _selectedHostelTimeRange,
-                          ),
-                  ),
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        DashboardLegendItem(
-                          color: Colors.green,
-                          label: "Present",
-                        ),
-                        DashboardLegendItem(color: Colors.red, label: "Absent"),
-                        DashboardLegendItem(
-                          color: Colors.amber,
-                          label: "Outings",
-                        ),
-                        DashboardLegendItem(
-                          color: Colors.blue,
-                          label: "Holidays",
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-
-            const SizedBox(height: 20),
-
-            // Remarks Card
-            // Remarks Section
-            _buildRemarksSection(),
-            const SizedBox(height: 20),
-
-            // Announcements Card
-            DashboardSectionCard(
-              title: "Announcements",
-              emptyMessage: "No announcements found",
-              buttonText: "View All Announcements",
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AnnouncementsDialog()),
-              ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: ModernStatCard(
+                    title: "Holidays",
+                    value: "0",
+                    icon: Icons.calendar_today,
+                    gradientColors: [Color(0xFFEAB308), Color(0xFFB45309)],
+                  ),
+                ),
+                const Expanded(child: SizedBox()),
+              ],
             ),
-            const SizedBox(height: 20),
-
-            // Upcoming Exams Card
-            DashboardSectionCard(
-              title: "Upcoming Exams",
-              emptyMessage: "No upcoming exams",
-              buttonText: "View All Exams",
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const UpcomingExams()),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Student Calendar - Displayed Inline
-            const StudentCalendar(showAppBar: false, isInline: true),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildRemarksSection() {
+  Widget _buildExamStats() {
+    return const DashboardSection(
+      title: "Exam Stats",
+      child: Column(
+        children: [
+          StatListItem(
+            icon: Icons.assignment,
+            iconColor: Color(0xFF3B82F6),
+            title: "Total Exam Questions",
+            value: "200",
+          ),
+          StatListItem(
+            icon: Icons.check_circle,
+            iconColor: Color(0xFF10B981),
+            title: "Attempted Questions",
+            value: "150",
+          ),
+          StatListItem(
+            icon: Icons.cancel,
+            iconColor: Color(0xFFF59E0B),
+            title: "Not Attempted Questions",
+            value: "50",
+          ),
+          StatListItem(
+            icon: Icons.add_circle,
+            iconColor: Color(0xFF06B6D4),
+            title: "+ve Questions",
+            value: "120",
+          ),
+          StatListItem(
+            icon: Icons.remove_circle,
+            iconColor: Color(0xFFEF4444),
+            title: "-ve Questions",
+            value: "30",
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRankState() {
+    return const DashboardSection(
+      title: "Rank State",
+      child: Column(
+        children: [
+          StatListItem(
+            icon: Icons.emoji_events,
+            iconColor: Color(0xFF3B82F6),
+            title: "Overall Rank",
+            value: "12",
+          ),
+          StatListItem(
+            icon: Icons.account_tree,
+            iconColor: Color(0xFF10B981),
+            title: "Branch Wise Rank",
+            value: "3",
+          ),
+          StatListItem(
+            icon: Icons.groups,
+            iconColor: Color(0xFFF59E0B),
+            title: "Group Wise Rank",
+            value: "5",
+          ),
+          StatListItem(
+            icon: Icons.school,
+            iconColor: Color(0xFF06B6D4),
+            title: "Course Wise Rank",
+            value: "8",
+          ),
+          StatListItem(
+            icon: Icons.layers,
+            iconColor: Color(0xFFEF4444),
+            title: "Batch Wise Rank",
+            value: "2",
+            valueColor: Color(0xFFEF4444),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeTable() {
+    return const DashboardSection(
+      title: "Time Table",
+      child: Column(
+        children: [
+          ModernTimeTableItem(
+            subject: "Maths",
+            time: "09:00 - 09:45",
+            instructor: "Mr. Ramesh",
+            accentColor: Color(0xFF3B82F6),
+          ),
+          ModernTimeTableItem(
+            subject: "Physics",
+            time: "09:50 - 10:35",
+            instructor: "Ms. Anjali",
+            accentColor: Color(0xFF06B6D4),
+          ),
+          ModernTimeTableItem(
+            subject: "Chemistry",
+            time: "10:40 - 11:25",
+            instructor: "Dr. Suresh",
+            accentColor: Color(0xFF06B6D4),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClassAttendance() {
+    return DashboardSection(
+      title: "Class Attendance",
+      actions: [
+        _buildYearPill(_classRange, (range) {
+          setState(() {
+            _classRange = range;
+            _loadAllData();
+          });
+        }),
+      ],
+      child: AttendanceChart(
+        months: _classChartMonths,
+        maxValue: 35,
+        data: _classChartData,
+        selectedRange: TimeRange.academicYear,
+      ),
+    );
+  }
+
+  Widget _buildHostelAttendance() {
+    return DashboardSection(
+      title: "Hostel Attendance",
+      actions: [
+        _buildYearPill(_hostelRange, (range) {
+          setState(() {
+            _hostelRange = range;
+            _loadAllData();
+          });
+        }),
+      ],
+      child: AttendanceChart(
+        months: _hostelChartMonths,
+        maxValue: 35,
+        data: _hostelChartData,
+        selectedRange: TimeRange.academicYear,
+        isHostel: true,
+      ),
+    );
+  }
+
+  Widget _buildRemarks() {
+    return DashboardSection(
+      title: "Remarks",
+      child: _remarks.isEmpty
+          ? EmptyStateWidget(
+              message: "No Remarks yet",
+              imagePath: _emptyIllustrationPath,
+            )
+          : Column(
+              children: _remarks.map((r) {
+                // Safely extract data from the map
+                final remark = r['remark']?.toString() ?? "No Remark";
+                final relatedTo = r['related_to']?.toString() ?? "General";
+                final createdAt = r['created_at']?.toString() ?? "";
+
+                // Format date (simple extraction from 2026-02-18T...)
+                String dateStr = "";
+                if (createdAt.length >= 10) {
+                  dateStr = createdAt.substring(0, 10);
+                }
+
+                return DashboardListItem(
+                  title: remark,
+                  subtitle: "$relatedTo • $dateStr",
+                  icon: Icons.comment_rounded,
+                  iconBgColor: const Color(0xFFF59E0B),
+                );
+              }).toList(),
+            ),
+    );
+  }
+
+  Widget _buildAnnouncements() {
+    return DashboardSection(
+      title: "Announcement",
+      child: Column(
+        children: [
+          ..._announcements.map(
+            (a) => DashboardListItem(
+              title: a['message'],
+              subtitle: a['department'],
+              icon: Icons.campaign,
+              iconBgColor: a['color'],
+            ),
+          ),
+          ViewAllButton(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AnnouncementsDialog(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUpcomingExams() {
+    return DashboardSection(
+      title: "Upcoming Exams",
+      child: Column(
+        children: [
+          ..._exams.map(
+            (e) => DashboardListItem(
+              title: e['title'],
+              subtitle: e['subtitle'],
+              icon: Icons.edit_note,
+              iconBgColor: e['color'],
+            ),
+          ),
+          ViewAllButton(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const UpcomingExams()),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCalendar() {
     return Container(
-      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).dividerColor),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              "Remarks",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-              ),
-            ),
-          ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                if (_remarks.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 24),
-                    child: Center(
-                      child: Text(
-                        "No remarks found",
-                        style: TextStyle(color: Colors.grey.shade500),
-                      ),
-                    ),
-                  )
-                else
-                  ..._remarks.take(2).map((r) => _buildRemarkItem(r)),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _showAllRemarksDialog,
-                    icon: const Icon(Icons.visibility, size: 18),
-                    label: const Text("View All Remarks"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1D68F2),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      elevation: 4,
-                      shadowColor: Colors.blue.withOpacity(0.4),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+      child: const StudentCalendar(showAppBar: false, isInline: true),
+    );
+  }
+
+  Widget _buildEventsThisMonth() {
+    return DashboardSection(
+      title: "Events This Month",
+      child: EmptyStateWidget(
+        message: "No events this month",
+        imagePath: _emptyIllustrationPath,
       ),
     );
   }
 
-  Widget _buildRemarkItem(dynamic remark, {bool showStatus = false}) {
-    final remarkText = remark['remark']?.toString() ?? 'No details available';
-    final relatedTo = remark['related_to']?.toString() ?? 'General';
-    final createdAt = remark['created_at']?.toString() ?? '';
-
-    DateTime? dateTime;
-    if (createdAt.isNotEmpty) {
-      try {
-        dateTime = DateTime.parse(createdAt);
-      } catch (e) {}
-    }
-
-    String dateStr = dateTime != null
-        ? DateFormat('dd MMM yyyy').format(dateTime)
-        : '';
-    String timeStr = dateTime != null
-        ? DateFormat('hh:mm a').format(dateTime)
-        : '';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Blue Icon Square
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: const Color(0xFF1D68F2),
-              borderRadius: BorderRadius.circular(8),
+  Widget _buildYearPill(String selectedYear, Function(String) onYearSelected) {
+    return GestureDetector(
+      onTap: () => _showYearSelector(selectedYear, onYearSelected),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              selectedYear,
+              style: const TextStyle(fontSize: 12, color: Colors.black87),
             ),
-            child: const Icon(
-              Icons.access_time_filled,
-              color: Colors.white,
-              size: 20,
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.keyboard_arrow_down,
+              size: 18,
+              color: Colors.black54,
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        relatedTo,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                    if (showStatus) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1D68F2),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          "NEUTRAL",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                    const Spacer(),
-                    Text(
-                      dateStr,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  remarkText,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(Icons.person, size: 14, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Text(
-                      "Hostel Staff",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    if (timeStr.isNotEmpty) ...[
-                      const SizedBox(width: 4),
-                      Text(
-                        "($timeStr)",
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFF1D68F2),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  void _showAllRemarksDialog() {
-    showDialog(
+  void _showYearSelector(String currentYear, Function(String) onSelect) {
+    showModalBottomSheet(
       context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Select Time Range",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              insetPadding: const EdgeInsets.all(20),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 600),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Header
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "All Remarks (${_remarks.length})",
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () => Navigator.pop(context),
-                            icon: const Icon(Icons.close),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    // Content
-                    Flexible(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: _remarks.isEmpty
-                              ? [
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 40),
-                                    child: Center(
-                                      child: Text("No remarks found"),
-                                    ),
-                                  ),
-                                ]
-                              : _remarks
-                                    .map(
-                                      (r) =>
-                                          _buildRemarkItem(r, showStatus: true),
-                                    )
-                                    .toList(),
-                        ),
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    // Footer
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          OutlinedButton(
-                            onPressed: () async {
-                              await _fetchDashboardData();
-                              setDialogState(() {});
-                            },
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Color(0xFF1D68F2)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                            ),
-                            child: const Text("Refresh Data"),
-                          ),
-                          const Spacer(),
-                          ElevatedButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF64748B),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text("Close"),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 10),
+              ..._rangeOptions.map(
+                (range) => ListTile(
+                  title: Text(range, textAlign: TextAlign.center),
+                  onTap: () {
+                    onSelect(range);
+                    Navigator.pop(context);
+                  },
+                  selected: range == currentYear,
+                  selectedTileColor: Colors.purple.withOpacity(0.1),
                 ),
               ),
-            );
-          },
+            ],
+          ),
         );
       },
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: const BoxDecoration(
+        color: Color(0xFF7C3AED),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(35),
+          topRight: Radius.circular(35),
+        ),
+      ),
+      child: SafeArea(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(Icons.home, "Home", active: true, onTap: () {}),
+            _buildNavItem(
+              Icons.bar_chart,
+              "Marks",
+              onTap: () => Get.offNamed('/studentMarks'),
+            ),
+            _buildNavItem(
+              Icons.assignment_outlined,
+              "Exams",
+              onTap: () => Get.offNamed('/studentExams'),
+            ),
+            _buildNavItem(
+              Icons.person,
+              "Profile",
+              onTap: () => Get.offNamed('/studentProfile'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(
+    IconData icon,
+    String label, {
+    bool active = false,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        decoration: BoxDecoration(
+          color: active ? Colors.white.withOpacity(0.25) : Colors.transparent,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 28),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -12,6 +12,7 @@ class StudentProfileService {
   static final ValueNotifier<String?> displayName = ValueNotifier<String?>(
     null,
   );
+  static final ValueNotifier<String?> displayId = ValueNotifier<String?>(null);
 
   static String get baseUrl => ApiConfig.studentApiBaseUrl;
 
@@ -108,6 +109,10 @@ class StudentProfileService {
         final lname = data['slname'] ?? "";
         final name = "$fname $lname".trim();
         displayName.value = name.isNotEmpty ? name : "Student";
+
+        // Update ID (e.g., Admission No or SID)
+        final id = data['adm_no'] ?? data['id']?.toString() ?? "";
+        displayId.value = id.isNotEmpty ? id : null;
       } else {
         profileImageUrl.value = null;
         displayName.value = null;
@@ -123,5 +128,6 @@ class StudentProfileService {
   static void resetProfileData() {
     profileImageUrl.value = null;
     displayName.value = null;
+    displayId.value = null;
   }
 }

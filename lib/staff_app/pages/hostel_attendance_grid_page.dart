@@ -110,15 +110,15 @@ class _HostelAttendanceGridPageState extends State<HostelAttendanceGridPage> {
       width: double.infinity,
       padding: EdgeInsets.only(
         top: topPad + 12,
-        bottom: 28,
+        bottom: 25,
         left: 20,
         right: 20,
       ),
       decoration: const BoxDecoration(
-        color: Color(0xFF7C3AED), // Same as mark page
+        color: Color(0xFF8148E9), // Exact purple from image
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(32),
-          bottomRight: Radius.circular(32),
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
         ),
       ),
       child: Row(
@@ -163,31 +163,34 @@ class _MonthGridCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F0FF),
-        borderRadius: BorderRadius.circular(20),
+        color: const Color(0xFFF1EEFF), // Soft background color from image
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Month/Year Chip
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFDCD6FD),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              monthData.monthName?.toUpperCase() ?? "UNKNOWN",
-              style: const TextStyle(
-                color: Color(0xFF7C3AED),
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE4DEF9), // Accurate chip color
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                monthData.monthName?.toUpperCase() ?? "UNKNOWN",
+                style: const TextStyle(
+                  color: Color(0xFF8148E9),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
 
           // Days Grid
           GridView.builder(
@@ -196,7 +199,7 @@ class _MonthGridCard extends StatelessWidget {
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
               crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
+              mainAxisSpacing: 12,
               childAspectRatio: 1,
             ),
             itemCount: 31,
@@ -222,17 +225,20 @@ class _DayGridCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Determine color based on status if needed
-    // For now matching the visual of white boxes
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(6),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 4,
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 3,
             offset: const Offset(0, 2),
+          ),
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 1,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
@@ -240,7 +246,7 @@ class _DayGridCell extends StatelessWidget {
         child: Text(
           "$day",
           style: const TextStyle(
-            color: Color(0xFF2D3748),
+            color: Color(0xFF2D3748), // Precise dark gray text
             fontWeight: FontWeight.w600,
             fontSize: 13,
           ),

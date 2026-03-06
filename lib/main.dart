@@ -6,6 +6,7 @@ import 'package:student_app/staff_app/pages/staff_auth_wrapper.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:student_app/staff_app/pages/splash_page.dart';
 import 'package:student_app/staff_app/pages/verify_attendance_page.dart';
+import 'package:student_app/student_app/dashboard_page.dart';
 
 // Staff Controllers
 import 'package:student_app/staff_app/controllers/theme_controller.dart'
@@ -47,6 +48,18 @@ import 'package:student_app/staff_app/pages/staff_biometric_logs_page.dart';
 import 'package:student_app/staff_app/pages/take_staff_attendance_page.dart';
 import 'package:student_app/staff_app/pages/pro_admission_page.dart';
 import 'package:student_app/staff_app/pages/hostel_attendance_mark_page.dart';
+import 'package:student_app/staff_app/pages/hostel_attendance_status_page.dart';
+import 'package:student_app/staff_app/pages/add_hostel_attendance_page.dart';
+// Student Pages
+import 'package:student_app/student_app/class_attendance_page.dart';
+import 'package:student_app/student_app/hostel_attendence_page.dart';
+import 'package:student_app/student_app/hostel_fee_page.dart';
+import 'package:student_app/student_app/documents_page.dart';
+import 'package:student_app/student_app/outings_permissions_page.dart';
+import 'package:student_app/student_app/remarks_page.dart';
+import 'package:student_app/student_app/marks_page.dart';
+import 'package:student_app/student_app/upcoming_exams_page.dart';
+import 'package:student_app/student_app/student_profile_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -94,6 +107,7 @@ class SsJcApp extends StatelessWidget {
         GetPage(name: '/authWrapper', page: () => const StaffAuthWrapper()),
         GetPage(name: '/login', page: () => const LoginPage()),
         GetPage(name: '/dashboard', page: () => const HomeDashboardPage()),
+        GetPage(name: '/studentDashboard', page: () => const DashboardPage()),
         GetPage(name: '/profile', page: () => const ProfilePage()),
 
         // 👨🏫 STAFF
@@ -173,7 +187,38 @@ class SsJcApp extends StatelessWidget {
           name: '/hostelAttendanceMark',
           page: () => const HostelAttendanceMarkPage(),
         ),
+        GetPage(
+          name: '/hostelAttendanceStatus',
+          page: () => const HostelAttendanceStatusPage(),
+        ),
+        GetPage(
+          name: '/addHostelAttendance',
+          page: () => const AddHostelAttendancePage(),
+        ),
         GetPage(name: '/proAdmission', page: () => const ProAdmissionPage()),
+
+        // 🎓 STUDENT APP ROUTES
+        GetPage(
+          name: '/studentClassAttendance',
+          page: () => const AttendancePage(),
+        ),
+        GetPage(
+          name: '/studentHostelAttendance',
+          page: () => const HostelAttendancePage(),
+        ),
+        GetPage(name: '/studentHostelFee', page: () => const HostelFeesPage()),
+        GetPage(name: '/studentDocuments', page: () => const DocumentsPage()),
+        GetPage(
+          name: '/studentOutings',
+          page: () => const OutingsPermissionsPage(),
+        ),
+        GetPage(name: '/studentRemarks', page: () => const RemarksPage()),
+        GetPage(name: '/studentMarks', page: () => const MarksPage()),
+        GetPage(name: '/studentExams', page: () => const UpcomingExams()),
+        GetPage(
+          name: '/studentProfile',
+          page: () => const StudentProfilePage(),
+        ),
       ],
     );
   }

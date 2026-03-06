@@ -65,7 +65,7 @@ class _AddFloorPageState extends State<AddFloorPage> {
                   "Add New Floor",
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 22,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

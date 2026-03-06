@@ -6,187 +6,250 @@ class FullDayTimetablePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF2563EB)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Row(
-          children: [
-            const Icon(
-              Icons.calendar_today,
-              color: Color(0xFF2563EB),
-              size: 20,
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          // Purple Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(
+              top: 20,
+              bottom: 25,
+              left: 16,
+              right: 16,
             ),
-            const SizedBox(width: 8),
-            Text(
-              "Full Day Time Table",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: theme.textTheme.bodyLarge?.color,
+            decoration: const BoxDecoration(
+              color: Color(0xFF7E3FF2),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+            ),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.3),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 15),
+                const Text(
+                  "Full Day Time Table",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  _buildTimetableItem(
+                    subject: "Maths",
+                    time: "09:00 - 09:45",
+                    instructor: "Mr. Ramesh",
+                    color: const Color(0xFF2196F3),
+                  ),
+                  _buildTimetableItem(
+                    subject: "Physics",
+                    time: "09:50 - 10:35",
+                    instructor: "Ms. Anjali",
+                    color: const Color(0xFF00BCD4),
+                  ),
+                  _buildTimetableItem(
+                    subject: "Chemistry",
+                    time: "10:40 - 11:25",
+                    instructor: "Dr. Suresh",
+                    color: const Color(0xFF2196F3),
+                  ),
+                  _buildTimetableItem(
+                    subject: "English",
+                    time: "10:40 - 11:25",
+                    instructor: "Dr. Suresh",
+                    color: const Color(0xFF00BCD4),
+                  ),
+                  _buildTimetableItem(
+                    subject: "Chemistry",
+                    time: "10:40 - 11:25",
+                    instructor: "Dr. Suresh",
+                    color: const Color(0xFF2196F3),
+                  ),
+                  _buildTimetableItem(
+                    subject: "Lunch Break",
+                    time: "01:05- 02:00",
+                    instructor: "",
+                    color: Colors.grey.shade400,
+                  ),
+                  _buildTimetableItem(
+                    subject: "Chemistry",
+                    time: "10:40 - 11:25",
+                    instructor: "Dr. Suresh",
+                    color: const Color(0xFF2196F3),
+                  ),
+                  _buildTimetableItem(
+                    subject: "English",
+                    time: "10:40 - 11:25",
+                    instructor: "Dr. Suresh",
+                    color: const Color(0xFF00BCD4),
+                  ),
+                  _buildTimetableItem(
+                    subject: "Chemistry",
+                    time: "10:40 - 11:25",
+                    instructor: "Dr. Suresh",
+                    color: const Color(0xFF2196F3),
+                  ),
+                  const SizedBox(height: 20),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildTimetableItem(
-              context,
-              "Maths",
-              "09:00 - 09:45 AM",
-              "Mr. Ramesh",
+          ),
+
+          // Fixed Footer
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+              border: Border.all(color: Colors.black12),
             ),
-            _buildTimetableItem(
-              context,
-              "Physics",
-              "09:50 - 10:35 AM",
-              "Ms. Anjali",
-            ),
-            _buildTimetableItem(
-              context,
-              "Chemistry",
-              "10:40 - 11:25 AM",
-              "Dr. Suresh",
-            ),
-            _buildTimetableItem(
-              context,
-              "English",
-              "11:30 - 12:15 PM",
-              "Mrs. Kavitha",
-            ),
-            _buildTimetableItem(
-              context,
-              "Biology",
-              "12:20 - 01:05 PM",
-              "Dr. Naveen",
-            ),
-            _buildTimetableItem(
-              context,
-              "Lunch Break",
-              "01:05 - 02:00 PM",
-              "-",
-              isBreak: true,
-            ),
-            _buildTimetableItem(
-              context,
-              "Social Studies",
-              "02:00 - 02:45 PM",
-              "Mr. Vikram",
-            ),
-            _buildTimetableItem(
-              context,
-              "Hindi",
-              "02:50 - 03:35 PM",
-              "Ms. Sunita",
-            ),
-            _buildTimetableItem(
-              context,
-              "Computer Science",
-              "03:40 - 04:25 PM",
-              "Mr. Arvind",
-              isLast: true,
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const WeeklyTimetablePage(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.calendar_view_week, color: Colors.white),
-                label: const Text(
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const WeeklyTimetablePage(),
+                  ),
+                );
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
                   "View Weekly Time Table",
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildTimetableItem(
-    BuildContext context,
-    String subject,
-    String time,
-    String instructor, {
-    bool isBreak = false,
-    bool isLast = false,
+  Widget _buildTimetableItem({
+    required String subject,
+    required String time,
+    required String instructor,
+    required Color color,
   }) {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.black12),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15),
+        child: IntrinsicHeight(
           child: Row(
             children: [
               Container(
-                width: 4,
-                height: 40,
+                width: 5,
                 decoration: BoxDecoration(
-                  color: isBreak ? Colors.grey : const Color(0xFF2563EB),
-                  borderRadius: BorderRadius.circular(2),
+                  color: color,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(15),
+                    bottomLeft: Radius.circular(15),
+                  ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 15),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      subject,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: theme.textTheme.bodyLarge?.color,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        subject,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "$time • $instructor",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: theme.textTheme.bodySmall?.color,
+                      const SizedBox(height: 5),
+                      Row(
+                        children: [
+                          Text(
+                            time,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (instructor.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            const Text(
+                              "•",
+                              style: TextStyle(color: Colors.black54),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              instructor,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black87,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
         ),
-        if (!isLast)
-          Divider(
-            height: 1,
-            indent: 28,
-            color: theme.dividerColor.withOpacity(0.1),
-          ),
-      ],
+      ),
     );
   }
 }

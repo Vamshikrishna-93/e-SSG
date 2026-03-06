@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:student_app/student_app/exams_page.dart';
+import 'package:get/get.dart';
 import 'package:student_app/student_app/services/student_profile_service.dart';
 
 class StudentDrawerPage extends StatelessWidget {
@@ -8,58 +8,87 @@ class StudentDrawerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent, // Background will be handled by the Row
+      backgroundColor: Colors.transparent,
       body: Row(
         children: [
           // Main Drawer content (80% width)
           Expanded(
             flex: 8,
             child: Container(
-              color: const Color(0xFFF5F3FF),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF3EFFF), // Light Lavender
+                borderRadius: BorderRadius.only(
+                  bottomRight: Radius.circular(50),
+                ),
+              ),
               child: Column(
                 children: [
                   _buildHeader(context),
                   const SizedBox(height: 10),
                   Expanded(
                     child: ListView(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                       children: [
-                        _buildExpandableMenuItem(
+                        _buildMenuItem(
                           context,
-                          icon: Icons.edit_document,
-                          title: "Exams",
+                          icon: Icons.chat_bubble_outline_rounded,
+                          title: "Class Attendance",
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const ExamsPage()));
+                            Navigator.pop(context);
+                            Get.toNamed('/studentClassAttendance');
                           },
-                        ),
-                        _buildExpandableMenuItem(
-                          context,
-                          icon: Icons.apartment_rounded,
-                          title: "Hostels",
-                          onTap: () {},
-                        ),
-                        _buildExpandableMenuItem(
-                          context,
-                          icon: Icons.settings_accessibility_rounded,
-                          title: "Hr Management",
-                          onTap: () {},
                         ),
                         _buildMenuItem(
                           context,
                           icon: Icons.chat_bubble_outline_rounded,
-                          title: "Chat",
-                          onTap: () {},
+                          title: "Hostel Attendance",
+                          onTap: () {
+                            Navigator.pop(context);
+                            Get.toNamed('/studentHostelAttendance');
+                          },
                         ),
                         _buildMenuItem(
                           context,
-                          icon: Icons.forum_outlined,
-                          title: "Communication",
-                          onTap: () {},
+                          icon: Icons.chat_bubble_outline_rounded,
+                          title: "Hostel Fee",
+                          onTap: () {
+                            Navigator.pop(context);
+                            Get.toNamed('/studentHostelFee');
+                          },
+                        ),
+                        _buildMenuItem(
+                          context,
+                          icon: Icons.chat_bubble_outline_rounded,
+                          title: "Documents",
+                          onTap: () {
+                            Navigator.pop(context);
+                            Get.toNamed('/studentDocuments');
+                          },
+                        ),
+                        _buildMenuItem(
+                          context,
+                          icon: Icons.chat_bubble_outline_rounded,
+                          title: "Outings",
+                          onTap: () {
+                            Navigator.pop(context);
+                            Get.toNamed('/studentOutings');
+                          },
+                        ),
+                        _buildMenuItem(
+                          context,
+                          icon: Icons.chat_bubble_outline_rounded,
+                          title: "Remarks",
+                          onTap: () {
+                            Navigator.pop(context);
+                            Get.toNamed('/studentRemarks');
+                          },
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -69,9 +98,7 @@ class StudentDrawerPage extends StatelessWidget {
             flex: 2,
             child: GestureDetector(
               onTap: () => Navigator.pop(context),
-              child: Container(
-                color: Colors.black.withOpacity(0.5),
-              ),
+              child: Container(color: Colors.black.withOpacity(0.5)),
             ),
           ),
         ],
@@ -83,40 +110,57 @@ class StudentDrawerPage extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 20,
+        top: MediaQuery.of(context).padding.top + 30,
         bottom: 30,
-        left: 20,
+        left: 25,
       ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
           colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Logo Circle
-          Container(
-            width: 70,
-            height: 70,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-            child: const Center(
-              child: Text(
-                "Logo",
-                style: TextStyle(
-                  color: Color(0xFF8B5CF6),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+          // Profile Image Circle
+          ValueListenableBuilder<String?>(
+            valueListenable: StudentProfileService.profileImageUrl,
+            builder: (context, imageUrl, _) {
+              return Container(
+                width: 75,
+                height: 75,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                  image: (imageUrl != null && imageUrl.isNotEmpty)
+                      ? DecorationImage(
+                          image: NetworkImage(imageUrl),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
                 ),
-              ),
-            ),
+                child: (imageUrl == null || imageUrl.isEmpty)
+                    ? const Center(
+                        child: Icon(
+                          Icons.person,
+                          size: 40,
+                          color: Color(0xFF8B5CF6),
+                        ),
+                      )
+                    : null,
+              );
+            },
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 18),
           // User Name
           ValueListenableBuilder<String?>(
             valueListenable: StudentProfileService.displayName,
@@ -125,60 +169,29 @@ class StudentDrawerPage extends StatelessWidget {
                 name ?? "Ashok Reddy",
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               );
             },
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           // User ID
-          Text(
-            "User ID :  667021",
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
+          ValueListenableBuilder<String?>(
+            valueListenable: StudentProfileService.displayId,
+            builder: (context, id, _) {
+              return Text(
+                "Admission No: ${id ?? ''}",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
+              );
+            },
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildExpandableMenuItem(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-          leading: Icon(icon, color: Colors.black, size: 22),
-          title: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          trailing: const Icon(Icons.keyboard_arrow_down, color: Colors.black, size: 22),
-          children: [
-            ListTile(
-              title: const Text("Placeholder View"),
-              onTap: onTap,
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -197,14 +210,15 @@ class StudentDrawerPage extends StatelessWidget {
       ),
       child: ListTile(
         onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-        leading: Icon(icon, color: Colors.black, size: 22),
+        dense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+        leading: Icon(icon, color: Colors.black87, size: 22),
         title: Text(
           title,
           style: const TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Color(0xFF1F2937),
           ),
         ),
       ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'model/anouncement.dart';
 
 class AnnouncementsDialog extends StatefulWidget {
@@ -10,7 +9,7 @@ class AnnouncementsDialog extends StatefulWidget {
 }
 
 class _AnnouncementsDialogState extends State<AnnouncementsDialog> {
-  final int itemsPerPage = 10;
+  final int itemsPerPage = 8; // Adjust to match image better
   int currentPage = 1;
 
   late final List<Announcement> announcements;
@@ -22,32 +21,51 @@ class _AnnouncementsDialogState extends State<AnnouncementsDialog> {
     announcements = [
       Announcement(
         message:
-            "Unit Test-2 will be conducted from 22nd July.\nStudents are advised to prepare accordingly.",
+            "Unit Test-2 will be conducted from 22nd July. Students are advised to prepare accordingly",
         department: "Academic Office",
-        color: Colors.blue,
+        color: const Color(0xFF2196F3),
       ),
       Announcement(
         message:
-            "Hostel students must return to campus before 8:00 PM during weekdays.",
-        department: "Hostel Warden",
-        color: Colors.cyan,
+            "Hostel students must return to campus before 8:00 PM during weekdays",
+        department: "Academic Office",
+        color: const Color(0xFF00BCD4),
       ),
       Announcement(
         message:
-            "Tomorrow is a holiday on account of local festival celebrations.",
-        department: "Administration",
-        color: Colors.green,
+            "Unit Test-2 will be conducted from 22nd July. Students are advised to prepare accordingly",
+        department: "Academic Office",
+        color: const Color(0xFF2196F3),
       ),
       Announcement(
         message:
-            "All students should submit their assignment files by Friday without fail.",
-        department: "English Department",
-        color: Colors.amber,
+            "Hostel students must return to campus before 8:00 PM during weekdays",
+        department: "Academic Office",
+        color: const Color(0xFF00BCD4),
       ),
       Announcement(
-        message: "Parents–Teachers meeting scheduled on Saturday at 10:00 AM.",
-        department: "Sports Department",
-        color: Colors.red,
+        message:
+            "Unit Test-2 will be conducted from 22nd July. Students are advised to prepare accordingly",
+        department: "Academic Office",
+        color: const Color(0xFF2196F3),
+      ),
+      Announcement(
+        message:
+            "Hostel students must return to campus before 8:00 PM during weekdays",
+        department: "Academic Office",
+        color: const Color(0xFF00BCD4),
+      ),
+      Announcement(
+        message:
+            "Unit Test-2 will be conducted from 22nd July. Students are advised to prepare accordingly",
+        department: "Academic Office",
+        color: const Color(0xFF2196F3),
+      ),
+      Announcement(
+        message:
+            "Hostel students must return to campus before 8:00 PM during weekdays",
+        department: "Academic Office",
+        color: const Color(0xFF00BCD4),
       ),
       Announcement(
         message: "Sports practice will resume from Monday evening.",
@@ -115,194 +133,204 @@ class _AnnouncementsDialogState extends State<AnnouncementsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SizedBox(
-        height: MediaQuery.of(context).size.height,
-        child: Column(
-          children: [
-            Expanded(
-              child: Scrollbar(
-                thumbVisibility: true,
-                child: SingleChildScrollView(
-                  child: Column(
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          // Purple Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(
+              top: 20,
+              bottom: 25,
+              left: 16,
+              right: 16,
+            ),
+            decoration: const BoxDecoration(
+              color: Color(0xFF7E3FF2),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+            ),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.3),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 15),
+                const Text(
+                  "Announcements",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 20),
+                  Text(
+                    "All Announcements(${announcements.length})",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+
+                  // Announcements List
+                  ...List.generate(
+                    pageData.length,
+                    (index) => AnnouncementCard(item: pageData[index]),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Pagination Info
+                  Center(
+                    child: Text(
+                      "Page $currentPage of $totalPages", // Static text as in image, but could be dynamic
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Center(
+                    child: Text(
+                      "Showing ${(currentPage - 1) * itemsPerPage + 1}-${((currentPage - 1) * itemsPerPage + pageData.length)} of ${announcements.length} announcements",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+
+                  // Pagination Controls
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Back Button
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(8, 12, 8, 0),
-                        child: Row(
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                Icons.arrow_back,
-                                color: theme.textTheme.bodyLarge?.color,
-                              ),
-                              onPressed: () => Navigator.pop(context),
-                              tooltip: "Back",
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              "",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: theme.textTheme.bodyLarge?.color,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                "All Announcements (${announcements.length})",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: theme.textTheme.bodyLarge?.color,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Divider(height: 1, color: theme.dividerColor),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: List.generate(
-                            pageData.length,
-                            (index) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: AnnouncementCard(item: pageData[index]),
+                      GestureDetector(
+                        onTap: currentPage > 1
+                            ? () => setState(() => currentPage--)
+                            : null,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: currentPage > 1
+                                ? const Color(0xFF7E3FF2)
+                                : const Color(
+                                    0xFFF3F1FF,
+                                  ), // Light purple background
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            "Previous",
+                            style: TextStyle(
+                              color: currentPage > 1
+                                  ? Colors.white
+                                  : Colors.white70, // Disabled look in image
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                       ),
-                      Divider(height: 1, color: theme.dividerColor),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 20,
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              "Page $currentPage of $totalPages\n"
-                              "Showing ${(currentPage - 1) * itemsPerPage + 1}"
-                              "-${((currentPage - 1) * itemsPerPage + pageData.length)} "
-                              "of ${announcements.length} announcements",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: theme.textTheme.bodyLarge?.color,
+                      const SizedBox(width: 10),
+                      Container(height: 25, width: 1, color: Colors.black12),
+                      const SizedBox(width: 15),
+                      ...List.generate(totalPages, (index) {
+                        final page = index + 1;
+                        final isActive = page == currentPage;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 0),
+                          child: GestureDetector(
+                            onTap: () => setState(() => currentPage = page),
+                            child: Container(
+                              width: 30,
+                              height: 30,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? const Color(0xFF7E3FF2)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: Text(
+                                "$page",
+                                style: TextStyle(
+                                  color: isActive
+                                      ? Colors.white
+                                      : Colors.black54,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                OutlinedButton.icon(
-                                  onPressed: currentPage > 1
-                                      ? () => setState(() => currentPage--)
-                                      : null,
-                                  icon: const Icon(
-                                    Icons.chevron_left,
-                                    size: 18,
-                                  ),
-                                  label: const Text("Previous"),
-                                ),
-                                Row(
-                                  children: List.generate(totalPages, (index) {
-                                    final page = index + 1;
-                                    final isActive = page == currentPage;
-
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                      ),
-                                      child: GestureDetector(
-                                        onTap: () =>
-                                            setState(() => currentPage = page),
-                                        child: Container(
-                                          width: 36,
-                                          height: 36,
-                                          alignment: Alignment.center,
-                                          decoration: BoxDecoration(
-                                            color: isActive
-                                                ? const Color(0xFF2563EB)
-                                                : theme.cardColor,
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            border: Border.all(
-                                              color: const Color(0xFF2563EB),
-                                            ),
-                                          ),
-                                          child: Text(
-                                            "$page",
-                                            style: TextStyle(
-                                              color: isActive
-                                                  ? Colors.white
-                                                  : const Color(0xFF2563EB),
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }),
-                                ),
-                                OutlinedButton.icon(
-                                  onPressed: currentPage < totalPages
-                                      ? () => setState(() => currentPage++)
-                                      : null,
-                                  label: const Text("Next"),
-                                  icon: const Icon(
-                                    Icons.chevron_right,
-                                    size: 18,
-                                  ),
-                                ),
-                              ],
+                          ),
+                        );
+                      }),
+                      const SizedBox(width: 15),
+                      Container(height: 25, width: 1, color: Colors.black12),
+                      const SizedBox(width: 15),
+                      GestureDetector(
+                        onTap: currentPage < totalPages
+                            ? () => setState(() => currentPage++)
+                            : null,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: currentPage < totalPages
+                                ? const Color(0xFF7E3FF2)
+                                : const Color(0xFFF3F1FF),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            "Next",
+                            style: TextStyle(
+                              color: currentPage < totalPages
+                                  ? Colors.white
+                                  : Colors.white70,
+                              fontWeight: FontWeight.w600,
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 30),
+                ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: theme.cardColor,
-                border: Border(top: BorderSide(color: theme.dividerColor)),
-              ),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 22,
-                      vertical: 12,
-                    ),
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text(
-                    "Close",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -315,66 +343,62 @@ class AnnouncementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: theme.brightness == Brightness.dark
-                ? Colors.black.withOpacity(0.3)
-                : Colors.black.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.black.withOpacity(0.08)),
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withOpacity(0.01),
+        //     blurRadius: 5,
+        //     offset: const Offset(0, 2),
+        //   ),
+        // ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 45,
+            height: 45,
             decoration: BoxDecoration(
               color: item.color,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.campaign, color: Colors.white, size: 22),
+            child: const Icon(Icons.volume_up, color: Colors.white, size: 22),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   item.message,
-                  style: TextStyle(
-                    fontSize: 14.5,
-                    height: 1.4,
-                    fontWeight: FontWeight.w400,
-                    color: theme.textTheme.bodyLarge?.color,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                    height: 1.3,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     Icon(
-                      Icons.group,
-                      size: 14,
-                      color: theme.brightness == Brightness.dark
-                          ? Colors.grey.shade400
-                          : Colors.grey.shade600,
+                      Icons.group_outlined,
+                      size: 16,
+                      color: Colors.black.withOpacity(0.5),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     Text(
                       item.department,
                       style: TextStyle(
-                        fontSize: 12.5,
-                        color: theme.brightness == Brightness.dark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade600,
+                        fontSize: 12,
+                        color: Colors.black.withOpacity(0.6),
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
