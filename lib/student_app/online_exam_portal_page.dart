@@ -77,8 +77,7 @@ class _OnlineExamPortalPageState extends State<OnlineExamPortalPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    const scaffoldBackgroundColor = Colors.white;
 
     // Extract student info
     final studentName = _studentData != null
@@ -96,7 +95,7 @@ class _OnlineExamPortalPageState extends State<OnlineExamPortalPage> {
         : "N/A";
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      backgroundColor: scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -174,7 +173,7 @@ class _OnlineExamPortalPageState extends State<OnlineExamPortalPage> {
                         fontSize: 24,
                         fontWeight: FontWeight.w900,
                         color: _secondsRemaining > 15
-                            ? (isDark ? Colors.white : Colors.black87)
+                            ? Colors.black87
                             : Colors.orange.shade700,
                       ),
                     ),
@@ -268,12 +267,12 @@ class _OnlineExamPortalPageState extends State<OnlineExamPortalPage> {
     IconData? titleIcon,
     required List<Widget> children,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const cardColor = Colors.white;
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -326,8 +325,6 @@ class _OnlineExamPortalPageState extends State<OnlineExamPortalPage> {
   }
 
   Widget _buildInfoRow(String label, String value, {required Color iconColor}) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Column(
@@ -338,7 +335,7 @@ class _OnlineExamPortalPageState extends State<OnlineExamPortalPage> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+              color: Colors.grey.shade700,
             ),
           ),
           const SizedBox(height: 4),
@@ -360,15 +357,15 @@ class _OnlineExamPortalPageState extends State<OnlineExamPortalPage> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.black26 : Colors.grey.shade100,
+                    color: Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     value,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: isDark ? Colors.white : Colors.black87,
+                      color: Colors.black87,
                     ),
                   ),
                 ),
@@ -381,8 +378,6 @@ class _OnlineExamPortalPageState extends State<OnlineExamPortalPage> {
   }
 
   Widget _buildDetailRow(String label, String value) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
@@ -403,9 +398,9 @@ class _OnlineExamPortalPageState extends State<OnlineExamPortalPage> {
                 flex: 3,
                 child: Text(
                   value,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
-                    color: isDark ? Colors.grey.shade300 : Colors.black54,
+                    color: Colors.black54,
                   ),
                 ),
               ),

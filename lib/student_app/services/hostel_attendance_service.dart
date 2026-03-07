@@ -43,6 +43,7 @@ class HostelAttendanceService {
         Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
+          'token': token,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'User-Agent':

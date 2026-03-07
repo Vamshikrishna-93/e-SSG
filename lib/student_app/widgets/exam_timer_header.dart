@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class ExamTimerHeader extends StatelessWidget {
-  final bool isDark;
   final String formattedTime;
   final bool isCritical;
   final int currentIndex;
@@ -9,7 +8,6 @@ class ExamTimerHeader extends StatelessWidget {
 
   const ExamTimerHeader({
     super.key,
-    required this.isDark,
     required this.formattedTime,
     required this.isCritical,
     required this.currentIndex,
@@ -22,7 +20,7 @@ class ExamTimerHeader extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -49,7 +47,7 @@ class ExamTimerHeader extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                   color: isCritical
                       ? Colors.red
-                      : (isDark ? Colors.white : Colors.black87),
+                      : Colors.black87,
                   fontFamily: 'monospace',
                 ),
               ),
@@ -58,9 +56,7 @@ class ExamTimerHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.blue.withOpacity(0.2)
-                  : Colors.blue.shade50,
+              color: Colors.blue.shade50,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(

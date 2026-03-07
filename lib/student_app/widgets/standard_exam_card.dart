@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:student_app/student_app/model/exam_item.dart';
 import 'package:student_app/student_app/exam_details_page.dart';
-import 'package:student_app/student_app/theme/student_theme.dart';
 
 class StandardExamCard extends StatelessWidget {
   final ExamModel exam;
@@ -10,13 +9,15 @@ class StandardExamCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    const primaryColor = Color(0xFF007BFF);
+    const textColor = Color(0xFF1E293B);
+    const secondaryTextColor = Color(0xFF64748B);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: StudentTheme.containerBorderColor(context)),
+          bottom: BorderSide(color: Color(0xFFE2E8F0)),
         ),
       ),
       child: Column(
@@ -33,14 +34,17 @@ class StandardExamCard extends StatelessWidget {
                   children: [
                     Text(
                       exam.title,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: theme.textTheme.bodyLarge?.color,
+                        color: textColor,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(exam.board, style: theme.textTheme.bodySmall),
+                    Text(
+                      exam.board,
+                      style: const TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
                   ],
                 ),
               ),
@@ -52,22 +56,22 @@ class StandardExamCard extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  color: primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: const [
                     Icon(
                       Icons.computer,
                       size: 14,
-                      color: theme.colorScheme.primary,
+                      color: primaryColor,
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6),
                     Text(
                       "Online Exam",
                       style: TextStyle(
-                        color: theme.colorScheme.primary,
+                        color: primaryColor,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -91,16 +95,17 @@ class StandardExamCard extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.calendar_today,
                             size: 14,
-                            color: theme.textTheme.bodySmall?.color,
+                            color: secondaryTextColor,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             exam.date,
-                            style: theme.textTheme.bodySmall?.copyWith(
+                            style: const TextStyle(
                               fontSize: 13,
+                              color: secondaryTextColor,
                             ),
                           ),
                         ],
@@ -108,16 +113,17 @@ class StandardExamCard extends StatelessWidget {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.access_time,
                             size: 14,
-                            color: theme.textTheme.bodySmall?.color,
+                            color: secondaryTextColor,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             exam.time,
-                            style: theme.textTheme.bodySmall?.copyWith(
+                            style: const TextStyle(
                               fontSize: 13,
+                              color: secondaryTextColor,
                             ),
                           ),
                         ],
@@ -137,11 +143,8 @@ class StandardExamCard extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(4),
                                 child: LinearProgressIndicator(
                                   value: exam.progress / 100,
-                                  backgroundColor:
-                                      theme.brightness == Brightness.dark
-                                      ? Colors.grey[800]
-                                      : Colors.grey.shade200,
-                                  color: theme.colorScheme.primary,
+                                  backgroundColor: Colors.grey.shade200,
+                                  color: Colors.blue,
                                   minHeight: 6,
                                 ),
                               ),
@@ -149,18 +152,20 @@ class StandardExamCard extends StatelessWidget {
                             const SizedBox(width: 8),
                             Text(
                               "${exam.progress.toInt()}%",
-                              style: theme.textTheme.bodySmall?.copyWith(
+                              style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
+                                color: Colors.black87,
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 4),
-                        Text(
+                        const Text(
                           "Prepared",
-                          style: theme.textTheme.bodySmall?.copyWith(
+                          style: TextStyle(
                             fontSize: 11,
+                            color: Colors.black54,
                           ),
                         ),
                       ],
@@ -183,13 +188,13 @@ class StandardExamCard extends StatelessWidget {
                     );
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.textTheme.bodyLarge?.color,
+                    foregroundColor: const Color(0xFF1E293B),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
                     ),
-                    side: BorderSide(
-                      color: StudentTheme.containerBorderColor(context),
+                    side: const BorderSide(
+                      color: Color(0xFFE2E8F0),
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),

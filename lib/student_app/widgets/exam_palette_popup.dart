@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class ExamPalettePopup extends StatelessWidget {
-  final bool isDark;
   final String studentName;
   final String hallTicket;
   final String group;
@@ -16,7 +15,6 @@ class ExamPalettePopup extends StatelessWidget {
 
   const ExamPalettePopup({
     super.key,
-    required this.isDark,
     required this.studentName,
     required this.hallTicket,
     required this.group,
@@ -36,7 +34,7 @@ class ExamPalettePopup extends StatelessWidget {
       constraints: const BoxConstraints(maxWidth: 400),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : Colors.white,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(32),
       ),
       child: Column(
@@ -46,9 +44,9 @@ class ExamPalettePopup extends StatelessWidget {
             alignment: Alignment.topRight,
             child: IconButton(
               onPressed: () => Navigator.pop(context),
-              icon: Icon(
+              icon: const Icon(
                 Icons.close_rounded,
-                color: isDark ? Colors.black : const Color(0xFF64748B),
+                color: Color(0xFF64748B),
                 size: 24,
               ),
               padding: EdgeInsets.zero,
@@ -119,28 +117,24 @@ class ExamPalettePopup extends StatelessWidget {
                   children: [
                     Text(
                       studentName,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        color: Color(0xFF1E293B),
                       ),
                     ),
                     Text(
                       "HT: $hallTicket",
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
-                        color: isDark
-                            ? Colors.white60
-                            : const Color(0xFF64748B),
+                        color: Color(0xFF64748B),
                       ),
                     ),
                     Text(
                       group,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
-                        color: isDark
-                            ? Colors.white60
-                            : const Color(0xFF64748B),
+                        color: Color(0xFF64748B),
                       ),
                     ),
                   ],
@@ -163,7 +157,7 @@ class ExamPalettePopup extends StatelessWidget {
                 _buildLegendItem(const Color(0xFFF59E0B), "Marked"),
                 const SizedBox(width: 10),
                 _buildLegendItem(
-                  isDark ? Colors.white10 : Colors.white,
+                  Colors.white,
                   "Not Visited",
                   border: true,
                 ),
@@ -173,19 +167,19 @@ class ExamPalettePopup extends StatelessWidget {
           const SizedBox(height: 24),
           Divider(
             height: 1,
-            color: isDark ? Colors.white10 : Colors.grey.shade100,
+            color: Colors.grey.shade100,
           ),
           const SizedBox(height: 20),
 
           // 4. All Questions
           Align(
             alignment: Alignment.centerLeft,
-            child: Text(
+            child: const Text(
               "All Questions",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                color: Color(0xFF1E293B),
               ),
             ),
           ),
@@ -211,9 +205,7 @@ class ExamPalettePopup extends StatelessWidget {
                           ? const Color(0xFFF59E0B)
                           : (isVisited
                                 ? const Color(0xFFEF4444)
-                                : (isDark
-                                      ? const Color(0xFF1E293B)
-                                      : const Color(0xFFF8FAFC))));
+                                : const Color(0xFFF8FAFC)));
 
                 if (isCurrent) color = const Color(0xFF3B82F6);
 
@@ -225,9 +217,7 @@ class ExamPalettePopup extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                       border: (!isAns && !isMarked && !isVisited && !isCurrent)
                           ? Border.all(
-                              color: isDark
-                                  ? Colors.white12
-                                  : Colors.grey.shade200,
+                              color: Colors.grey.shade200,
                             )
                           : null,
                     ),
@@ -235,10 +225,8 @@ class ExamPalettePopup extends StatelessWidget {
                       child: Text(
                         "${index + 1}",
                         style: TextStyle(
-                          color:
-                              (color == const Color(0xFFF8FAFC) ||
-                                  color == const Color(0xFF1E293B))
-                              ? (isDark ? Colors.white30 : Colors.grey.shade400)
+                          color: (color == const Color(0xFFF8FAFC))
+                              ? Colors.grey.shade400
                               : Colors.white,
                           fontSize: 8,
                           fontWeight: FontWeight.bold,

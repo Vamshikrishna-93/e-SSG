@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:math' as math;
-import 'package:student_app/student_app/student_app_bar.dart';
-import 'package:student_app/student_app/theme/student_theme.dart';
 import 'package:student_app/student_app/hostel_month_detail_page.dart';
 import 'package:student_app/student_app/model/hostel_attendance.dart';
 import 'package:student_app/student_app/services/hostel_attendance_service.dart';
@@ -23,9 +21,9 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
   String selectedPeriod = "All Months";
   int currentPage = 1;
   final int itemsPerPage = 10;
+  String _searchQuery = "";
   final ScrollController _horizontalScrollController = ScrollController();
 
-  bool _isLoading = true;
   HostelAttendance? _attendanceData;
 
   String branchName = "N/A";
@@ -83,7 +81,7 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
   }
 
   Future<void> _fetchAttendance() async {
-    setState(() => _isLoading = true);
+    setState(() {});
 
     try {
       final data = await HostelAttendanceService.getHostelAttendance(
@@ -117,12 +115,11 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
           _allTrendData = data.attendance.map((m) => m.percentage).toList();
 
           _applyPeriodFilter();
-          _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to load attendance: ${e.toString()}'),
@@ -156,253 +153,355 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
     });
   }
 
-  String _getPerformanceStatus(double percentage) {
-    if (percentage >= 90) return 'Excellent';
-    if (percentage >= 75) return 'Good';
-    if (percentage >= 60) return 'Average';
-    return 'Poor';
-  }
-
-  Color _getStatusColor(double percentage) {
-    if (percentage >= 90) return const Color(0xFF10B981);
-    if (percentage >= 75) return const Color(0xFFF97316);
-    if (percentage >= 60) return const Color(0xFFF59E0B);
-    return const Color(0xFFEF4444);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: const StudentAppBar(title: ""),
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isMobile = constraints.maxWidth < 600;
-            final padding = isMobile ? 12.0 : 16.0;
-
-            if (_isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            return SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.all(padding),
+        top: false,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildPurpleHeader(),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 20.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Hostel Attendance Dashboard Header Card
-                    _buildDashboardHeader(isMobile),
-                    SizedBox(height: isMobile ? 12 : 16),
-
-                    // Hostel Details Card
-                    _buildHostelDetailsCard(isMobile),
-                    SizedBox(height: isMobile ? 12 : 16),
-
-                    // Overall Attendance Card
-                    _buildOverallAttendanceCard(isMobile),
-                    SizedBox(height: isMobile ? 12 : 16),
-
-                    // Nights in Hostel Card
-                    _buildNightsInHostelCard(isMobile),
-                    SizedBox(height: isMobile ? 12 : 16),
-
-                    // Current Stay Streak Card
-                    _buildCurrentStayStreakCard(isMobile),
-                    SizedBox(height: isMobile ? 12 : 16),
-
-                    // Leaves Taken Card
-                    _buildLeavesTakenCard(isMobile),
-                    SizedBox(height: isMobile ? 12 : 16),
-
-                    // Hostel Attendance Trend Card
-                    _buildAttendanceTrendCard(isMobile),
-                    SizedBox(height: isMobile ? 12 : 16),
-
-                    // Monthly Hostel Attendance Overview Card
-                    _buildMonthlyOverviewCard(isMobile),
-                    SizedBox(height: isMobile ? 12 : 16),
-
-                    _buildPerformanceSummaryCard(isMobile),
-                    SizedBox(height: isMobile ? 12 : 16),
-
-                    // Recent Activity Card
-                    _buildRecentActivityCard(isMobile),
-                    SizedBox(height: isMobile ? 12 : 16),
+                    const Text(
+                      'Hostel Attendance',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E1E1E),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Track and analyze your hostel attendance',
+                      style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildActionButtons(),
+                    const SizedBox(height: 20),
+                    _buildHostelInfoCard(),
+                    const SizedBox(height: 16),
+                    _buildStatCard(
+                      title: 'Overall Attendance',
+                      value: '${overallAttendance.toStringAsFixed(1)}%',
+                      pillText: 'Based on 365 recorded days',
+                      pillColor: const Color(0xFFE8F5E9),
+                      pillTextColor: const Color(0xFF43A047),
+                      valueColor: const Color(0xFF43A047),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildStatCard(
+                      title: 'Night in Hostel',
+                      value: '$nightsInHostel/365',
+                      pillText: '$nightsAbsent nights absent',
+                      pillColor: const Color(0xFFE3F2FD),
+                      pillTextColor: const Color(0xFF2196F3),
+                      valueColor: const Color(0xFF2196F3),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildStatCard(
+                      title: 'Current Stay Streak',
+                      value: '$currentStreak nights',
+                      pillText: 'Best streak: $bestStreak days',
+                      pillColor: const Color(0xFFF3E5F5),
+                      pillTextColor: const Color(0xFF9C27B0),
+                      valueColor: const Color(0xFF9C27B0),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildStatCard(
+                      title: 'Leaves Taken',
+                      value: '$leavesTaken nights',
+                      pillText: '$nightOuts night outs recorded',
+                      pillColor: const Color(0xFFFFF3E0),
+                      pillTextColor: const Color(0xFFF57C00),
+                      valueColor: const Color(0xFFF57C00),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildAttendanceTrendCard(context),
+                    const SizedBox(height: 20),
+                    _buildMonthlyOverviewCard(),
+                    const SizedBox(height: 20),
+                    _buildPerformanceSummaryCard(),
+                    const SizedBox(height: 20),
+                    _buildRecentActivityCard(),
+                    const SizedBox(height: 30),
                   ],
                 ),
               ),
-            );
-          },
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildDashboardHeader(bool isMobile) {
+  Widget _buildPurpleHeader() {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 10,
+        bottom: 25,
+        left: 20,
+        right: 20,
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFF7E49FF),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Text(
+            'Hostel Attendance',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                width: isMobile ? 40 : 48,
-                height: isMobile ? 40 : 48,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF7C3AED), Color(0xFF2563EB)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
+          Expanded(
+            child: Container(
+              height: 40,
+              width: 20,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
                 ),
-                child: Icon(
-                  Icons.check_circle,
-                  color: Colors.white,
-                  size: isMobile ? 24 : 28,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: ElevatedButton.icon(
+                onPressed: _fetchAttendance,
+                icon: const Icon(Icons.refresh, size: 16, color: Colors.white),
+                label: const Text(
+                  'Refresh',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  padding: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
-              SizedBox(width: isMobile ? 12 : 16),
-              Expanded(
-                child: Text(
-                  'Hostel Attendance Dashboard',
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF4ADE80), Color(0xFFA3E635)],
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: ElevatedButton.icon(
+                onPressed: _downloadAndOpenReport,
+                icon: const Icon(Icons.print, size: 16, color: Colors.white),
+                label: const Text(
+                  'Download Report',
                   style: TextStyle(
-                    fontSize: isMobile ? 22 : 28,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF7C3AED),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
                   ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  padding: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHostelInfoCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE3F2FD),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Column(
+        children: [
+          _buildInfoRow(
+            Icons.apartment,
+            const Color(0xFF1E88E5),
+            'Hostel',
+            hostelName,
+          ),
+          const SizedBox(height: 16),
+          _buildInfoRow(
+            Icons.check_circle,
+            const Color(0xFF43A047),
+            'Floor',
+            floor.toUpperCase(),
+          ),
+          const SizedBox(height: 16),
+          _buildInfoRow(Icons.home, const Color(0xFF7E57C2), 'Room', room),
+          const SizedBox(height: 16),
+          _buildInfoRow(
+            Icons.person,
+            const Color(0xFFF57C00),
+            'Warden',
+            warden,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(
+    IconData icon,
+    Color iconColor,
+    String label,
+    String value,
+  ) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: iconColor,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: Colors.white, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF666666),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                value,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E1E1E),
                 ),
               ),
             ],
           ),
-          SizedBox(height: isMobile ? 8 : 12),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required String title,
+    required String value,
+    required String pillText,
+    required Color pillColor,
+    required Color pillTextColor,
+    required Color valueColor,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: const Color(0xFFEEEEEE)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Text(
-            'Track and analyze your hostel attendance.',
-            style: TextStyle(
-              fontSize: isMobile ? 12 : 14,
-              color: const Color(0xFF64748B),
-              height: 1.5,
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF666666),
+              fontWeight: FontWeight.w500,
             ),
           ),
-          SizedBox(height: isMobile ? 16 : 20),
-          isMobile
-              ? Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: _fetchAttendance,
-                        icon: const Icon(Icons.refresh, size: 18),
-                        label: const Text(
-                          'Refresh ',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF7C3AED),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: _downloadAndOpenReport,
-                        icon: const Icon(Icons.download, size: 18),
-                        label: const Text(
-                          'Download Report',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(
-                            color: Color(0xFFE2E8F0),
-                            width: 1.5,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              : Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _fetchAttendance,
-                        icon: const Icon(Icons.refresh, size: 18),
-                        label: const Text(
-                          'Refresh Data',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF7C3AED),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _downloadAndOpenReport,
-                        icon: const Icon(Icons.download, size: 18),
-                        label: const Text(
-                          'Download Report',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(
-                            color: Color(0xFFE2E8F0),
-                            width: 1.5,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: valueColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: pillColor,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.check_circle, size: 14, color: pillTextColor),
+                const SizedBox(width: 4),
+                Text(
+                  pillText,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: pillTextColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -412,18 +511,14 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text("Preparing report...")));
-
     try {
       final bytes =
           await HostelAttendanceService.downloadHostelAttendanceReport();
-
-      // Save the file
       final directory = await getApplicationDocumentsDirectory();
       final fileName =
           "Hostel_Attendance_Report_${DateTime.now().millisecondsSinceEpoch}.pdf";
       final file = File('${directory.path}/$fileName');
       await file.writeAsBytes(bytes);
-
       if (mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -432,780 +527,320 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
             backgroundColor: Colors.green,
           ),
         );
-
-        // Open the file
         await OpenFilex.open(file.path);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         String errorMsg = e.toString();
-        if (errorMsg.contains('MissingPluginException') ||
-            errorMsg.contains('Unsupported operation')) {
-          errorMsg =
-              "App restart required to activate download plugin. Please stop and re-run the app.";
+        if (errorMsg.contains('MissingPluginException')) {
+          errorMsg = "App restart required to activate download plugin.";
         }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Failed to download or open: $errorMsg"),
+            content: Text("Failed to download: $errorMsg"),
             backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
           ),
         );
       }
     }
   }
 
-  Widget _buildHostelDetailsCard(bool isMobile) {
+  Widget _buildAttendanceTrendCard(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
       decoration: BoxDecoration(
-        color: const Color(0xFFE0F2FE),
-        borderRadius: BorderRadius.circular(16.0),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFEEEEEE)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHostelDetailRow(
-            Icons.domain_rounded,
-            const Color(0xFF6366F1),
-            'Branch',
-            branchName,
-            isMobile,
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          _buildHostelDetailRow(
-            Icons.business,
-            const Color(0xFF2563EB),
-            'Hostel',
-            hostelName,
-            isMobile,
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          _buildHostelDetailRow(
-            Icons.check_circle,
-            const Color(0xFF10B981),
-            'Floor',
-            floor,
-            isMobile,
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          _buildHostelDetailRow(
-            Icons.home,
-            const Color(0xFF7C3AED),
-            'Room',
-            room,
-            isMobile,
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          _buildHostelDetailRow(
-            Icons.person,
-            const Color(0xFFF97316),
-            'Warden',
-            warden,
-            isMobile,
-            isLast: true,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHostelDetailRow(
-    IconData icon,
-    Color iconColor,
-    String label,
-    String value,
-    bool isMobile, {
-    bool isLast = false,
-  }) {
-    return Row(
-      children: [
-        Container(
-          width: isMobile ? 36 : 40,
-          height: isMobile ? 36 : 40,
-          decoration: BoxDecoration(
-            color: iconColor,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: Colors.white, size: isMobile ? 20 : 24),
-        ),
-        SizedBox(width: isMobile ? 12 : 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: isMobile ? 11 : 12,
-                  color: const Color(0xFF64748B),
-                  fontWeight: FontWeight.w500,
-                ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            decoration: const BoxDecoration(
+              color: Color(0xFFEDE7F6),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
               ),
-              SizedBox(height: isMobile ? 2 : 4),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: isMobile ? 14 : 16,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1E293B),
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildOverallAttendanceCard(bool isMobile) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Overall Attendance',
-            style: TextStyle(
-              fontSize: isMobile ? 12 : 14,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF64748B),
             ),
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Container(
-                padding: EdgeInsets.all(isMobile ? 8 : 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF10B981),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '%',
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Attendance Trend',
                   style: TextStyle(
-                    fontSize: isMobile ? 24 : 32,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E1E1E),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
                     color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                ),
-              ),
-              SizedBox(width: isMobile ? 8 : 12),
-              Flexible(
-                child: Text(
-                  '${_attendanceData?.overallPercentage ?? 0.0}',
-                  style: TextStyle(
-                    fontSize: isMobile ? 36 : 48,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF10B981),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 10 : 12,
-              vertical: isMobile ? 6 : 8,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFFD1FAE5),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.check_circle,
-                  size: isMobile ? 14 : 16,
-                  color: const Color(0xFF10B981),
-                ),
-                SizedBox(width: isMobile ? 4 : 6),
-                Flexible(
-                  child: Text(
-                    'Based on ${_attendanceData?.totalDays ?? 0} recorded nights',
-                    style: TextStyle(
-                      fontSize: isMobile ? 11 : 12,
-                      color: const Color(0xFF059669),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNightsInHostelCard(bool isMobile) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: isMobile ? 36 : 40,
-                height: isMobile ? 36 : 40,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF2563EB),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.check_circle,
-                  color: Colors.white,
-                  size: isMobile ? 20 : 24,
-                ),
-              ),
-              SizedBox(width: isMobile ? 10 : 12),
-              Text(
-                'Nights in Hostel',
-                style: TextStyle(
-                  fontSize: isMobile ? 12 : 14,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF64748B),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          Text(
-            '${_attendanceData?.totalPresent ?? 0}/${_attendanceData?.totalDays ?? 0}',
-            style: TextStyle(
-              fontSize: isMobile ? 28 : 36,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF2563EB),
-            ),
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 10 : 12,
-              vertical: isMobile ? 6 : 8,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE0F2FE),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.person_outline,
-                  size: isMobile ? 14 : 16,
-                  color: const Color(0xFF2563EB),
-                ),
-                SizedBox(width: isMobile ? 4 : 6),
-                Flexible(
-                  child: Text(
-                    '${_attendanceData?.totalAbsent ?? 0} nights absent',
-                    style: TextStyle(
-                      fontSize: isMobile ? 11 : 12,
-                      color: const Color(0xFF1E40AF),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCurrentStayStreakCard(bool isMobile) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: isMobile ? 36 : 40,
-                height: isMobile ? 36 : 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF7C3AED),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.local_fire_department,
-                  color: Colors.white,
-                  size: isMobile ? 20 : 24,
-                ),
-              ),
-              SizedBox(width: isMobile ? 10 : 12),
-              Text(
-                'Current Stay Streak',
-                style: TextStyle(
-                  fontSize: isMobile ? 12 : 14,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF64748B),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          Text(
-            '$currentStreak nights',
-            style: TextStyle(
-              fontSize: isMobile ? 28 : 36,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF7C3AED),
-            ),
-          ),
-          SizedBox(height: isMobile ? 10 : 12),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 10 : 12,
-              vertical: isMobile ? 6 : 8,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEDE9FE),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.emoji_events,
-                  size: isMobile ? 14 : 16,
-                  color: const Color(0xFF7C3AED),
-                ),
-                SizedBox(width: isMobile ? 4 : 6),
-                Flexible(
-                  child: Text(
-                    'Best streak: $bestStreak nights',
-                    style: TextStyle(
-                      fontSize: isMobile ? 11 : 12,
-                      color: const Color(0xFF6D28D9),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLeavesTakenCard(bool isMobile) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: isMobile ? 36 : 40,
-                height: isMobile ? 36 : 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF97316),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.calendar_today,
-                  color: Colors.white,
-                  size: isMobile ? 20 : 24,
-                ),
-              ),
-              SizedBox(width: isMobile ? 10 : 12),
-              Text(
-                'Leaves Taken',
-                style: TextStyle(
-                  fontSize: isMobile ? 12 : 14,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF64748B),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          Text(
-            '$leavesTaken nights',
-            style: TextStyle(
-              fontSize: isMobile ? 28 : 36,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFFF97316),
-            ),
-          ),
-          SizedBox(height: isMobile ? 10 : 12),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 10 : 12,
-              vertical: isMobile ? 6 : 8,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF7ED),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.home_outlined,
-                  size: isMobile ? 14 : 16,
-                  color: const Color(0xFFF97316),
-                ),
-                SizedBox(width: isMobile ? 4 : 6),
-                Flexible(
-                  child: Text(
-                    '$nightOuts night outs recorded',
-                    style: TextStyle(
-                      fontSize: isMobile ? 11 : 12,
-                      color: const Color(0xFFD97706),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAttendanceTrendCard(bool isMobile) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          isMobile
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.bar_chart,
-                          size: 18,
-                          color: Color(0xFF64748B),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        selectedPeriod == "All Months"
+                            ? "All Monthly"
+                            : selectedPeriod,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
                         ),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Text(
-                            'Hostel Attendance Trend',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF64748B),
-                            ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.keyboard_arrow_down,
+                        size: 18,
+                        color: Colors.black87,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: SizedBox(
+              height: 220,
+              width: double.infinity,
+              child: LineChart(
+                LineChartData(
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    getDrawingHorizontalLine: (value) => FlLine(
+                      color: Colors.grey.withOpacity(0.2),
+                      strokeWidth: 1,
+                    ),
+                  ),
+                  titlesData: FlTitlesData(
+                    show: true,
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    bottomTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        interval: 25,
+                        getTitlesWidget: (value, meta) => Text(
+                          '${value.toInt()}%',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                      ],
+                        reservedSize: 35,
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    PopupMenuButton<String>(
-                      onSelected: (value) {
-                        setState(() {
-                          selectedPeriod = value;
-                          _applyPeriodFilter();
-                        });
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: "All Months",
-                          child: Text("All Months"),
-                        ),
-                        const PopupMenuItem(
-                          value: "Last 6 Months",
-                          child: Text("Last 6 Months"),
-                        ),
-                        const PopupMenuItem(
-                          value: "Last 3 Months",
-                          child: Text("Last 3 Months"),
-                        ),
-                      ],
+                  ),
+                  borderData: FlBorderData(show: false),
+                  minX: 0,
+                  maxX: math.max(1, (trendData.length - 1).toDouble()),
+                  minY: 0,
+                  maxY: 100,
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: trendData.isNotEmpty
+                          ? trendData
+                                .asMap()
+                                .entries
+                                .map((e) => FlSpot(e.key.toDouble(), e.value))
+                                .toList()
+                          : [const FlSpot(0, 0)],
+                      isCurved: true,
+                      curveSmoothness: 0.35,
+                      color: const Color(0xFF3B82F6),
+                      barWidth: 4,
+                      isStrokeCapRound: true,
+                      dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(show: false),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPerformanceSummaryCard() {
+    const statusBgColor = Color(0xFFFFEBEE);
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFEEEEEE), width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+            decoration: const BoxDecoration(
+              color: Color(0xFFEDE7F6),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            child: const Row(
+              children: [
+                Text(
+                  'Performance Summary',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 120,
+                      height: 120,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Center(
+                            child: SizedBox(
+                              width: 110,
+                              height: 110,
+                              child: CircularProgressIndicator(
+                                value: 1.0,
+                                strokeWidth: 12,
+                                backgroundColor: Colors.transparent,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.grey.shade300,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Center(
+                            child: SizedBox(
+                              width: 110,
+                              height: 110,
+                              child: CircularProgressIndicator(
+                                value: overallAttendance / 100,
+                                strokeWidth: 12,
+                                backgroundColor: Colors.transparent,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  const Color(0xFFEF5350),
+                                ),
+                                strokeCap: StrokeCap.round,
+                              ),
+                            ),
+                          ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '${overallAttendance.toStringAsFixed(1)}%',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: Color(0xFF7E57C2),
+                                ),
+                              ),
+                              const Text(
+                                'Attendance',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Flexible(
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          color: statusBgColor,
+                          borderRadius: BorderRadius.circular(15),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                selectedPeriod,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFF1E293B),
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Icons.arrow_drop_down,
-                              size: 16,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ],
+                        child: const Text(
+                          'Needs Improvement',
+                          style: TextStyle(
+                            color: Color(0xFFEF5350),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
                   ],
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ),
+                const SizedBox(height: 25),
+                GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 15,
+                  crossAxisSpacing: 15,
+                  childAspectRatio: 1.1,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.bar_chart,
-                          size: 20,
-                          color: Color(0xFF64748B),
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Hostel Attendance Trend',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
+                    _buildSimpleStatBox(
+                      'Days Present',
+                      nightsInHostel.toString(),
+                      const Color(0xFF00B894),
                     ),
-                    PopupMenuButton<String>(
-                      onSelected: (value) {
-                        setState(() {
-                          selectedPeriod = value;
-                          _applyPeriodFilter();
-                        });
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: "All Months",
-                          child: Text("All Months"),
-                        ),
-                        const PopupMenuItem(
-                          value: "Last 6 Months",
-                          child: Text("Last 6 Months"),
-                        ),
-                        const PopupMenuItem(
-                          value: "Last 3 Months",
-                          child: Text("Last 3 Months"),
-                        ),
-                      ],
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              selectedPeriod,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF1E293B),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Icons.arrow_drop_down,
-                              size: 18,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ],
-                        ),
-                      ),
+                    _buildSimpleStatBox(
+                      'Days Absent',
+                      nightsAbsent.toString(),
+                      const Color(0xFFEF5350),
+                    ),
+                    _buildSimpleStatBox(
+                      'Leaves Taken',
+                      leavesTaken.toString(),
+                      const Color(0xFFFB8C00),
+                    ),
+                    _buildSimpleStatBox(
+                      'Leaves Remaining',
+                      '0',
+                      const Color(0xFF7E57C2),
                     ),
                   ],
                 ),
-          SizedBox(height: isMobile ? 16 : 24),
-          SizedBox(
-            height: isMobile ? 160 : 200,
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: 25,
-                  getDrawingHorizontalLine: (value) {
-                    return FlLine(
-                      color: const Color(0xFFE2E8F0),
-                      strokeWidth: 1,
-                    );
-                  },
-                ),
-                titlesData: FlTitlesData(
-                  show: true,
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 30,
-                      interval: 1,
-                      getTitlesWidget: (value, meta) {
-                        if (value.toInt() >= 0 &&
-                            value.toInt() < trendMonths.length) {
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              trendMonths[value.toInt()],
-                              style: TextStyle(
-                                fontSize: isMobile ? 9 : 10,
-                                color: const Color(0xFF64748B),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          );
-                        }
-                        return const Text('');
-                      },
-                    ),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: isMobile ? 35 : 40,
-                      interval: 25,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          '${value.toInt()}%',
-                          style: TextStyle(
-                            fontSize: isMobile ? 9 : 10,
-                            color: const Color(0xFF64748B),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                borderData: FlBorderData(show: false),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: trendData.asMap().entries.map((e) {
-                      return FlSpot(e.key.toDouble(), e.value);
-                    }).toList(),
-                    isCurved: true,
-                    color: const Color(0xFF2563EB),
-                    barWidth: 3,
-                    isStrokeCapRound: true,
-                    dotData: const FlDotData(show: false),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: const Color(0xFF2563EB).withValues(alpha: 0.1),
-                    ),
-                  ),
-                ],
-                minY: 0,
-                maxY: 100,
-              ),
-            ),
-          ),
-          SizedBox(height: isMobile ? 8 : 12),
-          Text(
-            'Showing ${trendData.length} months of hostel attendance data ($selectedPeriod)',
-            style: TextStyle(
-              fontSize: isMobile ? 10 : 12,
-              color: const Color(0xFF64748B),
+              ],
             ),
           ),
         ],
@@ -1213,33 +848,73 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
     );
   }
 
-  Widget _buildPerformanceSummaryCard(bool isMobile) {
-    // Determine colors based on overall attendance
-    final statusColor = _getStatusColor(overallAttendance);
-    final statusText = _getPerformanceStatus(overallAttendance);
+  Widget _buildSimpleStatBox(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12), // Slightly reduced padding for safety
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: const Color(0xFFEEEEEE), width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ),
+          const Spacer(),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF424242),
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
 
-    // Status Pill Background Color (Light version of status color)
-    Color statusBgColor;
-    if (overallAttendance >= 90) {
-      statusBgColor = const Color(0xFFD1FAE5); // Light Green
-    } else if (overallAttendance >= 75) {
-      statusBgColor = const Color(0xFFFFEDD5); // Light Orange
-    } else if (overallAttendance >= 60) {
-      statusBgColor = const Color(0xFFFEF3C7); // Light Amber
-    } else {
-      statusBgColor = const Color(0xFFFFE4E6); // Light Red
-    }
+  Widget _buildMonthlyOverviewCard() {
+    final List<MonthlyAttendance> dataList = _attendanceData?.attendance ?? [];
+    final List<MonthlyAttendance> filteredData = dataList
+        .where(
+          (m) => m.monthName.toLowerCase().contains(_searchQuery.toLowerCase()),
+        )
+        .toList();
+
+    final int startIndex = (currentPage - 1) * itemsPerPage;
+    final int endIndex = math.min(
+      startIndex + itemsPerPage,
+      filteredData.length,
+    );
+    final List<MonthlyAttendance> currentData = filteredData.isEmpty
+        ? []
+        : filteredData.sublist(startIndex, endIndex);
+
+    final int totalItems = filteredData.length;
+    final int totalPages = (totalItems / itemsPerPage).ceil();
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1248,561 +923,464 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
-          Row(
-            children: [
-              const Icon(
-                Icons.emoji_events,
-                size: 20,
-                color: Color(0xFFF59E0B),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            decoration: const BoxDecoration(
+              color: Color(0xFFEEF0FF),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
               ),
-              const SizedBox(width: 8),
-              Text(
-                'Performance Summary',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                ),
+            ),
+            child: const Text(
+              "Monthly hostel attendance overview",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF111827),
               ),
-            ],
+            ),
           ),
-          const SizedBox(height: 24),
-
-          // Content Row (Chart + Status)
-          Row(
-            children: [
-              // Circular Chart
-              SizedBox(
-                width: 140,
-                height: 140,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: 140,
-                      height: 140,
-                      child: CircularProgressIndicator(
-                        value: overallAttendance / 100,
-                        strokeWidth: 12,
-                        backgroundColor: const Color(0xFFE5E7EB),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          _getStatusColor(overallAttendance),
-                        ),
-                      ),
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${overallAttendance.toStringAsFixed(1)}%',
-                          style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF7C3AED),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Attendance',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _buildSearchBar(),
+                const SizedBox(height: 16),
+                _buildAttendanceTable(currentData),
+                const SizedBox(height: 20),
+                _buildPaginationControls(
+                  totalPages,
+                  totalItems,
+                  startIndex,
+                  endIndex,
                 ),
-              ),
-
-              const SizedBox(width: 24),
-
-              // Status Pill
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: statusBgColor,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  statusText == 'Poor' ? 'Needs Improvement' : statusText,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: statusColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 32),
-
-          // Stats Grid (2x2)
-          Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatItem(
-                      label: 'Days Present',
-                      value: '$nightsInHostel',
-                      color: const Color(0xFF10B981), // Green
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildStatItem(
-                      label: 'Days Absent',
-                      value: '$nightsAbsent',
-                      color: const Color(0xFFEF4444), // Red
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatItem(
-                      label: 'Leaves Taken',
-                      value: '$leavesTaken',
-                      color: const Color(0xFFF97316), // Orange
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildStatItem(
-                      label: 'Night Outs',
-                      value: '$nightOuts',
-                      color: const Color(0xFF8B5CF6), // Purple
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                const SizedBox(height: 20),
+                _buildStatusLegend(),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStatItem({
-    required String label,
-    required String value,
-    required Color color,
-  }) {
+  Widget _buildSearchBar() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
+      child: Row(
+        children: [
+          const Icon(Icons.search, size: 20, color: Color(0xFF9CA3AF)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                  currentPage = 1;
+                });
+              },
+              decoration: const InputDecoration(
+                hintText: "Search months...",
+                border: InputBorder.none,
+                hintStyle: TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAttendanceTable(List<MonthlyAttendance> currentData) {
+    return RawScrollbar(
+      controller: _horizontalScrollController,
+      thumbColor: const Color(0xFF7E49FF).withOpacity(0.5),
+      radius: const Radius.circular(8),
+      thickness: 4,
+      child: SingleChildScrollView(
+        controller: _horizontalScrollController,
+        scrollDirection: Axis.horizontal,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+          ),
+          child: Column(
+            children: [
+              _buildAttendanceTableHeader(),
+              ...currentData.map((data) => _buildAttendanceTableRow(data)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAttendanceTableHeader() {
+    const headerStyle = TextStyle(fontWeight: FontWeight.bold, fontSize: 13);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        color: Color(0xFFF3F4F6),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(10),
+          topRight: Radius.circular(10),
+        ),
+      ),
+      child: Row(
+        children: const [
+          SizedBox(width: 120, child: Text("Month", style: headerStyle)),
+          SizedBox(
+            width: 180,
+            child: Text("Attendance Nights", style: headerStyle),
+          ),
+          SizedBox(width: 140, child: Text("Status", style: headerStyle)),
+          SizedBox(width: 120, child: Text("Percentage", style: headerStyle)),
+          SizedBox(width: 130, child: Text("Action", style: headerStyle)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAttendanceTableRow(MonthlyAttendance data) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
+      ),
+      child: Row(
+        children: [
+          _buildMonthCell(data.monthName),
+          _buildDaysCell(data.present, data.total),
+          _buildStatusCell(data.present, data.absent),
+          _buildPercentageCell(data.percentage),
+          _buildActionCell(data),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonthCell(String name) {
+    return SizedBox(
+      width: 120,
+      child: Row(
+        children: [
+          const Icon(Icons.calendar_today, size: 14, color: Color(0xFF10B981)),
+          const SizedBox(width: 8),
+          Text(
+            name,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDaysCell(int present, int total) {
+    return SizedBox(
+      width: 180,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: total > 0 ? present / total : 0,
+              backgroundColor: const Color(0xFFF3F4F6),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                Color(0xFFEF4444),
+              ),
+              minHeight: 8,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            "$present/$total nights",
+            style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusCell(int present, int absent) {
+    const textStyle = TextStyle(fontSize: 13, fontWeight: FontWeight.bold);
+    return SizedBox(
+      width: 140,
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, size: 16, color: Color(0xFF10B981)),
+          const SizedBox(width: 4),
+          Text(
+            "$present",
+            style: textStyle.copyWith(color: const Color(0xFF10B981)),
+          ),
+          const SizedBox(width: 12),
+          const Icon(Icons.cancel, size: 16, color: Color(0xFFEF4444)),
+          const SizedBox(width: 4),
+          Text(
+            "$absent",
+            style: textStyle.copyWith(color: const Color(0xFFEF4444)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPercentageCell(double percentage) {
+    final color = percentage >= 75
+        ? const Color(0xFF10B981)
+        : const Color(0xFFEF4444);
+    return SizedBox(
+      width: 120,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            value,
+            "${percentage.toStringAsFixed(1)}%",
             style: TextStyle(
-              fontSize: 24,
+              fontSize: 13,
               fontWeight: FontWeight.bold,
               color: color,
             ),
           ),
-          const SizedBox(height: 4),
           Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF64748B),
-              fontWeight: FontWeight.w500,
-            ),
+            percentage >= 75 ? "Excellent" : "Needs Improvement",
+            style: const TextStyle(fontSize: 10, color: Color(0xFF6B7280)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMonthlyOverviewCard(bool isMobile) {
-    if (_attendanceData == null || _attendanceData!.attendance.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(24),
-        child: const Center(child: Text("No monthly data available")),
-      );
-    }
-
-    final dataList = _attendanceData!.attendance;
-    final startIndex = (currentPage - 1) * itemsPerPage;
-    final endIndex = math.min(startIndex + itemsPerPage, dataList.length);
-    final currentItems = dataList.sublist(startIndex, endIndex);
-    (dataList.length / itemsPerPage).ceil();
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.calendar_month,
-                size: 20,
-                color: Color(0xFF64748B),
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Monthly Hostel Attendance Overview',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: isMobile ? 16 : 24),
-
-          // Horizontal Scroll View
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            controller: _horizontalScrollController,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: currentItems
-                  .map((data) => _buildMonthlyRow(data, isMobile))
-                  .toList(),
+  Widget _buildActionCell(MonthlyAttendance data) {
+    return SizedBox(
+      width: 130,
+      child: ElevatedButton(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HostelMonthDetailPage(
+              monthData: data,
+              overallData: _attendanceData,
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMonthlyRow(MonthlyAttendance data, bool isMobile) {
-    final percentage = data.percentage;
-    final attended = data.present;
-    final total = data.total;
-    final progress = total > 0 ? attended / total : 0.0;
-    final status = _getPerformanceStatus(percentage);
-
-    Color color = _getStatusColor(percentage);
-
-    return Container(
-      padding: EdgeInsets.symmetric(
-        vertical: isMobile ? 12 : 16,
-        horizontal: isMobile ? 12 : 16,
-      ),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: const Color(0xFFE2E8F0), width: 1),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF2563EB),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          elevation: 0,
+        ),
+        child: const Text(
+          "View Details",
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
         ),
       ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 100,
-            child: Row(
-              children: [
-                Icon(
-                  Icons.calendar_today,
-                  size: isMobile ? 14 : 16,
-                  color: const Color(0xFF10B981),
-                ),
-                SizedBox(width: isMobile ? 4 : 8),
-                Expanded(
-                  child: Text(
-                    data.monthName,
-                    style: TextStyle(
-                      fontSize: isMobile ? 10 : 12,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF1E293B),
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: 140),
-          SizedBox(
-            width: 140,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: isMobile ? 6 : 8,
-                    backgroundColor: const Color(0xFFE2E8F0),
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
-                  ),
-                ),
-                SizedBox(height: isMobile ? 2 : 4),
-                Text(
-                  '$attended/$total nights',
-                  style: TextStyle(
-                    fontSize: isMobile ? 10 : 11,
-                    color: const Color(0xFF64748B),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: 100),
-          SizedBox(
-            width: 140,
-            child: Wrap(
-              spacing: isMobile ? 4 : 6,
-              runSpacing: 4,
-              children: [
-                _buildStatusIcon(
-                  Icons.check_circle,
-                  data.present,
-                  const Color(0xFF10B981),
-                  isMobile,
-                ),
-                _buildStatusIcon(
-                  Icons.cancel,
-                  data.absent,
-                  const Color(0xFFEF4444),
-                  isMobile,
-                ),
-                _buildStatusIcon(
-                  Icons.calendar_today,
-                  (data.rawJson['leaves'] ?? 0) as int,
-                  const Color(0xFFF59E0B),
-                  isMobile,
-                ),
-                _buildStatusIcon(
-                  Icons.apartment,
-                  (data.rawJson['holidays'] ?? 0) as int,
-                  const Color(0xFF2563EB),
-                  isMobile,
-                ),
-                _buildStatusIcon(
-                  Icons.home,
-                  (data.rawJson['nightOuts'] ?? 0) as int,
-                  const Color(0xFF7C3AED),
-                  isMobile,
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: 100),
-          SizedBox(
-            width: 80,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${percentage.toStringAsFixed(1)}%',
-                  style: TextStyle(
-                    fontSize: isMobile ? 12 : 14,
-                    fontWeight: FontWeight.w600,
-                    color: color,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: isMobile ? 2 : 4),
-                Text(
-                  status,
-                  style: TextStyle(
-                    fontSize: isMobile ? 10 : 12,
-                    color: const Color(0xFF64748B),
-                    fontWeight: FontWeight.w400,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: 120),
-          SizedBox(
-            width: 120,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HostelMonthDetailPage(
-                      monthData: data,
-                      overallData: _attendanceData,
-                    ),
-                  ),
-                );
-              },
-              icon: Icon(
-                Icons.visibility,
-                size: isMobile ? 14 : 16,
-                color: Colors.white,
-              ),
-              label: Text(
-                isMobile ? 'View' : 'View Details',
-                style: TextStyle(
-                  fontSize: isMobile ? 10 : 12,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(
-                  horizontal: isMobile ? 8 : 12,
-                  vertical: isMobile ? 6 : 8,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
-  Widget _buildStatusIcon(
-    IconData icon,
-    int count,
-    Color color,
-    bool isMobile,
+  Widget _buildPaginationControls(
+    int totalPages,
+    int totalItems,
+    int startIndex,
+    int endIndex,
   ) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, size: isMobile ? 12 : 16, color: color),
-        SizedBox(width: isMobile ? 2 : 4),
         Text(
-          '$count',
-          style: TextStyle(
-            fontSize: isMobile ? 9 : 12,
-            color: color,
-            fontWeight: FontWeight.w500,
-          ),
+          "${totalItems > 0 ? startIndex + 1 : 0}-$endIndex of $totalItems",
+          style: const TextStyle(fontSize: 12, color: Color(0xFF4B5563)),
+        ),
+        const SizedBox(width: 12),
+        IconButton(
+          icon: const Icon(Icons.keyboard_arrow_left, size: 20),
+          color: currentPage > 1
+              ? const Color(0xFF4B5563)
+              : const Color(0xFF9CA3AF),
+          onPressed: currentPage > 1
+              ? () => setState(() => currentPage--)
+              : null,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+        const SizedBox(width: 8),
+        ...List.generate(totalPages, (i) => _buildPageNumber(i + 1)),
+        const SizedBox(width: 8),
+        IconButton(
+          icon: const Icon(Icons.keyboard_arrow_right, size: 20),
+          color: currentPage < totalPages
+              ? const Color(0xFF4B5563)
+              : const Color(0xFF9CA3AF),
+          onPressed: currentPage < totalPages
+              ? () => setState(() => currentPage++)
+              : null,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
         ),
       ],
     );
   }
 
-  Widget _buildRecentActivityCard(bool isMobile) {
+  Widget _buildPageNumber(int pageNum) {
+    final active = currentPage == pageNum;
+    return GestureDetector(
+      onTap: () => setState(() => currentPage = pageNum),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        width: 32,
+        height: 32,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: active ? const Color(0xFF7E49FF) : const Color(0xFFE5E7EB),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          "$pageNum",
+          style: TextStyle(
+            color: active ? Colors.white : const Color(0xFF4B5563),
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusLegend() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Status Legend",
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1E293B),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            _legendItem(const Color(0xFF10B981), "Present"),
+            const SizedBox(width: 20),
+            _legendItem(const Color(0xFFEF4444), "Absent"),
+            const SizedBox(width: 20),
+            _legendItem(const Color(0xFFF97316), "Leave"),
+            const SizedBox(width: 20),
+            _legendItem(const Color(0xFF94A3B8), "No Date"),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _legendItem(Color color, String text) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: const TextStyle(fontSize: 12, color: Color(0xFF4B5563)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecentActivityCard() {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFEEEEEE), width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.access_time,
-                size: isMobile ? 18 : 20,
-                color: const Color(0xFF7C3AED),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+            decoration: const BoxDecoration(
+              color: Color(0xFFEDE7F6),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
               ),
-              SizedBox(width: isMobile ? 6 : 8),
-              Text(
-                'Recent Activity',
-                style: TextStyle(
-                  fontSize: isMobile ? 14 : 16,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1E293B),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          _buildActivityItem(
-            Icons.remove_circle,
-            _getStatusColor(overallAttendance),
-            'Overall Hostel Attendance',
-            '$overallAttendance% attendance rate',
-            'Updated just now',
-            '$overallAttendance%',
-            isMobile,
-          ),
-          _buildActivityItem(
-            Icons.emoji_events,
-            const Color(0xFFF97316),
-            'Best Stay Streak',
-            '$bestStreak consecutive nights in hostel',
-            'Previous record',
-            null,
-            isMobile,
-          ),
-          _buildActivityItem(
-            Icons.local_fire_department,
-            const Color(0xFF7C3AED),
-            'Current Stay Streak',
-            '$currentStreak consecutive nights in hostel',
-            'Active now',
-            null,
-            isMobile,
-          ),
-          if (_attendanceData != null &&
-              _attendanceData!.attendance.isNotEmpty) ...[
-            _buildActivityItem(
-              Icons.trending_up,
-              _getStatusColor(_attendanceData!.attendance.first.percentage),
-              '${_attendanceData!.attendance.first.monthName} Hostel Attendance',
-              '${_attendanceData!.attendance.first.present} present, ${_attendanceData!.attendance.first.absent} absent',
-              'Monthly Summary',
-              '${_attendanceData!.attendance.first.percentage.toStringAsFixed(1)}%',
-              isMobile,
-              showViewDetails: true,
             ),
-          ],
-          SizedBox(height: isMobile ? 12 : 16),
-          Center(
-            child: TextButton.icon(
-              onPressed: () {},
-              icon: Icon(
-                Icons.refresh,
-                size: isMobile ? 14 : 16,
-                color: const Color(0xFF2563EB),
-              ),
-              label: Text(
-                'Refresh Activities',
-                style: TextStyle(
-                  fontSize: isMobile ? 12 : 14,
-                  color: const Color(0xFF2563EB),
-                  fontWeight: FontWeight.w600,
+            child: const Row(
+              children: [
+                Text(
+                  'Recent Activity',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
-              ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                _buildActivityItem(
+                  icon: Icons.bar_chart,
+                  iconColor: const Color(0xFF00B894), // Green
+                  title: 'Overall Attendance',
+                  titleExtra: '${overallAttendance.toStringAsFixed(1)}%',
+                  subtitle:
+                      '${overallAttendance.toStringAsFixed(1)}% \nattendance rate',
+                  status: 'Updated just now',
+                ),
+                _buildActivityItem(
+                  icon: Icons.local_fire_department,
+                  iconColor: const Color(0xFFFB8C00), // Orange
+                  title: 'Best Attendance Streak',
+                  subtitle: '$bestStreak consecutive days present',
+                  status: 'Performance record',
+                ),
+                _buildActivityItem(
+                  icon: Icons.nightlight_outlined,
+                  iconColor: const Color(0xFF7E57C2), // Purple
+                  title: 'Total Night Outs',
+                  subtitle: '$nightOuts recorded night outs',
+                  status: 'Based on attendance',
+                ),
+                const SizedBox(height: 10),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: _fetchAttendance,
+                    icon: const Icon(
+                      Icons.refresh,
+                      size: 20,
+                      color: Colors.blue,
+                    ),
+                    label: const Text(
+                      'Refresh Activities',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -1810,126 +1388,83 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
     );
   }
 
-  Widget _buildActivityItem(
-    IconData icon,
-    Color color,
-    String title,
-    String details,
-    String status,
-    String? value,
-    bool isMobile, {
-    String? date,
-    bool showViewDetails = false,
-    bool isLast = false,
+  Widget _buildActivityItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    String? titleExtra,
+    required String subtitle,
+    required String status,
   }) {
     return Container(
-      margin: EdgeInsets.only(bottom: isLast ? 0 : (isMobile ? 12 : 16)),
-      padding: EdgeInsets.all(isMobile ? 12 : 16),
+      margin: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: const Color(0xFFEEEEEE), width: 1.5),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: isMobile ? 36 : 40,
-            height: isMobile ? 36 : 40,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            child: Icon(icon, color: Colors.white, size: isMobile ? 18 : 20),
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(color: iconColor, shape: BoxShape.circle),
+            child: Icon(icon, color: Colors.white, size: 20),
           ),
-          SizedBox(width: isMobile ? 10 : 12),
+          const SizedBox(width: 15),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: isMobile ? 12 : 14,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1E293B),
-                  ),
-                ),
-                SizedBox(height: isMobile ? 2 : 4),
-                Text(
-                  details,
-                  style: TextStyle(
-                    fontSize: isMobile ? 11 : 12,
-                    color: const Color(0xFF64748B),
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: isMobile ? 2 : 4),
-                Text(
-                  status,
-                  style: TextStyle(
-                    fontSize: isMobile ? 10 : 11,
-                    color: const Color(0xFF94A3B8),
-                  ),
-                ),
-                if (date != null) ...[
-                  SizedBox(height: isMobile ? 2 : 4),
-                  Text(
-                    date,
-                    style: TextStyle(
-                      fontSize: isMobile ? 10 : 11,
-                      color: const Color(0xFF94A3B8),
-                    ),
-                  ),
-                ],
-                if (showViewDetails) ...[
-                  SizedBox(height: isMobile ? 6 : 8),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => HostelMonthDetailPage(
-                            monthData: _attendanceData!.attendance.first,
-                            overallData: _attendanceData,
-                          ),
-                        ),
-                      );
-                    },
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      'View Details',
-                      style: TextStyle(
-                        fontSize: isMobile ? 11 : 12,
-                        color: const Color(0xFF2563EB),
-                        fontWeight: FontWeight.w600,
+                Row(
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Colors.black,
                       ),
                     ),
+                    if (titleExtra != null) ...[
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          titleExtra,
+                          style: TextStyle(
+                            color: iconColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF757575),
+                    height: 1.3,
                   ),
-                ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  status,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF757575),
+                  ),
+                ),
               ],
             ),
           ),
-          if (value != null)
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: isMobile ? 8 : 12,
-                vertical: isMobile ? 4 : 6,
-              ),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                value,
-                style: TextStyle(
-                  fontSize: isMobile ? 12 : 14,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                ),
-              ),
-            ),
         ],
       ),
     );

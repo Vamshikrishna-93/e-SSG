@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:student_app/student_app/services/documents_service.dart';
-import 'package:student_app/student_app/student_app_bar.dart';
+import 'package:get/get.dart';
+import 'package:student_app/student_app/services/documents_controller.dart';
 import 'package:student_app/student_app/upload_document_dialog.dart';
-import 'package:student_app/theme_controllers.dart';
+import 'package:intl/intl.dart';
+import 'package:student_app/student_app/widgets/loading_animation.dart';
 
 class DocumentsPage extends StatefulWidget {
   const DocumentsPage({super.key});
@@ -14,16 +15,9 @@ class DocumentsPage extends StatefulWidget {
 class _DocumentsPageState extends State<DocumentsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late final DocumentsController _controller;
 
-  bool _isLoading = true;
-  String? _errorMessage;
-  List<dynamic> _documents = [];
-
-  int totalDocs = 0;
-  int verifiedDocs = 0;
-  int pendingDocs = 0;
-  int rejectedDocs = 0;
-  DateTime? _lastUpdated;
+  static const Color primaryPurple = Color(0xFF7E3FF2);
 
   String selectedCategory = "Financial";
 
@@ -33,325 +27,260 @@ class _DocumentsPageState extends State<DocumentsPage>
     "Medical",
     "Hostel",
     "Financial",
-    "Other",
+    "Others",
   ];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _fetchData();
-  }
-
-  Future<void> _fetchData() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
+    _tabController.addListener(() {
+      setState(() {});
     });
-    try {
-      final data = await DocumentsService.getDocuments();
-      if (mounted) {
-        setState(() {
-          // Map data using correct keys from API response
-          if (data['success'] == true) {
-            _documents = data['documents'] ?? [];
-            totalDocs = data['total_docs'] ?? _documents.length;
-          } else {
-            _documents = [];
-            totalDocs = 0;
-          }
 
-          // Update stats based on status strings in fetched data
-          verifiedDocs = _documents
-              .where(
-                (d) =>
-                    d['status'].toString().toLowerCase() == 'approved' ||
-                    d['status'].toString().toLowerCase() == 'verified',
-              )
-              .length;
-          pendingDocs = _documents
-              .where((d) => d['status'].toString().toLowerCase() == 'pending')
-              .length;
-          rejectedDocs = _documents
-              .where((d) => d['status'].toString().toLowerCase() == 'rejected')
-              .length;
-
-          _lastUpdated = DateTime.now();
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = e.toString();
-          _isLoading = false;
-        });
-      }
+    // Self-healing check
+    if (!Get.isRegistered<DocumentsController>()) {
+      Get.put(DocumentsController(), permanent: true);
     }
+    _controller = Get.find<DocumentsController>();
   }
 
-  // ================= COLORS (THEME AWARE) =================
-
-  Color get bg => Theme.of(context).brightness == Brightness.dark
-      ? const Color(0xFF0F172A)
-      : const Color(0xFFF8FAFC);
-
-  Color get card => Theme.of(context).brightness == Brightness.dark
-      ? const Color(0xFF020617)
-      : Colors.white;
-
-  Color get border => Theme.of(context).brightness == Brightness.dark
-      ? const Color(0xFF1E293B)
-      : const Color(0xFFE5E7EB);
-
-  Color get textPrimary => Theme.of(context).brightness == Brightness.dark
-      ? Colors.white
-      : const Color(0xFF020617);
-
-  Color get textSecondary => Theme.of(context).brightness == Brightness.dark
-      ? const Color(0xFF94A3B8)
-      : const Color(0xFF6B7280);
-
-  // ================= ACTIONS =================
-
-  void _refreshData() {
-    _fetchData();
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
-
-  double get verificationProgress =>
-      totalDocs == 0 ? 0 : verifiedDocs / totalDocs;
-
-  // ================= BUILD =================
 
   @override
   Widget build(BuildContext context) {
-    return ThemeControllerWrapper(
-      themeController: StudentThemeController.themeMode,
-      child: Builder(
-        builder: (context) {
-          return Scaffold(
-            backgroundColor: bg,
-            appBar: const StudentAppBar(title: ""),
-            body: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _errorMessage != null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          _buildHeader(context),
+          Expanded(
+            child: Obx(() {
+              if (_controller.isLoading.value) {
+                return const Center(child: StudentLoadingAnimation());
+              }
+
+              if (_controller.errorMessage.value != null) {
+                return Center(
+                  child: Text("Error: ${_controller.errorMessage.value}"),
+                );
+              }
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 24,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Documents",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      "Manage your student documents and verifications",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
                       children: [
-                        Text("Error: $_errorMessage"),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _fetchData,
-                          child: const Text("Retry"),
+                        Expanded(
+                          child: _actionButton(
+                            label: "Upload Documents",
+                            icon: Icons.upload_outlined,
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
+                            ),
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (_) => const UploadDocumentDialog(
+                                  initialCategory: '',
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _actionButton(
+                            label: "Refresh",
+                            icon: Icons.refresh,
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF4DB6AC), Color(0xFFAED581)],
+                            ),
+                            onTap: () =>
+                                _controller.fetchDocuments(forceRefresh: true),
+                          ),
                         ),
                       ],
                     ),
-                  )
-                : SafeArea(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 20,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _header(),
-                          const SizedBox(height: 24),
-                          _statCard(
-                            title: "Total Documents",
-                            count: totalDocs,
-                            icon: Icons.folder_outlined,
-                            color: const Color(0xFF2563EB),
-                          ),
-                          _statCard(
-                            title: "Verified",
-                            count: verifiedDocs,
-                            icon: Icons.check_circle_outline,
-                            color: const Color(0xFF22C55E),
-                          ),
-                          _statCard(
-                            title: "Pending",
-                            count: pendingDocs,
-                            icon: Icons.access_time,
-                            color: const Color(0xFFF59E0B),
-                          ),
-                          _statCard(
-                            title: "Rejected",
-                            count: rejectedDocs,
-                            icon: Icons.warning_amber_rounded,
-                            color: const Color(0xFFEF4444),
-                          ),
-                          const SizedBox(height: 28),
-                          _tabsSection(),
-                          const SizedBox(height: 28),
-                          _categoriesSection(),
-                          const SizedBox(height: 28),
-                          _verificationProgress(),
-                        ],
-                      ),
+                    const SizedBox(height: 20),
+                    _statTile(
+                      "Total Documents",
+                      _controller.totalDocs.value,
+                      const Color(0xFF2196F3),
+                      Icons.folder_outlined,
                     ),
-                  ),
-          );
-        },
+                    _statTile(
+                      "Verified",
+                      _controller.verifiedDocs.value,
+                      const Color(0xFF4CAF50),
+                      Icons.check_circle_outline,
+                    ),
+                    _statTile(
+                      "Pending",
+                      _controller.pendingDocs.value,
+                      const Color(0xFFF59E0B),
+                      Icons.access_time,
+                    ),
+                    _statTile(
+                      "Rejected",
+                      _controller.rejectedDocs.value,
+                      const Color(0xFFEF4444),
+                      Icons.warning_amber_rounded,
+                    ),
+                    const SizedBox(height: 24),
+                    _buildTabs(),
+                    const SizedBox(height: 20),
+                    _buildTabContent(),
+                    const SizedBox(height: 24),
+                    _buildCategories(),
+                    const SizedBox(height: 24),
+                    _buildVerificationProgress(),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              );
+            }),
+          ),
+        ],
       ),
     );
   }
 
-  // ================= HEADER =================
-
-  Widget _header() {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Top section with Icon and Title
-        Row(
-          children: [
-            Container(
-              width: 52,
-              height: 52,
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 10,
+        bottom: 25,
+        left: 20,
+        right: 20,
+      ),
+      decoration: const BoxDecoration(
+        color: primaryPurple,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(35),
+          bottomRight: Radius.circular(35),
+        ),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF6366F1).withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.check_circle_outline,
+                Icons.arrow_back,
                 color: Colors.white,
-                size: 30,
+                size: 22,
               ),
             ),
-            const SizedBox(width: 16),
+          ),
+          const SizedBox(width: 16),
+          const Text(
+            "Documents",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionButton({
+    required String label,
+    required IconData icon,
+    required Gradient gradient,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 18),
+            const SizedBox(width: 6),
             Text(
-              "Documents",
-              style: TextStyle(
-                fontSize: 28,
+              label,
+              style: const TextStyle(
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF7C3AED),
-                letterSpacing: -0.5,
+                fontSize: 13,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        // Subtitle text from original page
-        Text(
-          "Manage your student documents and verifications",
-          style: TextStyle(
-            fontSize: 15,
-            color: textSecondary,
-            letterSpacing: 0.1,
-          ),
-        ),
-        const SizedBox(height: 24),
-        // Refresh Button (Solid)
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: _refreshData,
-            icon: const Icon(Icons.refresh, size: 20),
-            label: const Text("Refresh"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7C3AED),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        // Upload Document Button (Outlined, styled like Download Report)
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () {
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (_) => const UploadDocumentDialog(initialCategory: ''),
-              );
-            },
-            icon: Icon(
-              Icons.upload_file_outlined,
-              size: 20,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-            label: Text(
-              "Upload Document",
-              style: TextStyle(
-                color: isDark ? Colors.white : Colors.black87,
-                fontSize: 16,
-              ),
-            ),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(
-                color: isDark ? Colors.grey.shade800 : const Color(0xFFE2E8F0),
-                width: 1.5,
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              backgroundColor: isDark ? Colors.transparent : Colors.white,
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
-  // ================= STATS =================
-
-  Widget _statCard({
-    required String title,
-    required int count,
-    required IconData icon,
-    required Color color,
-  }) {
+  Widget _statTile(String title, int count, Color color, IconData icon) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: border),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withOpacity(0.2)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: color),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: textPrimary,
-              ),
+          Icon(icon, color: color, size: 22),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
             ),
           ),
+          const Spacer(),
           Text(
-            count.toString(),
+            "$count",
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
               color: color,
             ),
           ),
@@ -360,199 +289,192 @@ class _DocumentsPageState extends State<DocumentsPage>
     );
   }
 
-  // ================= TABS =================
-
-  Widget _tabsSection() {
+  Widget _buildTabs() {
     return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: border),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFEEEEEE), width: 1.5),
+        ),
       ),
-      child: Column(
+      child: Row(
         children: [
-          TabBar(
-            controller: _tabController,
-            labelColor: const Color(0xFF2563EB),
-            unselectedLabelColor: textSecondary,
-            indicatorColor: const Color(0xFF2563EB),
-            indicatorWeight: 2,
-            labelStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-            tabs: [
-              Tab(text: "All Documents ($totalDocs)"),
-              Tab(text: "Pending Verification ($pendingDocs)"),
-            ],
+          _tabItem("All Documents(${_controller.documents.length})", 0),
+          const SizedBox(width: 24),
+          _tabItem("Pending Verification(${_controller.pendingDocs.value})", 1),
+        ],
+      ),
+    );
+  }
+
+  Widget _tabItem(String label, int index) {
+    bool isSelected = _tabController.index == index;
+    return GestureDetector(
+      onTap: () => setState(() => _tabController.index = index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          border: isSelected
+              ? const Border(
+                  bottom: BorderSide(color: Color(0xFF8B5CF6), width: 2.5),
+                )
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            color: isSelected ? const Color(0xFF8B5CF6) : Colors.black54,
           ),
-          const SizedBox(height: 28),
-          SizedBox(
-            height: 120,
-            child: TabBarView(
-              controller: _tabController,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabContent() {
+    List<dynamic> docsToDisplay = _tabController.index == 0
+        ? _controller.documents
+        : _controller.documents
+              .where((d) => d['status'].toString().toLowerCase() == 'pending')
+              .toList();
+
+    if (docsToDisplay.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE3F2FD).withOpacity(0.5),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.find_in_page_outlined,
+              size: 40,
+              color: Colors.blueGrey[300],
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              "No Documents found",
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: docsToDisplay.map((doc) => _buildDocCard(doc)).toList(),
+    );
+  }
+
+  Widget _buildDocCard(dynamic doc) {
+    String status = doc['status']?.toString() ?? 'Pending';
+    String title = doc['document_name'] ?? 'Total Documents';
+    String subtitle = 'N/A';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE3F2FD),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.description_outlined,
+              color: Color(0xFF2196F3),
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _documentList(_documents),
-                _documentList(
-                  _documents
-                      .where(
-                        (d) =>
-                            d['status'].toString().toLowerCase() == 'pending',
-                      )
-                      .toList(),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.black54,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
           ),
+          Text(
+            status,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFF59E0B),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _emptyState() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(Icons.inbox_outlined, size: 44, color: border),
-        const SizedBox(height: 10),
-        Text(
-          "No documents found",
-          style: TextStyle(fontSize: 14, color: textSecondary),
-        ),
-      ],
-    );
-  }
-
-  Widget _documentList(List<dynamic> docs) {
-    if (docs.isEmpty) return _emptyState();
-
-    return ListView.builder(
-      itemCount: docs.length,
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      itemBuilder: (context, index) {
-        final doc = docs[index];
-        // Handle dynamic keys (fallback for outings vs documents)
-        final title =
-            doc['document_name'] ??
-            doc['outing_type'] ??
-            doc['reason'] ??
-            'Document';
-        final date =
-            doc['created_at'] ?? doc['date'] ?? doc['out_time'] ?? 'N/A';
-        final status = doc['status']?.toString() ?? 'Pending';
-
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: card,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: border),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.description_outlined,
-                  color: Color(0xFF2563EB),
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      date,
-                      style: TextStyle(fontSize: 12, color: textSecondary),
-                    ),
-                  ],
-                ),
-              ),
-              _statusBadge(status),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _statusBadge(String status) {
-    Color color;
-    switch (status.toLowerCase()) {
-      case 'approved':
-      case 'verified':
-        color = const Color(0xFF22C55E);
-        break;
-      case 'rejected':
-        color = const Color(0xFFEF4444);
-        break;
-      default:
-        color = const Color(0xFFF59E0B);
-    }
+  Widget _buildCategories() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(
-          color: color,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-  // ================= CATEGORIES =================
-
-  Widget _categoriesSection() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: border),
+        color: const Color(0xFFE8EAF6),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Document Categories",
+          const Text(
+            "Documents",
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: textPrimary,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
           ),
-          const SizedBox(height: 14),
-          ...categories.map(_categoryTile),
+          const SizedBox(height: 16),
+          _categoryTile("ID Proof", Icons.folder_open_outlined, false),
+          _categoryTile("Academic", Icons.folder_open_outlined, false),
+          _categoryTile("Medical", Icons.folder_open_outlined, false),
+          _categoryTile("Hostel", Icons.folder_open_outlined, false),
+          _categoryTile("Financial", Icons.folder_open_outlined, true),
+          _categoryTile("Others", Icons.folder_open_outlined, false),
         ],
       ),
     );
   }
 
-  Widget _categoryTile(String title) {
-    final bool selected = title == selectedCategory;
-
+  Widget _categoryTile(String title, IconData icon, bool isSelected) {
     return GestureDetector(
       onTap: () {
         setState(() => selectedCategory = title);
@@ -562,31 +484,32 @@ class _DocumentsPageState extends State<DocumentsPage>
           builder: (_) => UploadDocumentDialog(initialCategory: title),
         );
       },
-
       child: Container(
-        height: 44,
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: const EdgeInsets.only(bottom: 10),
+        height: 48,
         decoration: BoxDecoration(
+          color: Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: selected ? const Color(0xFF2563EB) : border,
+            color: isSelected ? const Color(0xFF2196F3) : Colors.transparent,
+            width: 1.2,
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.folder_outlined,
-              size: 18,
-              color: selected ? const Color(0xFF2563EB) : textPrimary,
+              icon,
+              color: isSelected ? const Color(0xFF2196F3) : Colors.black87,
+              size: 20,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             Text(
               title,
               style: TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: selected ? const Color(0xFF2563EB) : textPrimary,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? const Color(0xFF2196F3) : Colors.black87,
               ),
             ),
           ],
@@ -595,79 +518,80 @@ class _DocumentsPageState extends State<DocumentsPage>
     );
   }
 
-  // ================= PROGRESS =================
+  Widget _buildVerificationProgress() {
+    String dateStr = _controller.lastUpdated.value != null
+        ? DateFormat('d/M/yyyy HH:mm').format(_controller.lastUpdated.value!)
+        : 'Never';
 
-  Widget _verificationProgress() {
     return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: border),
+        color: const Color(0xFFE8EAF6),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // HEADER
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
-            child: Text(
-              "Verification Progress",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: textPrimary,
-              ),
+          const Text(
+            "Verification Progress",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
           ),
-
-          Divider(height: 1, color: border),
-
-          // BODY
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // PROGRESS ROW
                 Row(
                   children: [
                     Expanded(
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(10),
                         child: LinearProgressIndicator(
-                          value: verificationProgress,
+                          value: _controller.verificationProgress,
                           minHeight: 8,
-                          backgroundColor: border,
-                          color: const Color(0xFF2563EB),
+                          backgroundColor: const Color(0xFFEEEEEE),
+                          color: const Color(0xFF43A047),
                         ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      "${(verificationProgress * 100).round()}%",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: textSecondary,
+                      "${(_controller.verificationProgress * 100).toInt()}%",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 16),
-
-                // VERIFIED TEXT
                 Text(
-                  "$verifiedDocs of $totalDocs documents verified",
-                  style: TextStyle(fontSize: 14, color: textSecondary),
+                  "${_controller.verifiedDocs.value} of ${_controller.totalDocs.value} documents verified",
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
-
-                const SizedBox(height: 10),
-
-                // LAST UPDATED
+                const SizedBox(height: 6),
                 Text(
-                  "Last updated: ${_lastUpdated != null ? "${_lastUpdated!.day}/${_lastUpdated!.month}/${_lastUpdated!.year} ${_lastUpdated!.hour}:${_lastUpdated!.minute.toString().padLeft(2, '0')}" : "Never"}",
-                  style: TextStyle(fontSize: 12, color: textSecondary),
+                  "Last update : $dateStr",
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black54,
+                  ),
                 ),
               ],
             ),

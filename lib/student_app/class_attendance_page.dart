@@ -2,15 +2,13 @@ import 'dart:math' as math;
 import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:student_app/student_app/student_app_bar.dart';
-import 'attendence_month_details_page.dart';
-import 'package:student_app/student_app/theme/student_theme.dart';
-import 'package:student_app/theme_controllers.dart';
+
 import 'package:student_app/student_app/services/attendance_service.dart';
 import 'package:student_app/student_app/model/class_attendance.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:student_app/student_app/attendence_month_details_page.dart';
 
 class AttendancePage extends StatefulWidget {
   const AttendancePage({super.key});
@@ -24,6 +22,7 @@ class _AttendancePageState extends State<AttendancePage> {
   int currentPage = 1;
   final int itemsPerPage = 10;
   bool _isLoading = true;
+  String _searchQuery = "";
 
   // Dynamic data
   double overallAttendance = 0.0;
@@ -40,13 +39,10 @@ class _AttendancePageState extends State<AttendancePage> {
   Timer? _refreshTimer;
 
   final ScrollController _horizontalScrollController = ScrollController();
-  double _maxScrollExtent = 0.0;
-  double _scrollPosition = 0.0;
 
   @override
   void initState() {
     super.initState();
-    _horizontalScrollController.addListener(_updateScrollMetrics);
     _fetchAttendanceData(forceRefresh: false);
   }
 
@@ -55,13 +51,6 @@ class _AttendancePageState extends State<AttendancePage> {
     _refreshTimer?.cancel();
     _horizontalScrollController.dispose();
     super.dispose();
-  }
-
-  void _updateScrollMetrics() {
-    setState(() {
-      _maxScrollExtent = _horizontalScrollController.position.maxScrollExtent;
-      _scrollPosition = _horizontalScrollController.position.pixels;
-    });
   }
 
   Future<void> _fetchAttendanceData({bool forceRefresh = true}) async {
@@ -155,18 +144,6 @@ class _AttendancePageState extends State<AttendancePage> {
     }
   }
 
-  String _getStatusString(double percentage) {
-    if (percentage >= 90) return 'Excellent';
-    if (percentage >= 75) return 'Good';
-    return 'Needs Improvement';
-  }
-
-  Color _getStatusColor(double percentage) {
-    if (percentage >= 90) return const Color(0xFF10B981);
-    if (percentage >= 75) return const Color(0xFFF97316);
-    return const Color(0xFFEF4444);
-  }
-
   Future<void> _downloadReport() async {
     ScaffoldMessenger.of(
       context,
@@ -216,267 +193,244 @@ class _AttendancePageState extends State<AttendancePage> {
 
   @override
   Widget build(BuildContext context) {
-    return ThemeControllerWrapper(
-      themeController: StudentThemeController.themeMode,
-      child: Builder(
-        builder: (context) {
-          final theme = Theme.of(context);
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final isMobile = constraints.maxWidth < 600;
 
-          return Scaffold(
-            backgroundColor: theme.scaffoldBackgroundColor,
-            appBar: const StudentAppBar(title: ""),
-            body: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isMobile = constraints.maxWidth < 600;
-                      final padding = isMobile ? 12.0 : 16.0;
-
-                      return SingleChildScrollView(
-                        child: Padding(
-                          padding: EdgeInsets.all(padding),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Attendance Dashboard Header Card
-                              _buildDashboardHeader(isMobile),
-                              SizedBox(height: isMobile ? 12 : 16),
-
-                              // Overall Attendance Card
-                              _buildOverallAttendanceCard(isMobile),
-                              SizedBox(height: isMobile ? 12 : 16),
-
-                              // Days Attended Card
-                              _buildDaysAttendedCard(isMobile),
-                              SizedBox(height: isMobile ? 12 : 16),
-
-                              // Current Streak Card
-                              _buildCurrentStreakCard(isMobile),
-                              SizedBox(height: isMobile ? 12 : 16),
-
-                              // Leaves Taken Card
-                              _buildLeavesTakenCard(isMobile),
-                              SizedBox(height: isMobile ? 12 : 16),
-
-                              // Attendance Trend Card
-                              _buildAttendanceTrendCard(isMobile),
-                              SizedBox(height: isMobile ? 12 : 16),
-
-                              // Performance Summary Card
-
-                              // Monthly Attendance Overview Card
-                              _buildMonthlyOverviewCard(isMobile),
-                              SizedBox(height: isMobile ? 12 : 16),
-                              _buildPerformanceSummaryCard(isMobile),
-                              SizedBox(height: isMobile ? 12 : 16),
-
-                              // Recent Activity Card
-                              _buildRecentActivityCard(isMobile),
-                              SizedBox(height: isMobile ? 12 : 16),
-                            ],
+                return SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Custom Header
+                      Container(
+                        padding: EdgeInsets.only(
+                          top: MediaQuery.of(context).padding.top + 10,
+                          bottom: 25,
+                          left: 20,
+                          right: 20,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF7E49FF),
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(30),
+                            bottomRight: Radius.circular(30),
                           ),
                         ),
-                      );
-                    },
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white24,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_back,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const Text(
+                              "Class Attendance",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(isMobile ? 16.0 : 20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Attendance Dashboard Header Card
+                            _buildDashboardHeader(isMobile),
+                            const SizedBox(height: 20),
+
+                            // Overall Attendance Card
+                            _buildOverallAttendanceCard(isMobile),
+                            const SizedBox(height: 16),
+
+                            // Days Attended Card
+                            _buildDaysAttendedCard(isMobile),
+                            const SizedBox(height: 16),
+
+                            // Current Streak Card
+                            _buildCurrentStreakCard(isMobile),
+                            const SizedBox(height: 16),
+
+                            // Leaves Taken Card
+                            _buildLeavesTakenCard(isMobile),
+                            const SizedBox(height: 20),
+
+                            // Attendance Trend Card
+                            _buildAttendanceTrendCard(isMobile),
+                            const SizedBox(height: 20),
+
+                            // Monthly Attendance Overview Card
+                            _buildMonthlyOverviewCard(isMobile),
+                            const SizedBox(height: 20),
+
+                            // Performance Summary Card
+                            _buildPerformanceSummaryCard(isMobile),
+                            const SizedBox(height: 20),
+
+                            // Recent Activity Card
+                            _buildRecentActivityCard(isMobile),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-          );
-        },
-      ),
+                );
+              },
+            ),
     );
   }
 
   Widget _buildDashboardHeader(bool isMobile) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Class Attendance',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF111827),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'Track, analyze, and improve your attendance\nperformance',
+          style: TextStyle(fontSize: 14, color: Color(0xFF4B5563), height: 1.4),
+        ),
+        const SizedBox(height: 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Row(
             children: [
-              Container(
-                width: isMobile ? 40 : 48,
-                height: isMobile ? 40 : 48,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF7C3AED), Color(0xFF2563EB)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              Expanded(
+                child: Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.check_circle,
-                  color: Colors.white,
-                  size: isMobile ? 24 : 28,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _fetchAttendanceData(forceRefresh: true),
+                    icon: const Icon(
+                      Icons.refresh,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                    label: const Text(
+                      'Refresh',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              SizedBox(width: isMobile ? 12 : 16),
+              const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  'Class Attendance',
-                  style: TextStyle(
-                    fontSize: isMobile ? 22 : 28,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF7C3AED),
+                child: Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF4ADE80), Color(0xFFA3E635)],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: ElevatedButton.icon(
+                    onPressed: _downloadReport,
+                    icon: const Icon(
+                      Icons.print,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                    label: const Text(
+                      'Download Report',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: isMobile ? 8 : 12),
-          Text(
-            'Track, analyze, and improve your attendance performance.',
-            style: TextStyle(
-              fontSize: isMobile ? 12 : 14,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey.shade400
-                  : const Color(0xFF64748B),
-              height: 1.5,
-            ),
-          ),
-          SizedBox(height: isMobile ? 16 : 20),
-          isMobile
-              ? Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () =>
-                            _fetchAttendanceData(forceRefresh: true),
-                        icon: const Icon(Icons.refresh, size: 18),
-                        label: const Text(
-                          'Refresh ',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF7C3AED),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: _downloadReport,
-                        icon: const Icon(
-                          Icons.print,
-                          size: 18,
-                          color: Colors.black87,
-                        ),
-                        label: const Text(
-                          'Download Report',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(
-                            color: Color(0xFFE2E8F0),
-                            width: 1.5,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              : Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () =>
-                            _fetchAttendanceData(forceRefresh: true),
-                        icon: const Icon(Icons.download, size: 18),
-                        label: const Text(
-                          'Refresh Data',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF7C3AED),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _downloadReport,
-                        icon: const Icon(
-                          Icons.print,
-                          size: 18,
-                          color: Colors.black87,
-                        ),
-                        label: const Text(
-                          'Print Report',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(
-                            color: Color(0xFFE2E8F0),
-                            width: 1.5,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildOverallAttendanceCard(bool isMobile) {
+    return _buildSummaryCard(
+      title: 'Overall Attendance',
+      value: '${overallAttendance.toStringAsFixed(1)}%',
+      valueColor: const Color(0xFF10B981),
+      tagText: 'Based on $totalDays recorded days',
+      tagColor: const Color(0xFF10B981),
+      tagBg: const Color(0xFFE2F9F0),
+      tagIcon: Icons.check_circle,
+    );
+  }
+
+  Widget _buildSummaryCard({
+    required String title,
+    required String value,
+    required Color valueColor,
+    required String tagText,
+    required Color tagColor,
+    required Color tagBg,
+    required IconData tagIcon,
+  }) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -486,69 +440,40 @@ class _AttendancePageState extends State<AttendancePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Overall Attendance',
-            style: TextStyle(
-              fontSize: isMobile ? 12 : 14,
+            title,
+            style: const TextStyle(
+              fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey.shade400
-                  : const Color(0xFF64748B),
+              color: Color(0xFF4B5563),
             ),
           ),
-          SizedBox(height: isMobile ? 12 : 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '%',
-                style: TextStyle(
-                  fontSize: isMobile ? 24 : 32,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF10B981),
-                ),
-              ),
-              SizedBox(width: isMobile ? 4 : 8),
-              Flexible(
-                child: Text(
-                  '$overallAttendance',
-                  style: TextStyle(
-                    fontSize: isMobile ? 36 : 48,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF10B981),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: valueColor,
+            ),
           ),
-          SizedBox(height: isMobile ? 12 : 16),
+          const SizedBox(height: 12),
           Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 10 : 12,
-              vertical: isMobile ? 6 : 8,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFFD1FAE5),
-              borderRadius: BorderRadius.circular(8),
+              color: tagBg,
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.check_circle,
-                  size: isMobile ? 14 : 16,
-                  color: const Color(0xFF10B981),
-                ),
-                SizedBox(width: isMobile ? 4 : 6),
-                Flexible(
-                  child: Text(
-                    'Based on $totalDays recorded days',
-                    style: TextStyle(
-                      fontSize: isMobile ? 11 : 12,
-                      color: const Color(0xFF059669),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                Icon(tagIcon, size: 14, color: tagColor),
+                const SizedBox(width: 6),
+                Text(
+                  tagText,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: tagColor,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -560,298 +485,51 @@ class _AttendancePageState extends State<AttendancePage> {
   }
 
   Widget _buildDaysAttendedCard(bool isMobile) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: isMobile ? 36 : 40,
-                height: isMobile ? 36 : 40,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF2563EB),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.check_circle,
-                  color: Colors.white,
-                  size: isMobile ? 20 : 24,
-                ),
-              ),
-              SizedBox(width: isMobile ? 10 : 12),
-              Text(
-                'Days Attended',
-                style: TextStyle(
-                  fontSize: isMobile ? 12 : 14,
-                  fontWeight: FontWeight.w500,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey.shade400
-                      : const Color(0xFF64748B),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          Text(
-            '$daysAttended/$totalDays',
-            style: TextStyle(
-              fontSize: isMobile ? 36 : 48,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF2563EB),
-            ),
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 10 : 12,
-              vertical: isMobile ? 6 : 8,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFFDBEAFE),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.person_off,
-                  size: isMobile ? 14 : 16,
-                  color: const Color(0xFF2563EB),
-                ),
-                SizedBox(width: isMobile ? 4 : 6),
-                Flexible(
-                  child: Text(
-                    '$daysAbsent days absent',
-                    style: TextStyle(
-                      fontSize: isMobile ? 11 : 12,
-                      color: const Color(0xFF1E40AF),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return _buildSummaryCard(
+      title: 'Days Attended',
+      value: '$daysAttended/$totalDays',
+      valueColor: const Color(0xFF2563EB),
+      tagText: '36 days left', // Placeholder from image
+      tagColor: const Color(0xFF2563EB),
+      tagBg: const Color(0xFFDBEAFE),
+      tagIcon: Icons.person,
     );
   }
 
   Widget _buildCurrentStreakCard(bool isMobile) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: isMobile ? 36 : 40,
-                height: isMobile ? 36 : 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF7C3AED),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.local_fire_department,
-                  color: Colors.white,
-                  size: isMobile ? 20 : 24,
-                ),
-              ),
-              SizedBox(width: isMobile ? 10 : 12),
-              Text(
-                'Current Streak',
-                style: TextStyle(
-                  fontSize: isMobile ? 12 : 14,
-                  fontWeight: FontWeight.w500,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey.shade400
-                      : const Color(0xFF64748B),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          Text(
-            '$currentStreak days',
-            style: TextStyle(
-              fontSize: isMobile ? 28 : 36,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF7C3AED),
-            ),
-          ),
-          SizedBox(height: isMobile ? 10 : 12),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 10 : 12,
-              vertical: isMobile ? 6 : 8,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEDE9FE),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.emoji_events,
-                  size: isMobile ? 14 : 16,
-                  color: const Color(0xFF7C3AED),
-                ),
-                SizedBox(width: isMobile ? 4 : 6),
-                Flexible(
-                  child: Text(
-                    'Best streak: $bestStreak days',
-                    style: TextStyle(
-                      fontSize: isMobile ? 11 : 12,
-                      color: const Color(0xFF6D28D9),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return _buildSummaryCard(
+      title: 'Current Streak',
+      value: '$currentStreak days',
+      valueColor: const Color(0xFF7E49FF),
+      tagText: 'Best streak: $bestStreak days',
+      tagColor: const Color(0xFF7E49FF),
+      tagBg: const Color(0xFFF3E8FF),
+      tagIcon: Icons.emoji_events,
     );
   }
 
   Widget _buildLeavesTakenCard(bool isMobile) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: isMobile ? 36 : 40,
-                height: isMobile ? 36 : 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF97316),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.calendar_today,
-                  color: Colors.white,
-                  size: isMobile ? 20 : 24,
-                ),
-              ),
-              SizedBox(width: isMobile ? 10 : 12),
-              Text(
-                'Leaves Taken',
-                style: TextStyle(
-                  fontSize: isMobile ? 12 : 14,
-                  fontWeight: FontWeight.w500,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey.shade400
-                      : const Color(0xFF64748B),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          Text(
-            '$leavesTaken days',
-            style: TextStyle(
-              fontSize: isMobile ? 28 : 36,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFFF97316),
-            ),
-          ),
-          SizedBox(height: isMobile ? 10 : 12),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 10 : 12,
-              vertical: isMobile ? 6 : 8,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEF3C7),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  size: isMobile ? 14 : 16,
-                  color: const Color(0xFFF97316),
-                ),
-                SizedBox(width: isMobile ? 4 : 6),
-                Flexible(
-                  child: Text(
-                    '$leavesRemaining leaves remaining',
-                    style: TextStyle(
-                      fontSize: isMobile ? 11 : 12,
-                      color: const Color(0xFFD97706),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return _buildSummaryCard(
+      title: 'Leaves Taken',
+      value: '$leavesTaken days',
+      valueColor: const Color(0xFFF97316),
+      tagText: '$leavesRemaining leaves remaining',
+      tagColor: const Color(0xFFD97706),
+      tagBg: const Color(0xFFFFEDD5),
+      tagIcon: Icons.info_outline,
     );
   }
 
   Widget _buildAttendanceTrendCard(bool isMobile) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -860,219 +538,138 @@ class _AttendancePageState extends State<AttendancePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          isMobile
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.bar_chart,
-                          size: 18,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.grey.shade400
-                              : const Color(0xFF64748B),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Attendance Trend',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color:
-                                  Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? Colors.grey.shade400
-                                  : const Color(0xFF64748B),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest
-                            : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.grey.shade800
-                              : const Color(0xFFE2E8F0),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              selectedPeriod,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.white
-                                    : const Color(0xFF1E293B),
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            Icons.arrow_drop_down,
-                            size: 16,
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white
-                                : const Color(0xFF1E293B),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.bar_chart,
-                          size: 20,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.grey.shade400
-                              : const Color(0xFF64748B),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Attendance Trend',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                ? Colors.grey.shade400
-                                : const Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest
-                            : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.grey.shade800
-                              : const Color(0xFFE2E8F0),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            selectedPeriod,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.arrow_drop_down,
-                            size: 18,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              color: Color(0xFFECEBFF),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Attendance Trend",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF000000),
+                  ),
                 ),
-          SizedBox(height: isMobile ? 16 : 24),
-          SizedBox(
-            height: isMobile ? 160 : 200,
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: 25,
-                  getDrawingHorizontalLine: (value) {
-                    return FlLine(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey.shade800
-                          : const Color(0xFFE2E8F0),
-                      strokeWidth: 1,
-                    );
+                PopupMenuButton<String>(
+                  offset: const Offset(0, 40),
+                  onSelected: (value) {
+                    setState(() {
+                      selectedPeriod = value;
+                    });
                   },
+                  itemBuilder: (context) =>
+                      ["All Monthly", "Last 6 Months", "Last 3 Months"]
+                          .map(
+                            (p) => PopupMenuItem(
+                              value: p,
+                              child: Text(
+                                p,
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          selectedPeriod == "All Months"
+                              ? "All Monthly"
+                              : selectedPeriod,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF4B5563),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.keyboard_arrow_down,
+                          size: 16,
+                          color: Color(0xFF4B5563),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                titlesData: FlTitlesData(
-                  show: true,
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 20, 10),
+            child: SizedBox(
+              height: 180,
+              child: LineChart(
+                LineChartData(
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    getDrawingHorizontalLine: (value) =>
+                        FlLine(color: const Color(0xFFE5E7EB), strokeWidth: 1),
                   ),
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  bottomTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 40,
-                      interval: 25,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
+                  titlesData: FlTitlesData(
+                    show: true,
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    bottomTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 35,
+                        interval: 25,
+                        getTitlesWidget: (value, meta) => Text(
                           '${value.toInt()}%',
                           style: const TextStyle(
                             fontSize: 10,
-                            color: Color(0xFF64748B),
-                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF6B7280),
                           ),
-                        );
-                      },
+                        ),
+                      ),
                     ),
                   ),
+                  borderData: FlBorderData(show: false),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: trendData
+                          .asMap()
+                          .entries
+                          .map((e) => FlSpot(e.key.toDouble(), e.value))
+                          .toList(),
+                      isCurved: true,
+                      color: const Color(0xFF2563EB),
+                      barWidth: 3,
+                      isStrokeCapRound: true,
+                      dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        color: const Color(0xFF2563EB).withOpacity(0.1),
+                      ),
+                    ),
+                  ],
+                  minY: 0,
+                  maxY: 100,
                 ),
-                borderData: FlBorderData(show: false),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: trendData.asMap().entries.map((e) {
-                      return FlSpot(e.key.toDouble(), e.value);
-                    }).toList(),
-                    isCurved: true,
-                    color: const Color(0xFF2563EB),
-                    barWidth: 3,
-                    isStrokeCapRound: true,
-                    dotData: const FlDotData(show: false),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: const Color(0xFF2563EB).withValues(alpha: 0.1),
-                    ),
-                  ),
-                ],
-                minY: 0,
-                maxY: 100,
               ),
             ),
           ),
@@ -1084,219 +681,13 @@ class _AttendancePageState extends State<AttendancePage> {
   Widget _buildPerformanceSummaryCard(bool isMobile) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          /// Header
-          Row(
-            children: [
-              const Icon(
-                Icons.emoji_events,
-                size: 20,
-                color: Color(0xFFF59E0B),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Performance Summary',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : const Color(0xFF1E293B),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 28),
-
-          /// Gauge + Status
-          Row(
-            children: [
-              SizedBox(
-                width: 140,
-                height: 140,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: 140,
-                      height: 140,
-                      child: CircularProgressIndicator(
-                        value: overallAttendance / 100,
-                        strokeWidth: 12,
-                        backgroundColor: const Color(0xFFE5E7EB),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          _getStatusColor(overallAttendance),
-                        ),
-                      ),
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${overallAttendance.toStringAsFixed(1)}%',
-                          style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF7C3AED),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Attendance',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(width: 24),
-
-              // Status Pill
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(overallAttendance).withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  _getStatusString(overallAttendance),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: _getStatusColor(overallAttendance),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 28),
-          Row(
-            children: [
-              Expanded(
-                child: _buildQuickStatCard(
-                  daysAttended.toString(),
-                  'Days Present',
-                  const Color(0xFF10B981),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildQuickStatCard(
-                  daysAbsent.toString(),
-                  'Days Absent',
-                  const Color(0xFFEF4444),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          Row(
-            children: [
-              Expanded(
-                child: _buildQuickStatCard(
-                  leavesTaken.toString(),
-                  'Leaves Taken',
-                  const Color(0xFFF97316),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildQuickStatCard(
-                  leavesRemaining.toString(),
-                  'Leaves Remaining',
-                  const Color(0xFF7C3AED),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ================= QUICK STAT CARD =================
-  Widget _buildQuickStatCard(String value, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.grey.shade800
-              : const Color(0xFFE5E7EB),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey.shade400
-                  : const Color(0xFF64748B),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMonthlyOverviewCard(bool isMobile) {
-    final startIndex = (currentPage - 1) * itemsPerPage;
-    final endIndex = math.min(startIndex + itemsPerPage, monthlyData.length);
-    final currentData = monthlyData.sublist(startIndex, endIndex);
-    final totalPages = (monthlyData.length / itemsPerPage).ceil();
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1305,512 +696,125 @@ class _AttendancePageState extends State<AttendancePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          isMobile
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.calendar_month,
-                          size: 18,
-                          color: Color(0xFF64748B),
-                        ),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Text(
-                            'Monthly Class Attendance Overview',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest
-                            : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.grey.shade800
-                              : const Color(0xFFE2E8F0),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.search,
-                            size: 14,
-                            color: Color(0xFF64748B),
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: TextField(
-                              decoration: const InputDecoration(
-                                hintText: 'Search months...',
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                                hintStyle: TextStyle(
-                                  fontSize: 11,
-                                  color: Color(0xFF94A3B8),
-                                ),
-                              ),
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF1E293B),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.calendar_month,
-                          size: 20,
-                          color: Color(0xFF64748B),
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Monthly Class Attendance Overview',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest
-                            : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.grey.shade800
-                              : const Color(0xFFE2E8F0),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.search,
-                            size: 16,
-                            color: Color(0xFF64748B),
-                          ),
-                          const SizedBox(width: 6),
-                          SizedBox(
-                            width: 120,
-                            child: TextField(
-                              decoration: const InputDecoration(
-                                hintText: 'Search months...',
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                                hintStyle: TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF94A3B8),
-                                ),
-                              ),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF1E293B),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-          SizedBox(height: isMobile ? 6 : 8),
-          Text(
-            'Showing ${monthlyData.length} months of attendance data.',
-            style: TextStyle(
-              fontSize: isMobile ? 11 : 12,
-              color: const Color(0xFF64748B),
-            ),
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          // Horizontal Scrollbar with arrows
           Container(
-            height: 20,
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Theme.of(context).colorScheme.surfaceContainerHighest
-                  : const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(4),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            decoration: const BoxDecoration(
+              color: Color(0xFFEEF0FF),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
             ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (_horizontalScrollController.hasClients) {
-                      _horizontalScrollController.animateTo(
-                        math.max(0, _horizontalScrollController.offset - 200),
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    }
-                  },
-                  child: Container(
-                    width: 24,
-                    height: 20,
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.arrow_back_ios,
-                      size: 12,
-                      color: const Color(0xFF94A3B8),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final scrollRatio = _maxScrollExtent > 0
-                          ? _scrollPosition / _maxScrollExtent
-                          : 0.0;
-                      final trackWidth = constraints.maxWidth - 8;
-                      final thumbWidth = math.max(20.0, trackWidth * 0.3);
-                      final thumbPosition =
-                          (trackWidth - thumbWidth) * scrollRatio;
-
-                      return Stack(
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE2E8F0),
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                          if (_maxScrollExtent > 0)
-                            Positioned(
-                              left: thumbPosition + 4,
-                              child: Container(
-                                width: thumbWidth,
-                                height: 4,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF64748B),
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    if (_horizontalScrollController.hasClients) {
-                      _horizontalScrollController.animateTo(
-                        math.min(
-                          _horizontalScrollController.position.maxScrollExtent,
-                          _horizontalScrollController.offset + 200,
-                        ),
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    }
-                  },
-                  child: Container(
-                    width: 24,
-                    height: 20,
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.arrow_forward_ios,
-                      size: 12,
-                      color: const Color(0xFF64748B),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: isMobile ? 8 : 12),
-          // Table - horizontally scrollable
-          Scrollbar(
-            controller: _horizontalScrollController,
-            thumbVisibility: true,
-            thickness: 8,
-            radius: const Radius.circular(4),
-            child: SingleChildScrollView(
-              controller: _horizontalScrollController,
-              scrollDirection: Axis.horizontal,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minWidth: isMobile ? 700 : 900),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Table Header
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        vertical: isMobile ? 10 : 12,
-                        horizontal: isMobile ? 12 : 16,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest
-                            : const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 100,
-                            child: _buildTableHeader('Month', isMobile),
-                          ),
-                          SizedBox(width: 140),
-                          SizedBox(
-                            width: 140,
-                            child: _buildTableHeader(
-                              'Attendance Days',
-                              isMobile,
-                            ),
-                          ),
-                          SizedBox(width: 100),
-                          SizedBox(
-                            width: 140,
-                            child: _buildTableHeader('Status', isMobile),
-                          ),
-                          SizedBox(width: 100),
-                          SizedBox(
-                            width: 80,
-                            child: _buildTableHeader('%', isMobile),
-                          ),
-                          SizedBox(width: 120),
-                          SizedBox(
-                            width: 120,
-                            child: _buildTableHeader('Actions', isMobile),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Table Rows
-                    ...currentData.map(
-                      (data) => _buildMonthlyRow(data, isMobile),
-                    ),
-                  ],
-                ),
+            child: const Text(
+              "Performance Summary",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF111827),
               ),
             ),
           ),
-          SizedBox(height: isMobile ? 12 : 16),
-          // Pagination - wrap on mobile
-          isMobile
-              ? Column(
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Row(
                   children: [
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        IconButton(
-                          onPressed: currentPage > 1
-                              ? () {
-                                  setState(() {
-                                    currentPage--;
-                                  });
-                                }
-                              : null,
-                          icon: const Icon(Icons.chevron_left),
-                          color: currentPage > 1
-                              ? const Color(0xFF2563EB)
-                              : const Color(0xFF94A3B8),
-                        ),
-                        Text(
-                          '${startIndex + 1}-${endIndex} of ${monthlyData.length}',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFF64748B),
+                    // Circular Gauge
+                    SizedBox(
+                      width: 140,
+                      height: 140,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SizedBox(
+                            width: 120,
+                            height: 120,
+                            child: CircularProgressIndicator(
+                              value: overallAttendance / 100,
+                              strokeWidth: 12,
+                              backgroundColor: const Color(0xFFE5E7EB),
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                Color(0xFFEF4444),
+                              ),
+                            ),
                           ),
-                        ),
-                        ...List.generate(math.min(totalPages, 3), (index) {
-                          final pageNum = index + 1;
-                          final isActive = pageNum == currentPage;
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                currentPage = pageNum;
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isActive
-                                    ? const Color(0xFF2563EB)
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                '$pageNum',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: isActive
-                                      ? Colors.white
-                                      : const Color(0xFF64748B),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "${overallAttendance.toStringAsFixed(1)}%",
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF7E49FF),
                                 ),
                               ),
-                            ),
-                          );
-                        }),
-                        IconButton(
-                          onPressed: currentPage < totalPages
-                              ? () {
-                                  setState(() {
-                                    currentPage++;
-                                  });
-                                }
-                              : null,
-                          icon: const Icon(Icons.chevron_right),
-                          color: currentPage < totalPages
-                              ? const Color(0xFF2563EB)
-                              : const Color(0xFF94A3B8),
-                        ),
-                      ],
-                    ),
-                  ],
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed: currentPage > 1
-                          ? () {
-                              setState(() {
-                                currentPage--;
-                              });
-                            }
-                          : null,
-                      icon: const Icon(Icons.chevron_left),
-                      color: currentPage > 1
-                          ? const Color(0xFF2563EB)
-                          : const Color(0xFF94A3B8),
-                    ),
-                    Text(
-                      '${startIndex + 1}-${endIndex} of ${monthlyData.length} months',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF64748B),
+                              const Text(
+                                "Attendance",
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF6B7280),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    ...List.generate(totalPages, (index) {
-                      final pageNum = index + 1;
-                      final isActive = pageNum == currentPage;
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            currentPage = pageNum;
-                          });
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isActive
-                                ? const Color(0xFF2563EB)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            '$pageNum',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: isActive
-                                  ? Colors.white
-                                  : const Color(0xFF64748B),
-                            ),
-                          ),
+                    const SizedBox(width: 10),
+                    // Status Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFEEF0),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Text(
+                        "Needs Improvement",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFEF4444),
                         ),
-                      );
-                    }),
-                    IconButton(
-                      onPressed: currentPage < totalPages
-                          ? () {
-                              setState(() {
-                                currentPage++;
-                              });
-                            }
-                          : null,
-                      icon: const Icon(Icons.chevron_right),
-                      color: currentPage < totalPages
-                          ? const Color(0xFF2563EB)
-                          : const Color(0xFF94A3B8),
+                      ),
                     ),
                   ],
                 ),
-          SizedBox(height: isMobile ? 12 : 16),
-          // Status Legend - wrap on mobile
-          Container(
-            padding: EdgeInsets.all(isMobile ? 12 : 16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Theme.of(context).colorScheme.surfaceContainerHighest
-                  : const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Status Legend',
-                  style: TextStyle(
-                    fontSize: isMobile ? 11 : 12,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : const Color(0xFF1E293B),
-                  ),
-                ),
-                SizedBox(height: isMobile ? 6 : 8),
-                Wrap(
-                  spacing: isMobile ? 12 : 16,
-                  runSpacing: isMobile ? 8 : 0,
+                const SizedBox(height: 24),
+                // Quick Stats Grid
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 2.0,
                   children: [
-                    _buildLegendItem('Present (P)', const Color(0xFF10B981)),
-                    _buildLegendItem('Absent (A)', const Color(0xFFEF4444)),
-                    _buildLegendItem('Leave (L)', const Color(0xFFF97316)),
-                    _buildLegendItem('No Data', const Color(0xFF94A3B8)),
+                    _buildStatBox(
+                      "$daysAttended",
+                      "Days Present",
+                      const Color(0xFF10B981),
+                    ),
+                    _buildStatBox(
+                      "$daysAbsent",
+                      "Days Absent",
+                      const Color(0xFFEF4444),
+                    ),
+                    _buildStatBox(
+                      "$leavesTaken",
+                      "Leaves Taken",
+                      const Color(0xFFF97316),
+                    ),
+                    _buildStatBox(
+                      "$leavesRemaining",
+                      "Leaves Remaining",
+                      const Color(0xFF7E49FF),
+                    ),
                   ],
                 ),
               ],
@@ -1821,210 +825,139 @@ class _AttendancePageState extends State<AttendancePage> {
     );
   }
 
-  Widget _buildTableHeader(String text, bool isMobile) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: isMobile ? 10 : 12,
-        fontWeight: FontWeight.w600,
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Colors.white
-            : const Color(0xFF1E293B),
+  Widget _buildStatBox(String val, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            val,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildMonthlyRow(MonthlyClassAttendance data, bool isMobile) {
-    final percentage = data.percentage;
-    final attended = data.present;
-    final total = data.total;
-    final progress = total > 0 ? attended / total : 0.0;
-    final status = _getStatusString(percentage);
+  Widget _buildMonthlyOverviewCard(bool isMobile) {
+    final List<MonthlyClassAttendance> filteredData = monthlyData
+        .where(
+          (m) => m.monthName.toLowerCase().contains(_searchQuery.toLowerCase()),
+        )
+        .toList();
 
-    Color percentageColor = _getStatusColor(percentage);
-    Color progressColor = percentageColor;
+    final int startIndex = (currentPage - 1) * itemsPerPage;
+    final int endIndex = math.min(
+      startIndex + itemsPerPage,
+      filteredData.length,
+    );
+    final List<MonthlyClassAttendance> currentData = filteredData.isEmpty
+        ? []
+        : filteredData.sublist(startIndex, endIndex);
+
+    final int totalItems = filteredData.length;
+    final int totalPages = (totalItems / itemsPerPage).ceil();
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        vertical: isMobile ? 12 : 16,
-        horizontal: isMobile ? 12 : 16,
-      ),
+      width: double.infinity,
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.grey.shade800
-                : const Color(0xFFE2E8F0),
-            width: 1,
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            decoration: const BoxDecoration(
+              color: Color(0xFFEEF0FF),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            child: const Text(
+              "Monthly class attendance overview",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF111827),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _buildSearchBar(),
+                const SizedBox(height: 16),
+                _buildAttendanceTable(currentData),
+                const SizedBox(height: 20),
+                _buildPaginationControls(
+                  totalPages,
+                  totalItems,
+                  startIndex,
+                  endIndex,
+                ),
+                const SizedBox(height: 20),
+                _buildStatusLegend(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
       child: Row(
         children: [
-          SizedBox(
-            width: 100,
-            child: Row(
-              children: [
-                Icon(
-                  Icons.calendar_today,
-                  size: isMobile ? 14 : 16,
-                  color: const Color(0xFF10B981),
-                ),
-                SizedBox(width: isMobile ? 4 : 8),
-                Expanded(
-                  child: Text(
-                    data.monthName,
-                    style: TextStyle(
-                      fontSize: isMobile ? 10 : 12,
-                      fontWeight: FontWeight.w500,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : const Color(0xFF1E293B),
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: 140),
-          SizedBox(
-            width: 140,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: isMobile ? 6 : 8,
-                    backgroundColor: const Color(0xFFE2E8F0),
-                    valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-                  ),
-                ),
-                SizedBox(height: isMobile ? 2 : 4),
-                Text(
-                  '$attended/$total days',
-                  style: TextStyle(
-                    fontSize: isMobile ? 10 : 11,
-                    color: const Color(0xFF64748B),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: 100),
-          SizedBox(
-            width: 140,
-            child: Wrap(
-              spacing: isMobile ? 4 : 6,
-              runSpacing: 4,
-              children: [
-                _buildStatusIcon(
-                  Icons.check_circle,
-                  data.present,
-                  const Color(0xFF10B981),
-                  isMobile,
-                ),
-                _buildStatusIcon(
-                  Icons.cancel,
-                  data.absent,
-                  const Color(0xFFEF4444),
-                  isMobile,
-                ),
-                _buildStatusIcon(
-                  Icons.calendar_today,
-                  data.leaves,
-                  Theme.of(context).brightness == Brightness.dark
-                      ? Colors.orange.shade300
-                      : const Color(0xFFF59E0B),
-                  isMobile,
-                ),
-                if (data.outings > 0)
-                  _buildStatusIcon(
-                    Icons.directions_walk,
-                    data.outings,
-                    const Color(0xFF8B5CF6),
-                    isMobile,
-                  ),
-                if (data.holidays > 0)
-                  _buildStatusIcon(
-                    Icons.beach_access,
-                    data.holidays,
-                    const Color(0xFF06B6D4),
-                    isMobile,
-                  ),
-              ],
-            ),
-          ),
-          SizedBox(width: 100),
-          SizedBox(
-            width: 80,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${percentage.toStringAsFixed(1)}%',
-                  style: TextStyle(
-                    fontSize: isMobile ? 12 : 14,
-                    fontWeight: FontWeight.w600,
-                    color: percentageColor,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: isMobile ? 2 : 4),
-                Text(
-                  status,
-                  style: TextStyle(
-                    fontSize: isMobile ? 10 : 12,
-                    color: const Color(0xFF64748B),
-                    fontWeight: FontWeight.w400,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: 120),
-          SizedBox(
-            width: 120,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AttendanceMonthDetailPage(
-                      monthData: data.rawJson,
-                      month: data.monthName,
-                    ),
-                  ),
-                );
+          const Icon(Icons.search, size: 20, color: Color(0xFF9CA3AF)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                  currentPage = 1;
+                });
               },
-              icon: Icon(
-                Icons.visibility,
-                size: isMobile ? 14 : 16,
-                color: Colors.white,
-              ),
-              label: Text(
-                isMobile ? 'View' : 'View Details',
-                style: TextStyle(
-                  fontSize: isMobile ? 10 : 12,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(
-                  horizontal: isMobile ? 8 : 12,
-                  vertical: isMobile ? 6 : 8,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+              decoration: const InputDecoration(
+                hintText: "Search months...",
+                border: InputBorder.none,
+                hintStyle: TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
               ),
             ),
           ),
@@ -2033,49 +966,304 @@ class _AttendancePageState extends State<AttendancePage> {
     );
   }
 
-  Widget _buildStatusIcon(
-    IconData icon,
-    int count,
-    Color color,
-    bool isMobile,
+  Widget _buildAttendanceTable(List<MonthlyClassAttendance> currentData) {
+    return RawScrollbar(
+      controller: _horizontalScrollController,
+      thumbColor: const Color(0xFF7E49FF).withOpacity(0.5),
+      radius: const Radius.circular(8),
+      thickness: 4,
+      child: SingleChildScrollView(
+        controller: _horizontalScrollController,
+        scrollDirection: Axis.horizontal,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+          ),
+          child: Column(
+            children: [
+              _buildAttendanceTableHeader(),
+              ...currentData.map((data) => _buildAttendanceTableRow(data)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAttendanceTableHeader() {
+    const headerStyle = TextStyle(fontWeight: FontWeight.bold, fontSize: 13);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        color: Color(0xFFF3F4F6),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(10),
+          topRight: Radius.circular(10),
+        ),
+      ),
+      child: Row(
+        children: const [
+          SizedBox(width: 120, child: Text("Month", style: headerStyle)),
+          SizedBox(
+            width: 180,
+            child: Text("Attendance Days", style: headerStyle),
+          ),
+          SizedBox(width: 140, child: Text("Status", style: headerStyle)),
+          SizedBox(width: 120, child: Text("Percentage", style: headerStyle)),
+          SizedBox(width: 130, child: Text("Action", style: headerStyle)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAttendanceTableRow(MonthlyClassAttendance data) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
+      ),
+      child: Row(
+        children: [
+          _buildMonthCell(data.monthName),
+          _buildDaysCell(data.present, data.total),
+          _buildStatusCell(data.present, data.absent),
+          _buildPercentageCell(data.percentage),
+          _buildActionCell(data),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonthCell(String name) {
+    return SizedBox(
+      width: 120,
+      child: Row(
+        children: [
+          const Icon(Icons.calendar_today, size: 14, color: Color(0xFF10B981)),
+          const SizedBox(width: 8),
+          Text(
+            name,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDaysCell(int present, int total) {
+    return SizedBox(
+      width: 180,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: total > 0 ? present / total : 0,
+              backgroundColor: const Color(0xFFF3F4F6),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                Color(0xFFEF4444),
+              ),
+              minHeight: 8,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            "$present/$total days",
+            style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusCell(int present, int absent) {
+    const textStyle = TextStyle(fontSize: 13, fontWeight: FontWeight.bold);
+    return SizedBox(
+      width: 140,
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, size: 16, color: Color(0xFF10B981)),
+          const SizedBox(width: 4),
+          Text(
+            "$present",
+            style: textStyle.copyWith(color: const Color(0xFF10B981)),
+          ),
+          const SizedBox(width: 12),
+          const Icon(Icons.cancel, size: 16, color: Color(0xFFEF4444)),
+          const SizedBox(width: 4),
+          Text(
+            "$absent",
+            style: textStyle.copyWith(color: const Color(0xFFEF4444)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPercentageCell(double percentage) {
+    final color = percentage >= 75
+        ? const Color(0xFF10B981)
+        : const Color(0xFFEF4444);
+    return SizedBox(
+      width: 120,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "${percentage.toStringAsFixed(1)}%",
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            percentage >= 75 ? "Excellent" : "Needs Improvement",
+            style: const TextStyle(fontSize: 10, color: Color(0xFF6B7280)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionCell(MonthlyClassAttendance data) {
+    return SizedBox(
+      width: 130,
+      child: ElevatedButton(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AttendanceMonthDetailPage(
+              monthData: data.rawJson,
+              month: data.monthName,
+            ),
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF2563EB),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          elevation: 0,
+        ),
+        child: const Text(
+          "View Details",
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPaginationControls(
+    int totalPages,
+    int totalItems,
+    int startIndex,
+    int endIndex,
   ) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, size: isMobile ? 14 : 16, color: color),
-        SizedBox(width: isMobile ? 2 : 4),
         Text(
-          '$count',
-          style: TextStyle(
-            fontSize: isMobile ? 10 : 12,
-            color: color,
-            fontWeight: FontWeight.w500,
-          ),
+          "${totalItems > 0 ? startIndex + 1 : 0}-$endIndex of $totalItems",
+          style: const TextStyle(fontSize: 12, color: Color(0xFF4B5563)),
+        ),
+        const SizedBox(width: 12),
+        IconButton(
+          icon: const Icon(Icons.keyboard_arrow_left, size: 20),
+          color: currentPage > 1
+              ? const Color(0xFF4B5563)
+              : const Color(0xFF9CA3AF),
+          onPressed: currentPage > 1
+              ? () => setState(() => currentPage--)
+              : null,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+        const SizedBox(width: 8),
+        ...List.generate(totalPages, (i) => _buildPageNumber(i + 1)),
+        const SizedBox(width: 8),
+        IconButton(
+          icon: const Icon(Icons.keyboard_arrow_right, size: 20),
+          color: currentPage < totalPages
+              ? const Color(0xFF4B5563)
+              : const Color(0xFF9CA3AF),
+          onPressed: currentPage < totalPages
+              ? () => setState(() => currentPage++)
+              : null,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
         ),
       ],
     );
   }
 
-  Widget _buildLegendItem(String label, Color color) {
+  Widget _buildPageNumber(int pageNum) {
+    final active = currentPage == pageNum;
+    return GestureDetector(
+      onTap: () => setState(() => currentPage = pageNum),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        width: 32,
+        height: 32,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: active ? const Color(0xFF7E49FF) : const Color(0xFFE5E7EB),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          "$pageNum",
+          style: TextStyle(
+            color: active ? Colors.white : const Color(0xFF4B5563),
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusLegend() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Status Legend",
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1E293B),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            _legendItem(const Color(0xFF10B981), "Present"),
+            const SizedBox(width: 20),
+            _legendItem(const Color(0xFFEF4444), "Absent"),
+            const SizedBox(width: 20),
+            _legendItem(const Color(0xFFF97316), "Leave"),
+            const SizedBox(width: 20),
+            _legendItem(const Color(0xFF94A3B8), "No Date"),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _legendItem(Color color, String text) {
     return Row(
       children: [
         Container(
           width: 12,
           height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(2),
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 6),
         Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.grey.shade300
-                : const Color(0xFF64748B),
-          ),
+          text,
+          style: const TextStyle(fontSize: 12, color: Color(0xFF4B5563)),
         ),
       ],
     );
@@ -2084,14 +1272,13 @@ class _AttendancePageState extends State<AttendancePage> {
   Widget _buildRecentActivityCard(bool isMobile) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -2100,97 +1287,81 @@ class _AttendancePageState extends State<AttendancePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.access_time,
-                size: isMobile ? 18 : 20,
-                color: const Color(0xFF7C3AED),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            decoration: const BoxDecoration(
+              color: Color(0xFFEEF0FF),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
               ),
-              SizedBox(width: isMobile ? 6 : 8),
-              Text(
-                'Recent Activity',
-                style: TextStyle(
-                  fontSize: isMobile ? 14 : 16,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : const Color(0xFF1E293B),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: isMobile ? 12 : 16),
-          _buildActivityItem(
-            Icons.check_circle,
-            const Color(0xFF10B981),
-            'Overall Attendance',
-            '$overallAttendance% attendance rate',
-            'Updated just now',
-            '$overallAttendance%',
-            isMobile,
-          ),
-          _buildActivityItem(
-            Icons.emoji_events,
-            const Color(0xFFF97316),
-            'Best Attendance Streak',
-            '$bestStreak consecutive days present',
-            'Performance record',
-            null,
-            isMobile,
-          ),
-          _buildActivityItem(
-            Icons.local_fire_department,
-            const Color(0xFF7C3AED),
-            'Current Attendance Streak',
-            '$currentStreak consecutive days present',
-            'Active now',
-            null,
-            isMobile,
-          ),
-          if (monthlyData.isNotEmpty) ...[
-            _buildActivityItem(
-              Icons.trending_up,
-              _getStatusColor(monthlyData.first.percentage),
-              '${monthlyData.first.monthName} Performance',
-              '${monthlyData.first.present} present, ${monthlyData.first.absent} absent, ${monthlyData.first.leaves} leaves',
-              'Monthly Summary',
-              '${monthlyData.first.percentage.toStringAsFixed(1)}%',
-              isMobile,
-              showViewDetails: true,
-              monthData: monthlyData.first.rawJson,
             ),
-            if (monthlyData.length > 1)
-              _buildActivityItem(
-                Icons.history,
-                _getStatusColor(monthlyData[1].percentage),
-                '${monthlyData[1].monthName} Performance',
-                '${monthlyData[1].present} present, ${monthlyData[1].absent} absent, ${monthlyData[1].leaves} leaves',
-                'Monthly Summary',
-                '${monthlyData[1].percentage.toStringAsFixed(1)}%',
-                isMobile,
-                showViewDetails: true,
-                isLast: true,
-                monthData: monthlyData[1].rawJson,
+            child: const Text(
+              "Recent Activity",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF111827),
               ),
-          ],
-          SizedBox(height: isMobile ? 12 : 16),
-          Center(
-            child: TextButton.icon(
-              onPressed: () {},
-              icon: const Icon(
-                Icons.refresh,
-                size: 16,
-                color: Color(0xFF2563EB),
-              ),
-              label: const Text(
-                'Refresh Activities',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF2563EB),
-                  fontWeight: FontWeight.w600,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                _activityRow(
+                  icon: Icons.check,
+                  iconColor: const Color(0xFF10B981),
+                  title: "Overall Attendance",
+                  subtitle: "$overallAttendance%\nattendance rate",
+                  time: "Updated just now",
+                  percentage: "$overallAttendance%",
                 ),
-              ),
+                const SizedBox(height: 16),
+                _activityRow(
+                  icon: Icons.check,
+                  iconColor: const Color(0xFFF97316),
+                  title: "Best Attendance Streak",
+                  subtitle: "$bestStreak consecutive days present",
+                  time: "Performance record",
+                ),
+                const SizedBox(height: 16),
+                _activityRow(
+                  icon: Icons.check,
+                  iconColor: const Color(0xFFF97316),
+                  title: "Best Attendance Streak",
+                  subtitle: "$bestStreak consecutive days present",
+                  time: "Performance record",
+                ),
+                const SizedBox(height: 24),
+                Center(
+                  child: TextButton(
+                    onPressed: () => _fetchAttendanceData(forceRefresh: true),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.refresh, size: 20, color: Color(0xFF3B82F6)),
+                        SizedBox(width: 8),
+                        Text(
+                          "Refresh Activities",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF3B82F6),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -2198,121 +1369,81 @@ class _AttendancePageState extends State<AttendancePage> {
     );
   }
 
-  Widget _buildActivityItem(
-    IconData icon,
-    Color color,
-    String title,
-    String details,
-    String status,
-    String? value,
-    bool isMobile, {
-    String? date,
-    bool showViewDetails = false,
-    bool isLast = false,
-    Map<String, dynamic>? monthData,
+  Widget _activityRow({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required String time,
+    String? percentage,
   }) {
     return Container(
-      margin: EdgeInsets.only(bottom: isLast ? 0 : (isMobile ? 12 : 16)),
-      padding: EdgeInsets.all(isMobile ? 12 : 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Theme.of(context).colorScheme.surfaceContainerHighest
-            : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: isMobile ? 36 : 40,
-            height: isMobile ? 36 : 40,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            child: Icon(icon, color: Colors.white, size: isMobile ? 18 : 20),
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(color: iconColor, shape: BoxShape.circle),
+            child: Icon(icon, size: 16, color: Colors.white),
           ),
-          SizedBox(width: isMobile ? 10 : 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: isMobile ? 12 : 14,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : const Color(0xFF1E293B),
-                  ),
-                ),
-                SizedBox(height: isMobile ? 2 : 4),
-                Text(
-                  details,
-                  style: TextStyle(
-                    fontSize: isMobile ? 11 : 12,
-                    color: const Color(0xFF64748B),
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: isMobile ? 2 : 4),
-                Text(
-                  status,
-                  style: TextStyle(
-                    fontSize: isMobile ? 10 : 11,
-                    color: const Color(0xFF94A3B8),
-                  ),
-                ),
-                if (date != null) ...[
-                  SizedBox(height: isMobile ? 2 : 4),
-                  Text(
-                    date,
-                    style: TextStyle(
-                      fontSize: isMobile ? 10 : 11,
-                      color: const Color(0xFF94A3B8),
-                    ),
-                  ),
-                ],
-                if (showViewDetails) ...[
-                  SizedBox(height: isMobile ? 6 : 8),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AttendanceMonthDetailPage(
-                            monthData: monthData ?? {},
-                            month: (monthData?['month'] ?? '').toString(),
-                          ),
-                        ),
-                      );
-                    },
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      'View Details',
-                      style: TextStyle(
-                        fontSize: isMobile ? 11 : 12,
-                        color: const Color(0xFF2563EB),
-                        fontWeight: FontWeight.w600,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF111827),
                       ),
                     ),
+                    if (percentage != null) ...[
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          percentage,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                            color: iconColor,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF4B5563),
+                    height: 1.3,
                   ),
-                ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  time,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF9CA3AF),
+                  ),
+                ),
               ],
             ),
           ),
-          if (value != null)
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: isMobile ? 14 : 16,
-                fontWeight: FontWeight.w700,
-                color: color,
-              ),
-            ),
         ],
       ),
     );

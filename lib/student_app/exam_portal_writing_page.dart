@@ -8,7 +8,6 @@ import 'package:student_app/student_app/widgets/exam_options_list.dart';
 import 'package:student_app/student_app/widgets/exam_palette_popup.dart';
 import 'package:student_app/student_app/widgets/exam_question_card.dart';
 import 'package:student_app/student_app/widgets/exam_timer_header.dart';
-import 'package:student_app/theme_controllers.dart';
 
 class ExamPortalWritingPage extends StatefulWidget {
   final ExamModel exam;
@@ -403,180 +402,166 @@ class _ExamPortalWritingPageState extends State<ExamPortalWritingPage>
 
   @override
   Widget build(BuildContext context) {
-    return ThemeControllerWrapper(
-      themeController: StudentThemeController.themeMode,
-      child: Builder(
-        builder: (context) {
-          if (_isLoading) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-          if (_errorMessage != null) {
-            return Scaffold(
-              body: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 64,
-                        color: Colors.red,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        "Error loading exam: $_errorMessage",
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text("Go Back"),
-                      ),
-                    ],
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (_errorMessage != null) {
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Colors.red,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  "Error loading exam: $_errorMessage",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Go Back"),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    const backgroundColor = Color(0xFFF8FAFC);
+
+    final studentName =
+        _studentData?['student_name'] ??
+        (_studentData != null
+            ? "${_studentData!['sfname'] ?? ''} ${_studentData!['slname'] ?? ''}"
+                  .trim()
+            : "Student");
+    final htNo =
+        _studentData?['hallticket'] ??
+        _studentData?['admno']?.toString() ??
+        "N/A";
+    final examName = _examData?['exam_name'] ?? widget.exam.title;
+
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      appBar: ExamAppBar(
+        examName: examName,
+        studentName: studentName,
+        hallTicket: htNo,
+        group: _examData?['group_name'] ?? "JR MPC",
+        warnings: _warnings,
+        maxWarnings: _maxWarnings,
+      ),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final double screenWidth = constraints.maxWidth;
+            final double screenHeight = constraints.maxHeight;
+            final bool isSmallScreen = screenHeight < 600;
+            final List<String> options = [];
+            final List<String> optionIds = [];
+            if (_questions.isNotEmpty) {
+              final currentQuestion = _questions[_currentIndex];
+              for (int i = 1; i <= 6; i++) {
+                final opt = currentQuestion['option$i'];
+                if (opt != null && opt.toString().isNotEmpty) {
+                  options.add(opt.toString());
+                  optionIds.add('option$i');
+                }
+              }
+            }
+
+            return Column(
+              children: [
+                ExamTimerHeader(
+                  formattedTime: _formatTime(_secondsRemaining),
+                  isCritical: _secondsRemaining < 300,
+                  currentIndex: _currentIndex,
+                  totalQuestions: _questions.length,
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth > 600 ? 32 : 16,
+                    ),
+                    child: ListView(
+                      physics: const BouncingScrollPhysics(),
+                      children: [
+                        SizedBox(height: isSmallScreen ? 8 : 16),
+                        if (_questions.isNotEmpty)
+                          ExamQuestionCard(
+                            currentIndex: _currentIndex,
+                            question: _questions[_currentIndex],
+                            strippedQuestion: _stripHtml(
+                              _questions[_currentIndex]['question'] ?? "",
+                            ),
+                          ),
+                        SizedBox(height: isSmallScreen ? 12 : 24),
+                        if (_questions.isNotEmpty)
+                          ExamOptionsList(
+                            options: options,
+                            optionIds: optionIds,
+                            selectedOptionId: _answers[_currentIndex],
+                            onOptionSelected: (optionId) {
+                              setState(() {
+                                _answers[_currentIndex] = optionId;
+                                _visited.add(_currentIndex);
+                              });
+                            },
+                            stripHtml: _stripHtml,
+                          ),
+                        SizedBox(height: isSmallScreen ? 16 : 32),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          }
-
-          final theme = Theme.of(context);
-          final isDark = theme.brightness == Brightness.dark;
-
-          final studentName =
-              _studentData?['student_name'] ??
-              (_studentData != null
-                  ? "${_studentData!['sfname'] ?? ''} ${_studentData!['slname'] ?? ''}"
-                        .trim()
-                  : "Student");
-          final htNo =
-              _studentData?['hallticket'] ??
-              _studentData?['admno']?.toString() ??
-              "N/A";
-          final examName = _examData?['exam_name'] ?? widget.exam.title;
-
-          return Scaffold(
-            backgroundColor: isDark
-                ? const Color(0xFF0F172A)
-                : const Color(0xFFF8FAFC),
-            appBar: ExamAppBar(
-              examName: examName,
-              studentName: studentName,
-              hallTicket: htNo,
-              group: _examData?['group_name'] ?? "JR MPC",
-              warnings: _warnings,
-              maxWarnings: _maxWarnings,
-            ),
-            body: SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final double screenWidth = constraints.maxWidth;
-                  final double screenHeight = constraints.maxHeight;
-                  final bool isSmallScreen = screenHeight < 600;
-                  final List<String> options = [];
-                  final List<String> optionIds = [];
-                  if (_questions.isNotEmpty) {
-                    final currentQuestion = _questions[_currentIndex];
-                    for (int i = 1; i <= 6; i++) {
-                      final opt = currentQuestion['option$i'];
-                      if (opt != null && opt.toString().isNotEmpty) {
-                        options.add(opt.toString());
-                        optionIds.add('option$i');
+                ExamFooter(
+                  currentIndex: _currentIndex,
+                  isMarked: _markedForReview.contains(_currentIndex),
+                  onToggleMark: () {
+                    setState(() {
+                      if (_markedForReview.contains(_currentIndex)) {
+                        _markedForReview.remove(_currentIndex);
+                      } else {
+                        _markedForReview.add(_currentIndex);
                       }
-                    }
-                  }
-
-                  return Column(
-                    children: [
-                      ExamTimerHeader(
-                        isDark: isDark,
-                        formattedTime: _formatTime(_secondsRemaining),
-                        isCritical: _secondsRemaining < 300,
-                        currentIndex: _currentIndex,
-                        totalQuestions: _questions.length,
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: screenWidth > 600 ? 32 : 16,
-                          ),
-                          child: ListView(
-                            physics: const BouncingScrollPhysics(),
-                            children: [
-                              SizedBox(height: isSmallScreen ? 8 : 16),
-                              if (_questions.isNotEmpty)
-                                ExamQuestionCard(
-                                  isDark: isDark,
-                                  currentIndex: _currentIndex,
-                                  question: _questions[_currentIndex],
-                                  strippedQuestion: _stripHtml(
-                                    _questions[_currentIndex]['question'] ?? "",
-                                  ),
-                                ),
-                              SizedBox(height: isSmallScreen ? 12 : 24),
-                              if (_questions.isNotEmpty)
-                                ExamOptionsList(
-                                  isDark: isDark,
-                                  options: options,
-                                  optionIds: optionIds,
-                                  selectedOptionId: _answers[_currentIndex],
-                                  onOptionSelected: (optionId) {
-                                    setState(() {
-                                      _answers[_currentIndex] = optionId;
-                                      _visited.add(_currentIndex);
-                                    });
-                                  },
-                                  stripHtml: _stripHtml,
-                                ),
-                              SizedBox(height: isSmallScreen ? 16 : 32),
-                            ],
-                          ),
-                        ),
-                      ),
-                      ExamFooter(
-                        isDark: isDark,
-                        currentIndex: _currentIndex,
-                        isMarked: _markedForReview.contains(_currentIndex),
-                        onToggleMark: () {
-                          setState(() {
-                            if (_markedForReview.contains(_currentIndex)) {
-                              _markedForReview.remove(_currentIndex);
-                            } else {
-                              _markedForReview.add(_currentIndex);
-                            }
-                          });
-                          _saveAnswerToApi(
-                            isReview: _markedForReview.contains(_currentIndex),
-                          );
-                        },
-                        onClearResponse: () {
-                          setState(() {
-                            _answers.remove(_currentIndex);
-                          });
-                          _saveAnswerToApi();
-                        },
-                        onPrevious: _currentIndex > 0
-                            ? () => _changeQuestion(_currentIndex - 1)
-                            : null,
-                        onSaveAndNext: _saveAndMoveToNext,
-                        onShowPalette: _showQuestionPalette,
-                        onSubmit: _submitExam,
-                        isLastQuestion:
-                            _currentIndex == _questions.length - 1 ||
-                            (_questions.isNotEmpty &&
-                                _answers.length == _questions.length) ||
-                            _secondsRemaining < 60,
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          );
-        },
+                    });
+                    _saveAnswerToApi(
+                      isReview: _markedForReview.contains(_currentIndex),
+                    );
+                  },
+                  onClearResponse: () {
+                    setState(() {
+                      _answers.remove(_currentIndex);
+                    });
+                    _saveAnswerToApi();
+                  },
+                  onPrevious: _currentIndex > 0
+                      ? () => _changeQuestion(_currentIndex - 1)
+                      : null,
+                  onSaveAndNext: _saveAndMoveToNext,
+                  onShowPalette: _showQuestionPalette,
+                  onSubmit: _submitExam,
+                  isLastQuestion:
+                      _currentIndex == _questions.length - 1 ||
+                      (_questions.isNotEmpty &&
+                          _answers.length == _questions.length) ||
+                      _secondsRemaining < 60,
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -608,7 +593,6 @@ class _ExamPortalWritingPageState extends State<ExamPortalWritingPage>
         _studentData?['hallticket'] ??
         _studentData?['admno']?.toString() ??
         "N/A";
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
       context: context,
@@ -616,7 +600,6 @@ class _ExamPortalWritingPageState extends State<ExamPortalWritingPage>
         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: ExamPalettePopup(
-          isDark: isDark,
           studentName: studentName,
           hallTicket: htNo,
           group: _examData?['group_name'] ?? "JR MPC",

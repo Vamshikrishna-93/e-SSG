@@ -11,22 +11,24 @@ class ExamDetailsPhysicsDialog extends StatefulWidget {
 class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    const isMobile = true; // Defaulting for simple static UI or compute as needed
+    const scaffoldBackgroundColor = Color(0xFFF8FAFC);
+    const cardColor = Colors.white;
+    const dividerColor = Color(0xFFE2E8F0);
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: scaffoldBackgroundColor,
       body: Center(
         child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: isMobile ? 12 : 32,
-            vertical: isMobile ? 20 : 40,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 20,
           ),
           child: Material(
             elevation: 24,
-            shadowColor: Colors.black.withValues(alpha: 0.45),
+            shadowColor: Colors.black.withOpacity(0.45),
             borderRadius: BorderRadius.circular(14),
-            color: theme.cardColor,
+            color: cardColor,
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 maxWidth: 600,
@@ -42,9 +44,13 @@ class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
                       child: Row(
                         children: [
                           RichText(
-                            text: TextSpan(
-                              style: theme.textTheme.titleMedium,
-                              children: const [
+                            text: const TextSpan(
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Color(0xFF1E293B),
+                                fontWeight: FontWeight.w500,
+                              ),
+                              children: [
                                 TextSpan(
                                   text: 'Exam Details - ',
                                   style: TextStyle(fontWeight: FontWeight.w600),
@@ -68,14 +74,12 @@ class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
                       ),
                     ),
 
-                    Divider(color: theme.dividerColor),
+                    const Divider(color: dividerColor),
 
                     /// SUMMARY CARDS
                     Padding(
                       padding: const EdgeInsets.all(16),
-                      child: isMobile
-                          ? Column(children: _summaryCards(theme, isMobile))
-                          : Row(children: _summaryCards(theme, isMobile)),
+                      child: Column(children: _summaryCards(isMobile)),
                     ),
 
                     /// TABLE
@@ -83,14 +87,14 @@ class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Container(
                         decoration: BoxDecoration(
-                          border: Border.all(color: theme.dividerColor),
+                          border: Border.all(color: dividerColor),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
                           children: [
-                            _tableHeader(theme),
+                            _tableHeader(dividerColor),
                             _tableRow(
-                              theme,
+                              dividerColor: dividerColor,
                               exam: 'weekend Exam',
                               marks: '-1/5',
                               percentage: '0.00%',
@@ -98,7 +102,7 @@ class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
                               status: '',
                             ),
                             _tableRow(
-                              theme,
+                              dividerColor: dividerColor,
                               exam: 'Total',
                               marks: '-1/5',
                               percentage: '-20.00%',
@@ -123,6 +127,8 @@ class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
                             icon: const Icon(Icons.download, size: 18),
                             label: const Text('Download PDF'),
                             style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 20,
                                 vertical: 12,
@@ -148,10 +154,9 @@ class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
   }
 
   /// SUMMARY CARDS (COLUMN ON MOBILE)
-  List<Widget> _summaryCards(ThemeData theme, bool isMobile) {
+  List<Widget> _summaryCards(bool isMobile) {
     return [
       _summaryCard(
-        theme,
         title: 'Total Exams',
         value: '1',
         icon: Icons.check_circle,
@@ -161,7 +166,6 @@ class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
       ),
       _gap(isMobile),
       _summaryCard(
-        theme,
         title: 'Average Score',
         value: '0.0 %',
         icon: Icons.trending_down,
@@ -171,7 +175,6 @@ class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
       ),
       _gap(isMobile),
       _summaryCard(
-        theme,
         title: 'Best Performance',
         value: '0.0 %',
         icon: Icons.star,
@@ -185,8 +188,7 @@ class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
   Widget _gap(bool isMobile) =>
       SizedBox(height: isMobile ? 12 : 0, width: isMobile ? 0 : 12);
 
-  Widget _summaryCard(
-    ThemeData theme, {
+  Widget _summaryCard({
     required String title,
     required String value,
     required IconData icon,
@@ -194,47 +196,46 @@ class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
     required Color iconColor,
     required bool isMobile,
   }) {
-    return Expanded(
-      flex: isMobile ? 0 : 1,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: bg.withOpacity(0.4)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(icon, color: iconColor),
-                const SizedBox(width: 8),
-                Text(
-                  value,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: bg.withOpacity(0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(icon, color: iconColor),
+              const SizedBox(width: 8),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1E293B),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
   /// TABLE
-  Widget _tableHeader(ThemeData theme) {
+  Widget _tableHeader(Color dividerColor) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      color: theme.dividerColor.withOpacity(0.05),
+      color: dividerColor.withOpacity(0.05),
       child: Row(
         children: const [
           Expanded(child: Text('Exam Name')),
@@ -246,8 +247,8 @@ class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
     );
   }
 
-  Widget _tableRow(
-    ThemeData theme, {
+  Widget _tableRow({
+    required Color dividerColor,
     required String exam,
     required String marks,
     required String percentage,
@@ -258,22 +259,33 @@ class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: theme.dividerColor)),
+        border: Border(top: BorderSide(color: dividerColor)),
       ),
       child: Row(
         children: [
           Expanded(
             child: Text(
               exam,
-              style: TextStyle(fontWeight: isTotal ? FontWeight.w600 : null),
+              style: TextStyle(
+                fontWeight: isTotal ? FontWeight.w600 : null,
+                color: const Color(0xFF1E293B),
+              ),
             ),
           ),
-          Expanded(child: Text(marks)),
+          Expanded(
+            child: Text(
+              marks,
+              style: const TextStyle(color: Color(0xFF1E293B)),
+            ),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(percentage),
+                Text(
+                  percentage,
+                  style: const TextStyle(color: Color(0xFF1E293B)),
+                ),
                 if (showBar)
                   Container(
                     margin: const EdgeInsets.only(top: 6),
@@ -301,7 +313,7 @@ class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
                     ),
                     child: const Text(
                       'Needs Improvement',
-                      style: TextStyle(color: Colors.blue),
+                      style: TextStyle(color: Colors.blue, fontSize: 12),
                     ),
                   ),
           ),

@@ -7,6 +7,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:student_app/staff_app/pages/splash_page.dart';
 import 'package:student_app/staff_app/pages/verify_attendance_page.dart';
 import 'package:student_app/student_app/dashboard_page.dart';
+import 'package:student_app/student_app/services/dashboard_controller.dart';
+import 'package:student_app/student_app/services/documents_controller.dart';
 
 // Staff Controllers
 import 'package:student_app/staff_app/controllers/theme_controller.dart'
@@ -14,7 +16,6 @@ import 'package:student_app/staff_app/controllers/theme_controller.dart'
 import 'package:student_app/staff_app/controllers/auth_controller.dart';
 import 'package:student_app/staff_app/controllers/main_controller.dart';
 import 'package:student_app/staff_app/controllers/hostel_controller.dart';
-import 'package:student_app/theme_controllers.dart';
 
 // Staff Theme
 import 'package:student_app/staff_app/theme/app_theme.dart';
@@ -52,21 +53,18 @@ import 'package:student_app/staff_app/pages/hostel_attendance_status_page.dart';
 import 'package:student_app/staff_app/pages/add_hostel_attendance_page.dart';
 // Student Pages
 import 'package:student_app/student_app/class_attendance_page.dart';
+import 'package:student_app/student_app/exams_page.dart';
 import 'package:student_app/student_app/hostel_attendence_page.dart';
 import 'package:student_app/student_app/hostel_fee_page.dart';
 import 'package:student_app/student_app/documents_page.dart';
 import 'package:student_app/student_app/outings_permissions_page.dart';
 import 'package:student_app/student_app/remarks_page.dart';
 import 'package:student_app/student_app/marks_page.dart';
-import 'package:student_app/student_app/upcoming_exams_page.dart';
-import 'package:student_app/student_app/student_profile_page.dart';
+import 'package:student_app/student_app/profile_page.dart' as student_profile;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
-
-  // Initialize Student Theme Choice
-  await StudentThemeController.init();
 
   // 🌗 Global controller (NOT user-specific) - Staff App
   Get.put(staff.ThemeController(), permanent: true);
@@ -75,6 +73,10 @@ void main() async {
   Get.put(HostelController(), permanent: true);
   Get.lazyPut<AuthController>(() => AuthController());
   Get.put(StaffMainController(), permanent: true);
+
+  // 🎓 Student Controllers
+  Get.put(DashboardController(), permanent: true);
+  Get.put(DocumentsController(), permanent: true);
 
   runApp(const SsJcApp());
 }
@@ -214,10 +216,10 @@ class SsJcApp extends StatelessWidget {
         ),
         GetPage(name: '/studentRemarks', page: () => const RemarksPage()),
         GetPage(name: '/studentMarks', page: () => const MarksPage()),
-        GetPage(name: '/studentExams', page: () => const UpcomingExams()),
+        GetPage(name: '/studentExams', page: () => const ExamsPage()),
         GetPage(
           name: '/studentProfile',
-          page: () => const StudentProfilePage(),
+          page: () => const student_profile.ProfilePage(),
         ),
       ],
     );

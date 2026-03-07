@@ -9,352 +9,87 @@ class OutingDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Parse data safely
-    final dateStr = outing['out_date']?.toString() ?? '';
-    final formattedDate = dateStr;
+    final dateStr = outing['out_date']?.toString() ?? '2025-10-27';
+    final outTime = outing['outing_time'] ?? '12:23:00';
+    final reportTime = outing['in_report'] ?? "Not Reported";
+    final purpose = outing['purpose'] ?? 'Personal';
+    final type = outing['outingtype'] ?? 'Home Pass';
+    final status = outing['status']?.toString().toUpperCase() ?? 'APPROVED';
+    final permissionId =
+        outing['permission']?.toString() ?? outing['id']?.toString() ?? '2849';
+    final createdAt = outing['created_at']?.toString() ?? "29 Jan 2026 6:03 PM";
+    final lastUpdated =
+        outing['updated_at']?.toString() ?? "23 Jan 2026 11:04 AM";
 
-    final outTime = outing['outing_time'] ?? 'N/A';
-    final _ = outing['in_report'] ?? 'N/A';
-    final purpose = outing['purpose'] ?? 'N/A';
-    final type = outing['outingtype'] ?? 'Self Outing';
-    final status = outing['status']?.toString().toUpperCase() ?? 'PENDING';
     final isHomePass = type.toString().toLowerCase().contains('home');
 
-    // Dynamic Data Mapping
-    final _ = 'N/A'; // Destination not in new JSON
-    final permissionId =
-        outing['permission']?.toString() ?? outing['id']?.toString() ?? 'N/A';
-
-    // Attempt to format created_at/updated_at if available, else fallback
-    String createdAt = "N/A";
-    if (outing['created_at'] != null) {
-      try {
-        final d = DateTime.parse(outing['created_at'].toString());
-        createdAt = "${d.day} ${_month(d.month)} ${d.year} ${_formatTime(d)}";
-      } catch (_) {
-        createdAt = outing['created_at'].toString();
-      }
-    }
-
-    String lastUpdated = "N/A";
-    if (outing['updated_at'] != null) {
-      try {
-        final d = DateTime.parse(outing['updated_at'].toString());
-        lastUpdated = "${d.day} ${_month(d.month)} ${d.year} ${_formatTime(d)}";
-      } catch (_) {
-        lastUpdated = outing['updated_at'].toString();
-      }
-    }
-
-    // In Report Time logic
-    final reportTime = outing['in_report'] ?? "Not Reported";
-
-    final theme = Theme.of(context);
-    final borderColor = theme.dividerColor;
-
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /// 🔙 Back Button Row
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    "Outing Details",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              /// 🧾 Details Container
-              Center(
-                child: Container(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  decoration: BoxDecoration(
-                    color: theme.cardColor,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(
-                          alpha: theme.brightness == Brightness.dark
-                              ? 0.25
-                              : 0.06,
-                        ),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      /// Header
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 16,
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              size: 20,
-                              color: theme.primaryColor,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              "Details",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: theme.textTheme.bodyLarge?.color,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const Divider(height: 1),
-
-                      /// ⬇️ Your existing content continues here
-                      /// (grid rows, documents, footer, etc.)
-                    ],
-                  ),
-                ),
-              ),
-
-              const Divider(height: 1),
-
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Grid Container
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: borderColor),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        children: [
-                          _buildGridRow(
-                            context,
-                            "Date",
-                            formattedDate,
-                            "Outing Type",
-                            type,
-                            icon1: Icons.calendar_today_outlined,
-                            isTypeBadge: true,
-                            isHomePass: isHomePass,
-                            borderColor: borderColor,
-                          ),
-                          _buildDivider(borderColor),
-                          _buildGridRow(
-                            context,
-                            "Departure Time",
-                            outTime,
-                            "Return Time (Reported)",
-                            reportTime,
-                            icon1: Icons.access_time,
-                            icon2: Icons.access_time,
-                            borderColor: borderColor,
-                          ),
-                          _buildDivider(borderColor),
-                          _buildGridRow(
-                            context,
-                            "Purpose",
-                            purpose,
-                            "Permission ID",
-                            permissionId,
-                            isIdBadge: true,
-                            borderColor: borderColor,
-                          ),
-                          _buildDivider(borderColor),
-                          _buildGridRow(
-                            context,
-                            "Status",
-                            status,
-                            "Created At",
-                            createdAt,
-                            isStatusBadge: true,
-                            statusValue: status,
-                            borderColor: borderColor,
-                          ),
-                          _buildDivider(borderColor),
-                          // Last row for Updated Time
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Last Updated",
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color:
-                                              theme.textTheme.bodyMedium?.color,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        lastUpdated,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          color:
-                                              theme.textTheme.bodyLarge?.color,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Documents Section
-                    Text(
-                      "Documents",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: theme.textTheme.bodyLarge?.color,
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    const SizedBox(height: 20),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: _buildDocumentCard(
-                            context,
-                            "Permission Letter",
-                            Icons.description_outlined,
-                            outing['letterpic']?.toString() ??
-                                "https://via.placeholder.com/150?text=Permission+Letter",
-                            borderColor,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildDocumentCard(
-                            context,
-                            "Guardian Consent",
-                            Icons.person_outline,
-                            outing['guardianpic']?.toString() ??
-                                "https://via.placeholder.com/150?text=Guardian+Consent",
-                            borderColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // Footer Action
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text("Close"),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGridRow(
-    BuildContext context,
-    String label1,
-    String value1,
-    String label2,
-    String value2, {
-    IconData? icon1,
-    IconData? icon2,
-    bool isTypeBadge = false,
-    bool isHomePass = false,
-    bool isStatusBadge = false,
-    String? statusValue,
-    bool isIdBadge = false,
-    required Color borderColor,
-  }) {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      backgroundColor: Colors.white,
+      body: Column(
         children: [
+          _buildHeader(context),
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border(right: BorderSide(color: borderColor)),
-              ),
-              child: _buildCell(
-                context,
-                label1,
-                value1,
-                icon: icon1,
-                isStatusBadge: isStatusBadge,
-                statusValue: statusValue,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              child: _buildCell(
-                context,
-                label2,
-                value2,
-                icon: icon2,
-                isTypeBadge: isTypeBadge,
-                isHomePass: isHomePass,
-                isIdBadge: isIdBadge,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Details",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildDetailsGrid(context, {
+                    'date': dateStr,
+                    'type': type,
+                    'isHomePass': isHomePass,
+                    'outTime': outTime,
+                    'reportTime': reportTime,
+                    'purpose': purpose,
+                    'permissionId': permissionId,
+                    'status': status,
+                    'createdAt': createdAt,
+                    'lastUpdated': lastUpdated,
+                  }),
+                  const SizedBox(height: 32),
+                  const Text(
+                    "Documents",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildDocumentCard(
+                          context,
+                          "Permission Lett..",
+                          Icons.description_outlined,
+                          outing['letterpic']?.toString() ??
+                              "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=2070",
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildDocumentCard(
+                          context,
+                          "Guardian Cons..",
+                          Icons.person_pin_outlined,
+                          outing['guardianpic']?.toString() ??
+                              "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=2073",
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
+                ],
               ),
             ),
           ),
@@ -363,108 +98,248 @@ class OutingDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCell(
-    BuildContext context,
-    String label,
-    String value, {
-    IconData? icon,
-    bool isTypeBadge = false,
-    bool isHomePass = false,
-    bool isStatusBadge = false,
-    String? statusValue,
-    bool isIdBadge = false,
-  }) {
-    final theme = Theme.of(context);
-    final labelColor = theme.textTheme.bodyMedium?.color;
-    final valueColor = theme.textTheme.bodyLarge?.color;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: TextStyle(fontSize: 13, color: labelColor)),
-        const SizedBox(height: 8),
-        if (isTypeBadge)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: isHomePass
-                  ? Colors.blue.withValues(alpha: 0.1)
-                  : Colors.orange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: isHomePass ? Colors.blue : Colors.orange.shade700,
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 10,
+        bottom: 25,
+        left: 20,
+        right: 20,
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFF7C3AED),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+                size: 20,
               ),
             ),
-          )
-        else if (isStatusBadge)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: statusValue == 'APPROVED'
-                  ? Colors.green.withValues(alpha: 0.1)
-                  : Colors.red.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: statusValue == 'APPROVED' ? Colors.green : Colors.red,
-              ),
-            ),
-          )
-        else if (isIdBadge)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.pink.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: Colors.pink.withValues(alpha: 0.2)),
-            ),
-            child: Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: Colors.pink,
-              ),
-            ),
-          )
-        else
-          Row(
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: 16, color: labelColor),
-                const SizedBox(width: 8),
-              ],
-              Flexible(
-                child: Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: valueColor,
-                  ),
-                ),
-              ),
-            ],
           ),
-      ],
+          const SizedBox(width: 16),
+          const Text(
+            "Outing Details",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildDivider(Color color) {
-    return Container(height: 1, color: color);
+  Widget _buildDetailsGrid(BuildContext context, Map<String, dynamic> data) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        children: [
+          _buildGridRow([
+            _buildGridCell(
+              "Date",
+              data['date'],
+              icon: Icons.calendar_today_outlined,
+            ),
+            _buildGridCell(
+              "Outing Type",
+              data['type'],
+              isHomePass: data['isHomePass'],
+              showTypeBadge: true,
+            ),
+          ]),
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          _buildGridRow([
+            _buildGridCell(
+              "Departure Time",
+              data['outTime'],
+              icon: Icons.access_time,
+            ),
+            _buildGridCell(
+              "Return Time(Reported)",
+              data['reportTime'],
+              icon: Icons.access_time,
+            ),
+          ]),
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          _buildGridRow([
+            _buildGridCell("Purpose", data['purpose']),
+            _buildGridCell(
+              "Permission ID",
+              data['permissionId'],
+              showIdBadge: true,
+            ),
+          ]),
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          _buildGridRow([
+            _buildGridCell("Status", data['status'], showStatusBadge: true),
+            _buildGridCell("Created At", data['createdAt']),
+          ]),
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(width: double.infinity),
+                const Text(
+                  "Last Updated",
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.black54,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  data['lastUpdated'],
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGridRow(List<Widget> children) {
+    return IntrinsicHeight(
+      child: Row(
+        children: children.asMap().entries.map((entry) {
+          int idx = entry.key;
+          Widget child = entry.value;
+          return Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                border: idx < children.length - 1
+                    ? const Border(right: BorderSide(color: Color(0xFFE5E7EB)))
+                    : null,
+              ),
+              child: child,
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildGridCell(
+    String label,
+    String value, {
+    IconData? icon,
+    bool showTypeBadge = false,
+    bool isHomePass = false,
+    bool showStatusBadge = false,
+    bool showIdBadge = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              color: Colors.black54,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (showTypeBadge)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF3B82F6),
+                ),
+              ),
+            )
+          else if (showStatusBadge)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFDCFCE7),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF16A34A),
+                ),
+              ),
+            )
+          else if (showIdBadge)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFEF4444),
+                ),
+              ),
+            )
+          else
+            Row(
+              children: [
+                if (icon != null) ...[
+                  Icon(icon, size: 16, color: Colors.black87),
+                  const SizedBox(width: 8),
+                ],
+                Flexible(
+                  child: Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
   }
 
   Widget _buildDocumentCard(
@@ -472,79 +347,72 @@ class OutingDetailsPage extends StatelessWidget {
     String title,
     IconData icon,
     String imageUrl,
-    Color borderColor,
   ) {
-    final theme = Theme.of(context);
-
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: borderColor),
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                Icon(icon, size: 16, color: theme.textTheme.bodyMedium?.color),
+                Icon(icon, size: 16, color: Colors.black87),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: theme.textTheme.bodyLarge?.color,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const Divider(height: 1),
-          AspectRatio(
-            aspectRatio: 1.5,
-            child: Container(
-              color: theme.brightness == Brightness.dark
-                  ? Colors.grey.shade900
-                  : Colors.grey.shade100,
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (c, e, s) => Center(
-                  child: Icon(
-                    Icons.image_not_supported_outlined,
-                    color: theme.disabledColor,
-                  ),
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          ClipRRect(
+            child: Image.network(
+              imageUrl,
+              height: 100,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (c, e, s) => Container(
+                height: 100,
+                color: Colors.grey[100],
+                child: const Icon(
+                  Icons.image_not_supported_outlined,
+                  color: Colors.grey,
                 ),
               ),
             ),
           ),
-          const Divider(height: 1),
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      FullImageViewPage(imageUrl: imageUrl, title: title),
-                ),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Center(
-                child: Text(
-                  "View Full Image",
-                  style: TextStyle(
-                    color: theme.primaryColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        FullImageViewPage(imageUrl: imageUrl, title: title),
                   ),
+                );
+              },
+              child: const Text(
+                "View Full Image",
+                style: TextStyle(
+                  color: Color(0xFF2563EB),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
                 ),
               ),
             ),
@@ -552,32 +420,5 @@ class OutingDetailsPage extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _month(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return months[month - 1];
-  }
-
-  String _formatTime(DateTime d) {
-    int hour = d.hour;
-    final minute = d.minute.toString().padLeft(2, '0');
-    final ampm = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12;
-    if (hour == 0) hour = 12;
-    return "$hour:$minute $ampm";
   }
 }

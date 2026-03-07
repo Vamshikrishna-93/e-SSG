@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class ExamOptionsList extends StatelessWidget {
-  final bool isDark;
   final List<String> options;
   final List<String> optionIds;
   final String? selectedOptionId;
@@ -10,7 +9,6 @@ class ExamOptionsList extends StatelessWidget {
 
   const ExamOptionsList({
     super.key,
-    required this.isDark,
     required this.options,
     required this.optionIds,
     required this.selectedOptionId,
@@ -32,10 +30,10 @@ class ExamOptionsList extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: isDark ? Colors.white10 : Colors.grey.shade200,
+                  color: Colors.grey.shade200,
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -71,9 +69,9 @@ class ExamOptionsList extends StatelessWidget {
                   Expanded(
                     child: Text(
                       stripHtml(options[index]),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
-                        color: isDark ? Colors.white70 : Colors.black87,
+                        color: Colors.black87,
                       ),
                     ),
                   ),

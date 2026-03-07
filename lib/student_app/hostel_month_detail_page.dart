@@ -25,39 +25,12 @@ class _HostelMonthDetailPageState extends State<HostelMonthDetailPage> {
 
   late MonthlyAttendance _currentMonthData;
   HostelAttendance? _overallData;
-  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _currentMonthData = widget.monthData;
     _overallData = widget.overallData;
-  }
-
-  Future<void> _refreshMonthData() async {
-    setState(() => _isLoading = true);
-    try {
-      final String targetMonth = _currentMonthData.monthName;
-      final data = await HostelAttendanceService.getHostelAttendance();
-
-      final monthData = data.attendance.firstWhere(
-        (m) => m.monthName == targetMonth,
-        orElse: () => data.attendance.first,
-      );
-
-      if (mounted) {
-        setState(() {
-          _currentMonthData = monthData;
-          _overallData = data;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        debugPrint("Error refreshing hostel month data: $e");
-      }
-    }
   }
 
   String get hostelName => _overallData?.hostelName ?? "ADARSA";
@@ -113,7 +86,6 @@ class _HostelMonthDetailPageState extends State<HostelMonthDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final monthData = _currentMonthData;
 
     final int totalRecordedNights = monthData.total;
@@ -121,7 +93,8 @@ class _HostelMonthDetailPageState extends State<HostelMonthDetailPage> {
     final int absentNights = monthData.absent;
     final int leaveNights = (monthData.rawJson['leaves'] ?? 0) as int;
     final int holidayNights = (monthData.rawJson['holidays'] ?? 0) as int;
-    final int nightOuts = (monthData.rawJson['nightOuts'] ?? 0) as int;
+    final int nightOuts =
+        (monthData.rawJson['nightOuts'] ?? monthData.outings) as int;
     final double attendancePercentage = monthData.percentage;
     final int totalNights = monthData.total;
 
@@ -131,745 +104,630 @@ class _HostelMonthDetailPageState extends State<HostelMonthDetailPage> {
     final String performanceText = _getPerformanceText(attendancePercentage);
 
     return Scaffold(
-      backgroundColor: isDark
-          ? Colors.grey.shade900.withValues(alpha: 0.95)
-          : Colors.grey.shade300.withValues(alpha: 0.95),
-      body: SafeArea(
-        child: Center(
-          child: Container(
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          // Header
+          Container(
             width: double.infinity,
-            constraints: const BoxConstraints(maxWidth: 900, maxHeight: 850),
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 10,
+              bottom: 25,
+              left: 20,
+              right: 20,
+            ),
+            decoration: const BoxDecoration(
+              color: Color(0xFF7E49FF),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+            ),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.3),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                const Text(
+                  'Night-Wise',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ],
             ),
-            child: Column(
-              children: [
-                // Header with title
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 20,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: isDark
-                            ? Colors.grey.shade800
-                            : Colors.grey.shade200,
-                        width: 1,
-                      ),
+          ),
+
+          // Scrollable Content
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Night-Wise hostel stay breakdown',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Night-wise hostel stay breakdown',
+                  const SizedBox(height: 16),
+
+                  // Hostel Information
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEBF5FB),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Hostel Information',
                           style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
                           ),
                         ),
+                        const SizedBox(height: 12),
+                        _buildInfoRow('Hostel', hostelName),
+                        const SizedBox(height: 8),
+                        _buildInfoRow('Floor', floor),
+                        const SizedBox(height: 8),
+                        _buildInfoRow('Room', room),
+                        const SizedBox(height: 8),
+                        _buildInfoRow('Warden', warden),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Summary Grid
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    childAspectRatio: 1.5,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    children: [
+                      _buildSummaryCard(
+                        'Present Nights',
+                        presentNights.toString(),
+                        const Color(0xFF10B981),
+                        const Color(0xFFE6F7F0),
                       ),
-                      IconButton(
-                        onPressed: _isLoading ? null : _refreshMonthData,
-                        icon: _isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Icon(
-                                Icons.refresh,
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.bodyLarge?.color,
-                              ),
+                      _buildSummaryCard(
+                        'Absent Nights',
+                        absentNights.toString(),
+                        const Color(0xFFEF4444),
+                        const Color(0xFFFDECEC),
                       ),
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: Icon(
-                          Icons.close,
-                          color: Theme.of(context).textTheme.bodyLarge?.color,
-                        ),
+                      _buildSummaryCard(
+                        'Leave Nights',
+                        leaveNights.toString(),
+                        const Color(0xFFF97316),
+                        const Color(0xFFFEF2E4),
+                      ),
+                      _buildSummaryCard(
+                        'Attendance',
+                        '${attendancePercentage.toStringAsFixed(0)}%',
+                        const Color(0xFF3B82F6),
+                        const Color(0xFFE7F0FF),
                       ),
                     ],
                   ),
-                ),
-                // Scrollable content
-                Expanded(
-                  child: Scrollbar(
-                    controller: _verticalScrollController,
-                    thumbVisibility: true,
-                    thickness: 8,
-                    radius: const Radius.circular(4),
-                    child: SingleChildScrollView(
-                      controller: _verticalScrollController,
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Hostel Information Card
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF1E3A5F)
-                                  : const Color(0xFFE0F2FE),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isDark
-                                    ? Colors.blue.shade700
-                                    : const Color(0xFFBFDBFE),
-                                width: 1.5,
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Hostel Information',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark
-                                        ? Colors.blue.shade200
-                                        : const Color(0xFF1E3A5F),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                _buildInfoRow('Hostel', hostelName, isDark),
-                                const SizedBox(height: 12),
-                                _buildInfoRow('Floor', floor, isDark),
-                                const SizedBox(height: 12),
-                                _buildInfoRow('Room', room, isDark),
-                                const SizedBox(height: 12),
-                                _buildInfoRow(
-                                  'Warden',
-                                  warden,
-                                  isDark,
-                                  isLast: true,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 20),
 
-                          // Attendance Summary Cards
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
+                  const SizedBox(height: 16),
+
+                  // Performance Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEBF5FB),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSummaryCard(
-                                value: presentNights.toString(),
-                                label: 'Present Nights',
-                                accent: isDark
-                                    ? Colors.green.shade600
-                                    : const Color(0xFF10B981),
-                                background: isDark
-                                    ? Colors.green.shade900.withValues(
-                                        alpha: 0.25,
-                                      )
-                                    : const Color(0xFFD1FAE5),
-                                isDark: isDark,
-                              ),
-                              _buildSummaryCard(
-                                value: absentNights.toString(),
-                                label: 'Absent Nights',
-                                accent: isDark
-                                    ? Colors.red.shade600
-                                    : const Color(0xFFEF4444),
-                                background: isDark
-                                    ? Colors.red.shade900.withValues(
-                                        alpha: 0.25,
-                                      )
-                                    : const Color(0xFFFEE2E2),
-                                isDark: isDark,
-                              ),
-                              _buildSummaryCard(
-                                value: leaveNights.toString(),
-                                label: 'Leave Nights',
-                                accent: isDark
-                                    ? Colors.orange.shade600
-                                    : const Color(0xFFF97316),
-                                background: isDark
-                                    ? Colors.orange.shade900.withValues(
-                                        alpha: 0.25,
-                                      )
-                                    : const Color(0xFFFFF7ED),
-                                isDark: isDark,
-                              ),
-                              _buildSummaryCard(
-                                value:
-                                    '${attendancePercentage.toStringAsFixed(0)}%',
-                                label: 'Attendance',
-                                accent: isDark
-                                    ? Colors.blue.shade600
-                                    : const Color(0xFF2563EB),
-                                background: isDark
-                                    ? Colors.blue.shade900.withValues(
-                                        alpha: 0.25,
-                                      )
-                                    : const Color(0xFFDBEAFE),
-                                isDark: isDark,
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Month Performance Card
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.grey.shade800
-                                  : const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Month Performance: $performanceText',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: Theme.of(
-                                            context,
-                                          ).textTheme.bodyLarge?.color,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Total Nights: $totalNights | Recorded Nights: $totalRecordedNights',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: isDark
-                                              ? Colors.grey.shade400
-                                              : const Color(0xFF64748B),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: attendancePercentage >= 90
-                                        ? (isDark
-                                              ? Colors.green.shade900
-                                                    .withValues(alpha: 0.5)
-                                              : const Color(0xFFD1FAE5))
-                                        : attendancePercentage >= 70
-                                        ? (isDark
-                                              ? Colors.orange.shade900
-                                                    .withValues(alpha: 0.5)
-                                              : const Color(0xFFFFF7ED))
-                                        : (isDark
-                                              ? Colors.red.shade900.withValues(
-                                                  alpha: 0.5,
-                                                )
-                                              : const Color(0xFFFEE2E2)),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    '${attendancePercentage.toStringAsFixed(1)}%',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: attendancePercentage >= 90
-                                          ? (isDark
-                                                ? Colors.green.shade300
-                                                : const Color(0xFF10B981))
-                                          : attendancePercentage >= 70
-                                          ? (isDark
-                                                ? Colors.orange.shade300
-                                                : const Color(0xFFF97316))
-                                          : (isDark
-                                                ? Colors.red.shade300
-                                                : const Color(0xFFEF4444)),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Night-wise Attendance Details Section
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.description,
-                                size: 20,
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.bodyLarge?.color,
-                              ),
-                              const SizedBox(width: 8),
                               Text(
-                                'Night-wise Attendance Details',
+                                'Monthly Performance: $performanceText',
+                                style: const TextStyle(
+                                  fontSize: 14, // Adjusted for image match
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Total Nights: $totalNights | Recorded Nights: $totalRecordedNights',
                                 style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.bodyLarge?.color,
+                                  fontSize: 12,
+                                  color: Colors.grey.shade700,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
-
-                          // Show "No data" if attendance details is empty
-                          if (attendanceDetails.isEmpty)
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(40),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? Colors.grey.shade800
-                                    : const Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: isDark
-                                      ? Colors.grey.shade700
-                                      : const Color(0xFFE2E8F0),
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.inbox_outlined,
-                                    size: 48,
-                                    color: isDark
-                                        ? Colors.grey.shade600
-                                        : Colors.grey.shade400,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'No data',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: isDark
-                                          ? Colors.grey.shade400
-                                          : const Color(0xFF64748B),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          else ...[
-                            // Horizontal Scrollbar (top)
-                            _buildHorizontalScrollbar(isDark),
-                            const SizedBox(height: 8),
-
-                            // Table with horizontal scroll
-                            Scrollbar(
-                              controller: _horizontalScrollController,
-                              thumbVisibility: true,
-                              thickness: 8,
-                              radius: const Radius.circular(4),
-                              child: SingleChildScrollView(
-                                controller: _horizontalScrollController,
-                                scrollDirection: Axis.horizontal,
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    minWidth: 800,
-                                  ),
-                                  child: _buildAttendanceTable(isDark),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-
-                            // Horizontal Scrollbar (bottom)
-                            _buildHorizontalScrollbar(isDark),
-                          ],
-                          const SizedBox(height: 24),
-
-                          // Monthly Statistics Section
-                          Text(
-                            'Monthly Statistics',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyLarge?.color,
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFDECEC),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${attendancePercentage.toStringAsFixed(1)} %',
+                            style: const TextStyle(
+                              color: Color(0xFFEF4444),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                        ),
+                      ],
+                    ),
+                  ),
 
-                          // Statistics Grid
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.grey.shade800
-                                  : const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildStatItem(
-                                        'Total Recorded Nights',
-                                        totalRecordedNights.toString(),
-                                        null,
-                                        isDark,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: _buildStatItem(
-                                        'Present Nights',
-                                        presentNights.toString(),
-                                        null,
-                                        isDark,
-                                        iconColor: isDark
-                                            ? Colors.green.shade400
-                                            : const Color(0xFF10B981),
-                                      ),
-                                    ),
-                                  ],
+                  const SizedBox(height: 20),
+
+                  // Attendance Details Title
+                  const Text(
+                    'Night-Wise Attendance Details',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Attendance Details List
+                  if (attendanceDetails.isEmpty)
+                    Container(
+                      width: double.infinity,
+                      height: 150,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEBF5FB),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.network(
+                            'https://cdn-icons-png.flaticon.com/512/7486/7486744.png',
+                            height: 60,
+                            color: Colors.grey,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(
+                                  Icons.folder_off,
+                                  size: 60,
+                                  color: Colors.grey,
                                 ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildStatItem(
-                                        'Absent Nights',
-                                        absentNights.toString(),
-                                        null,
-                                        isDark,
-                                        iconColor: isDark
-                                            ? Colors.red.shade400
-                                            : const Color(0xFFEF4444),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: _buildStatItem(
-                                        'Leave Nights',
-                                        leaveNights.toString(),
-                                        null,
-                                        isDark,
-                                        iconColor: isDark
-                                            ? Colors.orange.shade400
-                                            : const Color(0xFFF97316),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildStatItem(
-                                        'Holiday Nights',
-                                        holidayNights.toString(),
-                                        null,
-                                        isDark,
-                                        iconColor: isDark
-                                            ? Colors.blue.shade400
-                                            : const Color(0xFF2563EB),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: _buildStatItem(
-                                        'Night Outs',
-                                        nightOuts.toString(),
-                                        Icons.home,
-                                        isDark,
-                                        iconColor: isDark
-                                            ? Colors.purple.shade400
-                                            : const Color(0xFF7C3AED),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildStatItem(
-                                        'Attendance Percentage',
-                                        '${attendancePercentage.toStringAsFixed(1)}%',
-                                        null,
-                                        isDark,
-                                        valueColor: attendancePercentage >= 90
-                                            ? (isDark
-                                                  ? Colors.green.shade400
-                                                  : const Color(0xFF10B981))
-                                            : attendancePercentage >= 70
-                                            ? (isDark
-                                                  ? Colors.orange.shade400
-                                                  : const Color(0xFFF97316))
-                                            : (isDark
-                                                  ? Colors.red.shade400
-                                                  : const Color(0xFFEF4444)),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: _buildStatItem(
-                                        'Performance Rating',
-                                        '',
-                                        null,
-                                        isDark,
-                                        showStars: true,
-                                        starCount: performanceStars,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'No Data',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                ),
+                    )
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: attendanceDetails.length,
+                      padding: EdgeInsets.zero,
+                      itemBuilder: (context, index) {
+                        final detail = attendanceDetails[index];
+                        final status = (detail['status'] ?? '')
+                            .toString()
+                            .toLowerCase();
 
-                // Action Buttons
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        color: isDark
-                            ? Colors.grey.shade800
-                            : Colors.grey.shade200,
-                        width: 1,
-                      ),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      OutlinedButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
+                        Color statusColor = Colors.grey;
+                        Color statusBg = Colors.grey.shade100;
+
+                        if (status.contains('present') || status == 'p') {
+                          statusColor = const Color(0xFF10B981);
+                          statusBg = const Color(0xFFE6F7F0);
+                        } else if (status.contains('absent') || status == 'a') {
+                          statusColor = const Color(0xFFEF4444);
+                          statusBg = const Color(0xFFFDECEC);
+                        } else if (status.contains('leave') || status == 'l') {
+                          statusColor = const Color(0xFFF97316);
+                          statusBg = const Color(0xFFFEF2E4);
+                        }
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
                           ),
-                          side: BorderSide(
-                            color: isDark
-                                ? Colors.grey.shade600
-                                : Colors.grey.shade400,
-                            width: 1.5,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          'Close',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          try {
-                            // Show loading indicator
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Preparing report..."),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      detail['date'] ?? '',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.category_outlined,
+                                          size: 12,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          detail['checkType'] ?? 'Hostel Stay',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    if ((detail['time'] ?? '')
+                                        .toString()
+                                        .isNotEmpty) ...[
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.access_time,
+                                            size: 12,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            detail['time'],
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                    if ((detail['warden'] ?? '')
+                                        .toString()
+                                        .isNotEmpty) ...[
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.person_outline,
+                                            size: 12,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            detail['warden'],
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
-                            );
-
-                            final data =
-                                await HostelAttendanceService.downloadHostelAttendanceReport(
-                                  year: '2024-2025',
-                                );
-
-                            // Get directory to save file
-                            final directory = await getTemporaryDirectory();
-                            final filePath =
-                                '${directory.path}/hostel_attendance_report.pdf';
-                            final file = File(filePath);
-
-                            // Write bytes to file
-                            await file.writeAsBytes(data);
-
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(
-                                context,
-                              ).hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    "Report ready: hostel_attendance_report.pdf (${(data.length / 1024).toStringAsFixed(2)} KB)",
-                                  ),
-                                  action: SnackBarAction(
-                                    label: "Open",
-                                    textColor: Colors.white,
-                                    onPressed: () {
-                                      OpenFilex.open(filePath);
-                                    },
-                                  ),
-                                  backgroundColor: Colors.green,
+                              const SizedBox(width: 12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
                                 ),
-                              );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(
-                                context,
-                              ).hideCurrentSnackBar();
-                              String errorMsg = e.toString();
-                              if (errorMsg.contains('MissingPluginException') ||
-                                  errorMsg.contains('Unsupported operation')) {
-                                errorMsg =
-                                    "App restart required to activate download plugin. Please stop and re-run the app.";
-                              }
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(errorMsg),
-                                  backgroundColor: Colors.red,
-                                  duration: const Duration(seconds: 5),
+                                decoration: BoxDecoration(
+                                  color: statusBg,
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                              );
-                            }
-                          }
-                        },
-                        icon: const Icon(Icons.download, size: 14),
-                        label: const Text(
-                          'Download Month Report (PDF)',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
+                                child: Text(
+                                  (detail['status'] ?? '')
+                                      .toString()
+                                      .toUpperCase(),
+                                  style: TextStyle(
+                                    color: statusColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF7C3AED),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ],
+                        );
+                      },
+                    ),
+
+                  const SizedBox(height: 20),
+
+                  // Monthly Statitics
+                  const Text(
+                    'Monthly Statitics',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
+                  const SizedBox(height: 10),
+
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEBF5FB),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildStatRow(
+                                'Total Recorded Nights',
+                                totalRecordedNights.toString(),
+                              ),
+                            ),
+                            Expanded(
+                              child: _buildStatRow(
+                                'Present Nights',
+                                presentNights.toString(),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildStatRow(
+                                'Absent Nights',
+                                absentNights.toString(),
+                              ),
+                            ),
+                            Expanded(
+                              child: _buildStatRow(
+                                'Leave Nights',
+                                leaveNights.toString(),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildStatRow(
+                                'Holiday Nights',
+                                holidayNights.toString(),
+                              ),
+                            ),
+                            Expanded(
+                              child: _buildStatRow(
+                                'Nights Outs',
+                                nightOuts.toString(),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildStatRow(
+                                'Attendance Percentage',
+                                '${attendancePercentage.toStringAsFixed(1)}%',
+                                valueColor: const Color(0xFFEF4444),
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Performance Rating',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: List.generate(5, (index) {
+                                      return Icon(
+                                        Icons.star,
+                                        size: 14,
+                                        color: index < performanceStars
+                                            ? Colors.amber
+                                            : Colors.grey,
+                                      );
+                                    }),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+
+          // Footer Button
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
                 ),
               ],
             ),
+            child: Container(
+              width: double.infinity,
+              height: 50,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF818CF8), Color(0xFFC084FC)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: ElevatedButton(
+                onPressed: () async {
+                  try {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Preparing report..."),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+
+                    final data =
+                        await HostelAttendanceService.downloadHostelAttendanceReport(
+                          year: '2024-2025',
+                        );
+
+                    final directory = await getTemporaryDirectory();
+                    final filePath =
+                        '${directory.path}/hostel_attendance_report.pdf';
+                    final file = File(filePath);
+
+                    await file.writeAsBytes(data);
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "Report ready: hostel_attendance_report.pdf",
+                          ),
+                          action: SnackBarAction(
+                            label: "Open",
+                            textColor: Colors.white,
+                            onPressed: () {
+                              OpenFilex.open(filePath);
+                            },
+                          ),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      String errorMsg = e.toString();
+                      if (errorMsg.contains('MissingPluginException') ||
+                          errorMsg.contains('Unsupported operation')) {
+                        errorMsg =
+                            "App restart required to activate download plugin.";
+                      }
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(errorMsg),
+                          backgroundColor: Colors.red,
+                          duration: const Duration(seconds: 5),
+                        ),
+                      );
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const Text(
+                  'Download Month Report (PDF)',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildInfoRow(
+  Widget _buildSummaryCard(
     String label,
     String value,
-    bool isDark, {
-    bool isLast = false,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 80,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark ? Colors.grey.shade400 : const Color(0xFF64748B),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSummaryCard({
-    required String value,
-    required String label,
-    required Color accent,
-    required Color background,
-    required bool isDark,
-  }) {
+    Color accentColor,
+    Color bgColor,
+  ) {
     return Container(
-      width: 150, // fixed modern card width (prevents overflow)
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: accent.withValues(alpha: 0.15)),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
+            label,
+            style: const TextStyle(fontSize: 13, color: Colors.black87),
+          ),
+          const SizedBox(height: 8),
+          Text(
             value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: accent,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white70 : Colors.black54,
+              fontWeight: FontWeight.bold,
+              color: accentColor,
             ),
           ),
         ],
@@ -877,282 +735,48 @@ class _HostelMonthDetailPageState extends State<HostelMonthDetailPage> {
     );
   }
 
-  Widget _buildStatItem(
-    String label,
-    String value,
-    IconData? icon,
-    bool isDark, {
-    Color? iconColor,
-    bool showStars = false,
-    int starCount = 0,
-    Color? valueColor,
-  }) {
+  Widget _buildStatRow(String label, String value, {Color? valueColor}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            if (icon != null) ...[
-              Icon(icon, size: 18, color: iconColor),
-              const SizedBox(width: 6),
-            ],
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isDark
-                      ? Colors.grey.shade400
-                      : const Color(0xFF64748B),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: Colors.black87),
         ),
-        const SizedBox(height: 8),
-        if (showStars)
-          Row(
-            children: List.generate(5, (index) {
-              return Icon(
-                index < starCount ? Icons.star : Icons.star_border,
-                size: 20,
-                color: index < starCount
-                    ? (isDark ? Colors.yellow.shade400 : Colors.amber)
-                    : (isDark ? Colors.grey.shade600 : Colors.grey.shade400),
-              );
-            }),
-          )
-        else
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: valueColor ?? Theme.of(context).textTheme.bodyLarge?.color,
-            ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: valueColor ?? Colors.black,
           ),
+        ),
       ],
     );
   }
 
-  Widget _buildHorizontalScrollbar(bool isDark) {
-    return Container(
-      height: 20,
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey.shade800 : const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () {
-              if (_horizontalScrollController.hasClients) {
-                _horizontalScrollController.animateTo(
-                  (_horizontalScrollController.offset - 200).clamp(
-                    0.0,
-                    _horizontalScrollController.position.maxScrollExtent,
-                  ),
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              }
-            },
-            child: Container(
-              width: 24,
-              height: 20,
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.arrow_back_ios,
-                size: 12,
-                color: isDark ? Colors.grey.shade400 : const Color(0xFF94A3B8),
-              ),
-            ),
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 70,
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
           ),
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              height: 4,
-              decoration: BoxDecoration(
-                color: isDark ? Colors.grey.shade700 : const Color(0xFFE2E8F0),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              if (_horizontalScrollController.hasClients) {
-                _horizontalScrollController.animateTo(
-                  (_horizontalScrollController.offset + 200).clamp(
-                    0.0,
-                    _horizontalScrollController.position.maxScrollExtent,
-                  ),
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              }
-            },
-            child: Container(
-              width: 24,
-              height: 20,
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.arrow_forward_ios,
-                size: 12,
-                color: isDark ? Colors.grey.shade400 : const Color(0xFF94A3B8),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAttendanceTable(bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey.shade800 : Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isDark ? Colors.grey.shade700 : const Color(0xFFE2E8F0),
         ),
-      ),
-      child: Table(
-        columnWidths: const {
-          0: FixedColumnWidth(120),
-          1: FixedColumnWidth(140),
-          2: FixedColumnWidth(140),
-          3: FixedColumnWidth(140),
-          4: FixedColumnWidth(120),
-          5: FixedColumnWidth(140),
-        },
-        children: [
-          // Header Row
-          TableRow(
-            decoration: BoxDecoration(
-              color: isDark ? Colors.grey.shade700 : const Color(0xFFF8FAFC),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(8),
-                topRight: Radius.circular(8),
-              ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
-            children: [
-              _buildTableCell('Date', true, isDark),
-              _buildTableCell('Check Type', true, isDark),
-              _buildTableCell('Time', true, isDark),
-              _buildTableCell('Warden', true, isDark),
-              _buildTableCell('Status', true, isDark),
-              _buildTableCell('Remarks', true, isDark),
-            ],
           ),
-          // Data Rows
-          ...attendanceDetails.map((detail) {
-            return TableRow(
-              children: [
-                _buildTableCell(detail['date'] ?? '', false, isDark),
-                _buildTableCell(
-                  detail['checkType'] ?? '',
-                  false,
-                  isDark,
-                  isButton: true,
-                ),
-                _buildTableCell(
-                  detail['time'] ?? '',
-                  false,
-                  isDark,
-                  hasClockIcon: true,
-                ),
-                _buildTableCell(detail['warden'] ?? '', false, isDark),
-                _buildTableCell(
-                  detail['status'] ?? '',
-                  false,
-                  isDark,
-                  hasIcon: true,
-                  iconColor: detail['status'] == 'Present'
-                      ? (isDark
-                            ? Colors.green.shade400
-                            : const Color(0xFF10B981))
-                      : null,
-                ),
-                _buildTableCell(detail['remark'] ?? '', false, isDark),
-              ],
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTableCell(
-    String text,
-    bool isHeader,
-    bool isDark, {
-    bool isButton = false,
-    bool hasIcon = false,
-    bool hasClockIcon = false,
-    Color? iconColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      child: isButton
-          ? Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.blue.shade900.withValues(alpha: 0.3)
-                    : const Color(0xFFDBEAFE),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                text,
-                style: TextStyle(
-                  fontSize: isHeader ? 12 : 11,
-                  fontWeight: isHeader ? FontWeight.w600 : FontWeight.w500,
-                  color: isHeader
-                      ? (isDark
-                            ? Colors.grey.shade300
-                            : const Color(0xFF1E293B))
-                      : (isDark
-                            ? Colors.blue.shade300
-                            : const Color(0xFF2563EB)),
-                ),
-              ),
-            )
-          : Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (hasClockIcon) ...[
-                  Icon(
-                    Icons.access_time,
-                    size: 14,
-                    color: isDark
-                        ? Colors.grey.shade400
-                        : const Color(0xFF64748B),
-                  ),
-                  const SizedBox(width: 4),
-                ],
-                if (hasIcon && iconColor != null) ...[
-                  Icon(Icons.check_circle, size: 16, color: iconColor),
-                  const SizedBox(width: 6),
-                ],
-                Flexible(
-                  child: Text(
-                    text,
-                    style: TextStyle(
-                      fontSize: isHeader ? 12 : 11,
-                      fontWeight: isHeader ? FontWeight.w600 : FontWeight.w500,
-                      color: isHeader
-                          ? (isDark
-                                ? Colors.grey.shade300
-                                : const Color(0xFF1E293B))
-                          : (isDark
-                                ? Colors.grey.shade400
-                                : const Color(0xFF64748B)),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        ),
+      ],
     );
   }
 }

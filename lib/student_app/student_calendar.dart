@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:student_app/student_app/student_app_bar.dart';
-import 'package:student_app/student_app/theme/student_theme.dart';
-import 'package:student_app/theme_controllers.dart';
 import 'package:student_app/student_app/services/calendar_service.dart';
 
 class StudentCalendar extends StatefulWidget {
@@ -113,12 +110,8 @@ class _StudentCalendarState extends State<StudentCalendar> {
 
   @override
   Widget build(BuildContext context) {
-    return ThemeControllerWrapper(
-      themeController: StudentThemeController.themeMode,
-      child: Builder(
-        builder: (context) {
-          final theme = Theme.of(context);
-          final monthName = DateFormat('MMMM yyyy').format(_currentMonth);
+    final theme = Theme.of(context);
+    final monthName = DateFormat('MMMM yyyy').format(_currentMonth);
 
           final firstDayOfMonth = DateTime(
             _currentMonth.year,
@@ -146,7 +139,7 @@ class _StudentCalendarState extends State<StudentCalendar> {
                   color: theme.cardColor,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: StudentTheme.containerBorderColor(context),
+                    color: Colors.grey.withOpacity(0.15),
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -334,7 +327,7 @@ class _StudentCalendarState extends State<StudentCalendar> {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: events.length,
                 separatorBuilder: (context, index) => Divider(
-                  color: StudentTheme.containerBorderColor(context),
+                  color: Colors.grey.withOpacity(0.15),
                   indent: 16,
                   endIndent: 16,
                   height: 1,
@@ -461,8 +454,7 @@ class _StudentCalendarState extends State<StudentCalendar> {
           }
 
           return Scaffold(
-            backgroundColor: theme.scaffoldBackgroundColor,
-            appBar: widget.showAppBar ? const StudentAppBar(title: "") : null,
+            appBar: widget.showAppBar ? AppBar(title: const Text("Academic Calendar"), centerTitle: true) : null,
             body: SafeArea(
               child: Column(
                 children: [
@@ -496,9 +488,6 @@ class _StudentCalendarState extends State<StudentCalendar> {
               ),
             ),
           );
-        },
-      ),
-    );
   }
 
   List<EventEntry> _getEventsForMonth() {

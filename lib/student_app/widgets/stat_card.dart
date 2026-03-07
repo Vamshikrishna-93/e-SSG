@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:student_app/student_app/theme/student_theme.dart';
 
 class StatCard extends StatelessWidget {
   final String title;
@@ -21,19 +20,16 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.cardColor,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -42,7 +38,7 @@ class StatCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: theme.textTheme.bodySmall?.copyWith(fontSize: 13)),
+          Text(title, style: const TextStyle(fontSize: 13, color: Colors.black54)),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -53,7 +49,8 @@ class StatCard extends StatelessWidget {
                     ? content!
                     : Text(
                         value,
-                        style: theme.textTheme.titleLarge?.copyWith(
+                        style: TextStyle(
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: iconColor,
                         ),
@@ -64,7 +61,7 @@ class StatCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             subtext,
-            style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
           ),
         ],
       ),

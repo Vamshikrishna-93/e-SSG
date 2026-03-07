@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class ExamFooter extends StatelessWidget {
-  final bool isDark;
   final int currentIndex;
   final bool isMarked;
   final VoidCallback onToggleMark;
@@ -15,7 +14,6 @@ class ExamFooter extends StatelessWidget {
 
   const ExamFooter({
     super.key,
-    required this.isDark,
     required this.currentIndex,
     required this.isMarked,
     required this.onToggleMark,
@@ -32,7 +30,7 @@ class ExamFooter extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),

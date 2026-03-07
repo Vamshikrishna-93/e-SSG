@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:student_app/student_app/theme/student_theme.dart';
 
 class HeaderCell extends StatelessWidget {
   final String title;
@@ -44,9 +43,7 @@ class HeaderCell extends StatelessWidget {
             Icon(
               Icons.swap_vert,
               size: 14,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey.shade400
-                  : Colors.grey.shade600,
+              color: Colors.grey.shade600,
             ),
           ],
         ),
@@ -71,19 +68,16 @@ class MarksStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.cardColor,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: theme.brightness == Brightness.dark
-                ? Colors.black.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -94,14 +88,16 @@ class MarksStatCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.textTheme.bodySmall?.color,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black54,
             ),
           ),
           const SizedBox(height: 12),
           Text(
             value,
-            style: theme.textTheme.displaySmall?.copyWith(
+            style: TextStyle(
+              fontSize: 24,
               fontWeight: FontWeight.bold,
               color: valueColor,
             ),
@@ -109,8 +105,9 @@ class MarksStatCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             description,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.black54.withOpacity(0.7),
             ),
           ),
         ],
@@ -263,13 +260,12 @@ class SubjectRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
-        color: theme.cardColor,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
         children: [
@@ -332,8 +328,9 @@ class SubjectRow extends StatelessWidget {
                     if (isExcellent) const SizedBox(width: 4),
                     Text(
                       "$percentage%",
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.textTheme.bodySmall?.color,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
                       ),
                     ),
                   ],
@@ -353,7 +350,7 @@ class SubjectRow extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: gradeColor.withValues(alpha: 0.15),
+                  color: gradeColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -398,7 +395,7 @@ class ExamHistoryRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        border: Border.all(color: StudentTheme.containerBorderColor(context)),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -441,7 +438,7 @@ class ExamHistoryRow extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: gradeColor.withValues(alpha: 0.1),
+                color: gradeColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
@@ -488,13 +485,10 @@ class AchievementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? iconColor.withValues(alpha: 0.1) : backgroundColor,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -502,7 +496,7 @@ class AchievementCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.2),
+              color: iconColor.withOpacity(0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: iconColor, size: 24),
@@ -514,15 +508,17 @@ class AchievementCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: theme.textTheme.titleSmall?.copyWith(
+                  style: const TextStyle(
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: theme.textTheme.bodyLarge?.color,
+                    color: Color(0xFF1E293B),
                   ),
                 ),
                 Text(
                   description,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.textTheme.bodySmall?.color,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.black54,
                   ),
                 ),
               ],

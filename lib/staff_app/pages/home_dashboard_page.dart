@@ -511,7 +511,7 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                   "Class Attendance",
                   Icons.people_alt_rounded,
                   const Color(0xFF26C6DA),
-                  () => Get.toNamed('/studentAttendanceFilter'),
+                  () => Get.toNamed('/classAttendance'),
                 ),
                 _buildQuickAction(
                   "Hostel Attendance",

@@ -37,15 +37,18 @@ class _UpcomingExamsState extends State<UpcomingExams> {
           // Purple Header
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.only(
-              top: 20,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 10,
               bottom: 25,
-              left: 16,
-              right: 16,
+              left: 20,
+              right: 20,
             ),
             decoration: const BoxDecoration(
-              color: Color(0xFF7E3FF2),
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+              color: Color(0xFF7E49FF),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
             ),
             child: Row(
               children: [

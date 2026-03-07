@@ -51,12 +51,12 @@ class ExamDetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    const textColor = Color(0xFF64748B);
     return RichText(
       text: TextSpan(
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 12,
-          color: theme.textTheme.bodyMedium?.color,
+          color: textColor,
         ),
         children: [
           TextSpan(

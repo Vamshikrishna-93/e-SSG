@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:student_app/staff_app/pages/hostel_attendance_grid_page.dart';
 import 'package:student_app/staff_app/widgets/skeleton.dart';
 import 'package:student_app/staff_app/controllers/hostel_controller.dart';
 import 'package:student_app/staff_app/model/hostel_student_model.dart';
-import 'hostel_attendance_grid_page.dart';
 
 class HostelAttendanceMarkPage extends StatefulWidget {
   const HostelAttendanceMarkPage({super.key});
@@ -273,7 +273,7 @@ class _HostelAttendanceMarkPageState extends State<HostelAttendanceMarkPage> {
               ),
               GestureDetector(
                 onTap: () => Get.to(
-                  () => HostelAttendanceGridPage(
+                  () => AttendanceGridPage(
                     sid: student.sid,
                     studentName: student.studentName,
                     admNo: student.admno,

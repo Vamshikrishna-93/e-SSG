@@ -265,7 +265,7 @@ class ExamsService {
     }
   }
 
-  static Future<Map<String, dynamic>> getExamStats() async {
+  static Future<Map<String, dynamic>> getExamStats({bool forceRefresh = false}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('access_token');
@@ -273,6 +273,16 @@ class ExamsService {
 
       if (token == null || studentId == null) {
         throw Exception('User or Student ID not found. Please log in again.');
+      }
+
+      final String cacheKey = 'exam_stats_$studentId';
+
+      if (!forceRefresh) {
+        final String? cachedData = prefs.getString(cacheKey);
+        if (cachedData != null) {
+          final decoded = jsonDecode(cachedData);
+          return decoded is Map<String, dynamic> ? decoded : {'data': decoded};
+        }
       }
 
       final url = '${ApiConfig.studentApiBaseUrl}/exam/examstats';
@@ -288,6 +298,8 @@ class ExamsService {
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
+        // Cache the response
+        await prefs.setString(cacheKey, response.body);
         return decoded is Map<String, dynamic> ? decoded : {'data': decoded};
       } else {
         throw Exception('Failed to load exam stats: ${response.statusCode}');

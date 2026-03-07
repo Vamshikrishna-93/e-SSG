@@ -39,19 +39,376 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
+      body: Obx(() {
+        final hasData = controller.attendanceList.isNotEmpty;
+        final isLoading = controller.isLoading.value;
+
+        return Column(
           children: [
             _buildHeader(context),
-            const SizedBox(height: 25),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _buildFilterContainer(context),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 25),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: _buildFilterContainer(context),
+                    ),
+                    const SizedBox(height: 30),
+                    if (isLoading)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(40.0),
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF7E49FF),
+                          ),
+                        ),
+                      )
+                    else if (hasData)
+                      _buildAttendanceList(context)
+                    else
+                      _buildNoDataState(context),
+                    const SizedBox(height: 30),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 40),
-            _buildNoDataState(context),
-            const SizedBox(height: 30),
+            if (hasData) _buildSubmitBottomBar(),
           ],
+        );
+      }),
+    );
+  }
+
+  // ================= ATTENDANCE LIST =================
+
+  Widget _buildAttendanceList(BuildContext context) {
+    return Column(
+      children: [
+        // ================= TOP ACTION BUTTONS =================
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          child: Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: controller.markAllPresent,
+                  child: Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF036423), // Darker Green from image
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.check_circle_outline,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          "All Present",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                child: GestureDetector(
+                  onTap: controller.markAllAbsent,
+                  child: Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFEF4444)),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.cancel_outlined,
+                          color: Color(0xFFEF4444),
+                          size: 18,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          "All Absent",
+                          style: TextStyle(
+                            color: Color(0xFFEF4444),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // ================= STAT SUMMARY CARDS =================
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              _buildStatSummaryCard(
+                "Total",
+                "${controller.attendanceList.length}",
+                const Color(0xFFF5F3FF),
+                const Color(0xFF7E49FF),
+              ),
+              const SizedBox(width: 10),
+              _buildStatSummaryCard(
+                "Total", // Present count in image shows 'Total' label but green value
+                "${controller.presentCount}",
+                const Color(0xFFECFDF5),
+                const Color(0xFF10B981),
+              ),
+              const SizedBox(width: 10),
+              _buildStatSummaryCard(
+                "Absent",
+                "${controller.absentCount}",
+                const Color(0xFFFEF2F2),
+                const Color(0xFFEF4444),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 25),
+
+        // ================= STUDENT LIST IN LAVENDER BOX =================
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(
+              0xFFF5F3FF,
+            ), // Specific lavender background from image
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: controller.attendanceList.length,
+            itemBuilder: (context, index) {
+              final student = controller.attendanceList[index];
+              final isPresent = controller.attendanceStatus[index] ?? true;
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.01),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    // Purple Index Circle
+                    Container(
+                      width: 45,
+                      height: 45,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFBCADF8), // Lighter purple from image
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          "${index + 1}",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            student.fullName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Adm No : ${student.admno}",
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Square P/A Toggle
+                    GestureDetector(
+                      onTap: () => controller.toggleAttendance(index),
+                      child: Container(
+                        width: 45,
+                        height: 45,
+                        decoration: BoxDecoration(
+                          color: isPresent
+                              ? const Color(0xFF67B56B)
+                              : const Color(0xFFEF4444),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: Text(
+                            isPresent ? "P" : "A",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatSummaryCard(
+    String label,
+    String value,
+    Color bgColor,
+    Color textColor,
+  ) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: bgColor, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: textColor.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: textColor.withOpacity(0.7),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubmitBottomBar() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 10,
+            offset: Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Obx(
+        () => Container(
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF818CFF), Color(0xFFCE93F9)],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF818CFF).withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ElevatedButton(
+            onPressed: controller.isSubmitting.value
+                ? null
+                : controller.submitAttendance,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+            ),
+            child: controller.isSubmitting.value
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Text(
+                    "Submit Attendance",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+          ),
         ),
       ),
     );

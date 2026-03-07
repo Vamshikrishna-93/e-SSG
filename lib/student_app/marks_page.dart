@@ -15,6 +15,8 @@ class _MarksPageState extends State<MarksPage> {
   String selectedSemester = "All Semesters";
   String selectedPeriod = "Monthly";
 
+  static const Color primaryPurple = Color(0xFF7E3FF2);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,18 +61,23 @@ class _MarksPageState extends State<MarksPage> {
   Widget _buildHeader() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 45, 16, 20),
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 10,
+        bottom: 25,
+        left: 20,
+        right: 20,
+      ),
       decoration: const BoxDecoration(
-        color: Color(0xFF7E3FF2),
+        color: primaryPurple,
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
+          bottomLeft: Radius.circular(35),
+          bottomRight: Radius.circular(35),
         ),
       ),
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () => Get.offNamed('/studentDashboard'),
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -85,7 +92,6 @@ class _MarksPageState extends State<MarksPage> {
             ),
           ),
           const SizedBox(width: 15),
-          const Icon(Icons.bar_chart, color: Colors.white, size: 24),
           const SizedBox(width: 8),
           const Text(
             "Marks",
@@ -107,7 +113,7 @@ class _MarksPageState extends State<MarksPage> {
         const Text(
           "Marks",
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.black,
           ),

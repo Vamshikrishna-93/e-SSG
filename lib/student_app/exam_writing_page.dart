@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:student_app/student_app/services/exams_service.dart';
 import 'package:student_app/student_app/model/exam_item.dart';
 import 'package:student_app/student_app/online_exam_portal_page.dart';
-import 'package:student_app/theme_controllers.dart';
 
 class ExamWritingPage extends StatefulWidget {
   final String examId;
@@ -306,306 +305,286 @@ class _ExamWritingPageState extends State<ExamWritingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ThemeControllerWrapper(
-      themeController: StudentThemeController.themeMode,
-      child: Builder(
-        builder: (context) {
-          final theme = Theme.of(context);
-          final cardColor = theme.cardColor;
-          final bgColor = theme.scaffoldBackgroundColor;
+    if (!_hasConfirmed) {
+      return _buildInstructionScreen(context);
+    }
 
-          if (!_hasConfirmed) {
-            return _buildInstructionScreen(context);
-          }
+    const cardColor = Colors.white;
+    const bgColor = Color(0xFFF8FAFC);
 
-          return Scaffold(
-            backgroundColor: bgColor,
-            appBar: AppBar(
-              title: Text(widget.examName),
-              backgroundColor: bgColor,
-              elevation: 0,
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+    return Scaffold(
+      backgroundColor: bgColor,
+      appBar: AppBar(
+        title: Text(widget.examName),
+        backgroundColor: bgColor,
+        elevation: 0,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                const Icon(Icons.timer_outlined, size: 20),
+                const SizedBox(width: 6),
+                Text(
+                  _formatTime(_secondsElapsed),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Error: $_errorMessage"),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _fetchQuestions,
+                    child: const Text("Retry"),
+                  ),
+                ],
+              ),
+            )
+          : _questions.isEmpty
+          ? const Center(child: Text("No questions found"))
+          : Column(
+              children: [
+                // Question Palette
+                SizedBox(
+                  height: 60,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _questions.length,
+                    itemBuilder: (_, i) {
+                      final isCurrent = i == _currentQuestionIndex;
+                      final isAnswered = _answers.containsKey(i);
+
+                      return GestureDetector(
+                        onTap: () async {
+                          await _saveCurrentAnswer();
+                          if (mounted) {
+                            setState(() {
+                              _currentQuestionIndex = i;
+                              _answerController.text = _answers[i] ?? '';
+                            });
+                          }
+                        },
+                        child: Container(
+                          width: 40,
+                          margin: const EdgeInsets.only(right: 8),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isCurrent
+                                ? Colors.blue
+                                : isAnswered
+                                ? Colors.green
+                                : cardColor,
+                            border: Border.all(
+                              color: isCurrent
+                                  ? Colors.blue
+                                  : Colors.grey.withOpacity(0.3),
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            "${i + 1}",
+                            style: TextStyle(
+                              color: isCurrent || isAnswered
+                                  ? Colors.white
+                                  : Colors.black87,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Current Question
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(24),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, -2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Question ${_currentQuestionIndex + 1} of ${_questions.length}",
+                                  style: const TextStyle(
+                                    color: Colors.black54,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                if (_questions[_currentQuestionIndex]['subject_name'] !=
+                                    null)
+                                  Text(
+                                    "${_questions[_currentQuestionIndex]['subject_name']} • ${_questions[_currentQuestionIndex]['section_name'] ?? ''}",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.blue.shade600,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            if (_questions[_currentQuestionIndex]['is_review'] ==
+                                1)
+                              _buildTag("Review", Colors.orange),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _stripHtml(
+                            _questions[_currentQuestionIndex]['question'],
+                          ),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            height: 1.5,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        if (_questions[_currentQuestionIndex]['question_type'] ==
+                            'objective')
+                          Expanded(
+                            child: ListView(
+                              children: [
+                                _buildOption(
+                                  1,
+                                  _questions[_currentQuestionIndex]['option1'],
+                                ),
+                                _buildOption(
+                                  2,
+                                  _questions[_currentQuestionIndex]['option2'],
+                                ),
+                                _buildOption(
+                                  3,
+                                  _questions[_currentQuestionIndex]['option3'],
+                                ),
+                                _buildOption(
+                                  4,
+                                  _questions[_currentQuestionIndex]['option4'],
+                                ),
+                                if (_questions[_currentQuestionIndex]['option5'] !=
+                                        null &&
+                                    _questions[_currentQuestionIndex]['option5']
+                                        .toString()
+                                        .isNotEmpty)
+                                  _buildOption(
+                                    5,
+                                    _questions[_currentQuestionIndex]['option5'],
+                                  ),
+                                if (_questions[_currentQuestionIndex]['option6'] !=
+                                        null &&
+                                    _questions[_currentQuestionIndex]['option6']
+                                        .toString()
+                                        .isNotEmpty)
+                                  _buildOption(
+                                    6,
+                                    _questions[_currentQuestionIndex]['option6'],
+                                  ),
+                              ],
+                            ),
+                          )
+                        else
+                          Expanded(
+                            child: TextField(
+                              controller: _answerController,
+                              maxLines: 10,
+                              decoration: InputDecoration(
+                                hintText: "Type your answer here...",
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFFE2E8F0),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Bottom Actions
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  color: cardColor,
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(Icons.timer_outlined, size: 20),
-                      const SizedBox(width: 6),
-                      Text(
-                        _formatTime(_secondsElapsed),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      TextButton.icon(
+                        onPressed: _currentQuestionIndex > 0
+                            ? _prevQuestion
+                            : null,
+                        icon: const Icon(Icons.arrow_back),
+                        label: const Text("Previous"),
+                      ),
+                      ElevatedButton(
+                        onPressed: () =>
+                            _saveCurrentAnswer(isReview: true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text("Mark for Review"),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: _nextQuestion,
+                        icon: Icon(
+                          _currentQuestionIndex == _questions.length - 1
+                              ? Icons.check
+                              : Icons.arrow_forward,
+                        ),
+                        label: Text(
+                          _currentQuestionIndex == _questions.length - 1
+                              ? "Finish"
+                              : "Next",
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            body: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _errorMessage != null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("Error: $_errorMessage"),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _fetchQuestions,
-                          child: const Text("Retry"),
-                        ),
-                      ],
-                    ),
-                  )
-                : _questions.isEmpty
-                ? const Center(child: Text("No questions found"))
-                : Column(
-                    children: [
-                      // Question Palette
-                      SizedBox(
-                        height: 60,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: _questions.length,
-                          itemBuilder: (_, i) {
-                            final isCurrent = i == _currentQuestionIndex;
-                            final isAnswered = _answers.containsKey(i);
-
-                            return GestureDetector(
-                              onTap: () async {
-                                await _saveCurrentAnswer();
-                                if (mounted) {
-                                  setState(() {
-                                    _currentQuestionIndex = i;
-                                    _answerController.text = _answers[i] ?? '';
-                                  });
-                                }
-                              },
-                              child: Container(
-                                width: 40,
-                                margin: const EdgeInsets.only(right: 8),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: isCurrent
-                                      ? Colors.blue
-                                      : isAnswered
-                                      ? Colors.green
-                                      : cardColor,
-                                  border: Border.all(
-                                    color: isCurrent
-                                        ? Colors.blue
-                                        : Colors.grey.withOpacity(0.3),
-                                  ),
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  "${i + 1}",
-                                  style: TextStyle(
-                                    color: isCurrent || isAnswered
-                                        ? Colors.white
-                                        : theme.textTheme.bodyMedium?.color,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Current Question
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: cardColor,
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(24),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, -2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Question ${_currentQuestionIndex + 1} of ${_questions.length}",
-                                        style: TextStyle(
-                                          color:
-                                              theme.textTheme.bodySmall?.color,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      if (_questions[_currentQuestionIndex]['subject_name'] !=
-                                          null)
-                                        Text(
-                                          "${_questions[_currentQuestionIndex]['subject_name']} • ${_questions[_currentQuestionIndex]['section_name'] ?? ''}",
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.blue.shade600,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                  if (_questions[_currentQuestionIndex]['is_review'] ==
-                                      1)
-                                    _buildTag("Review", Colors.orange),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                _stripHtml(
-                                  _questions[_currentQuestionIndex]['question'],
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  height: 1.5,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              if (_questions[_currentQuestionIndex]['question_type'] ==
-                                  'objective')
-                                Expanded(
-                                  child: ListView(
-                                    children: [
-                                      _buildOption(
-                                        1,
-                                        _questions[_currentQuestionIndex]['option1'],
-                                        theme,
-                                        theme.brightness == Brightness.dark,
-                                      ),
-                                      _buildOption(
-                                        2,
-                                        _questions[_currentQuestionIndex]['option2'],
-                                        theme,
-                                        theme.brightness == Brightness.dark,
-                                      ),
-                                      _buildOption(
-                                        3,
-                                        _questions[_currentQuestionIndex]['option3'],
-                                        theme,
-                                        theme.brightness == Brightness.dark,
-                                      ),
-                                      _buildOption(
-                                        4,
-                                        _questions[_currentQuestionIndex]['option4'],
-                                        theme,
-                                        theme.brightness == Brightness.dark,
-                                      ),
-                                      if (_questions[_currentQuestionIndex]['option5'] !=
-                                              null &&
-                                          _questions[_currentQuestionIndex]['option5']
-                                              .toString()
-                                              .isNotEmpty)
-                                        _buildOption(
-                                          5,
-                                          _questions[_currentQuestionIndex]['option5'],
-                                          theme,
-                                          theme.brightness == Brightness.dark,
-                                        ),
-                                      if (_questions[_currentQuestionIndex]['option6'] !=
-                                              null &&
-                                          _questions[_currentQuestionIndex]['option6']
-                                              .toString()
-                                              .isNotEmpty)
-                                        _buildOption(
-                                          6,
-                                          _questions[_currentQuestionIndex]['option6'],
-                                          theme,
-                                          theme.brightness == Brightness.dark,
-                                        ),
-                                    ],
-                                  ),
-                                )
-                              else
-                                Expanded(
-                                  child: TextField(
-                                    controller: _answerController,
-                                    maxLines: 10,
-                                    decoration: InputDecoration(
-                                      hintText: "Type your answer here...",
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide(
-                                          color: theme.dividerColor,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      // Bottom Actions
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        color: cardColor,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            TextButton.icon(
-                              onPressed: _currentQuestionIndex > 0
-                                  ? _prevQuestion
-                                  : null,
-                              icon: const Icon(Icons.arrow_back),
-                              label: const Text("Previous"),
-                            ),
-                            ElevatedButton(
-                              onPressed: () =>
-                                  _saveCurrentAnswer(isReview: true),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orange,
-                                foregroundColor: Colors.white,
-                              ),
-                              child: const Text("Mark for Review"),
-                            ),
-                            ElevatedButton.icon(
-                              onPressed: _nextQuestion,
-                              icon: Icon(
-                                _currentQuestionIndex == _questions.length - 1
-                                    ? Icons.check
-                                    : Icons.arrow_forward,
-                              ),
-                              label: Text(
-                                _currentQuestionIndex == _questions.length - 1
-                                    ? "Finish"
-                                    : "Next",
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 12,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-          );
-        },
-      ),
     );
   }
 
@@ -617,8 +596,6 @@ class _ExamWritingPageState extends State<ExamWritingPage> {
   Widget _buildOption(
     int index,
     dynamic content,
-    ThemeData theme,
-    bool isDark,
   ) {
     if (content == null || content.toString().trim().isEmpty)
       return const SizedBox.shrink();
@@ -638,10 +615,10 @@ class _ExamWritingPageState extends State<ExamWritingPage> {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.blue.withOpacity(0.1) : theme.cardColor,
+            color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? Colors.blue : theme.dividerColor,
+              color: isSelected ? Colors.blue : const Color(0xFFE2E8F0),
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -670,11 +647,11 @@ class _ExamWritingPageState extends State<ExamWritingPage> {
               Expanded(
                 child: Text(
                   strippedContent,
-                  style: TextStyle(
+                   style: TextStyle(
                     fontSize: 16,
                     color: isSelected
-                        ? (isDark ? Colors.white : Colors.blue.shade900)
-                        : theme.textTheme.bodyLarge?.color,
+                        ? Colors.blue.shade900
+                        : const Color(0xFF1E293B),
                   ),
                 ),
               ),
@@ -697,7 +674,7 @@ class _ExamWritingPageState extends State<ExamWritingPage> {
           child: Container(
             constraints: const BoxConstraints(maxWidth: 500),
             decoration: BoxDecoration(
-              color: isDark ? theme.cardColor : Colors.white,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Padding(

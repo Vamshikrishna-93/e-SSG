@@ -27,8 +27,10 @@ class _OnlineExamCardState extends State<OnlineExamCard> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    const textColor = Color(0xFF1E293B);
+    const secondaryTextColor = Color(0xFF64748B);
+    const dividerColor = Color(0xFFE2E8F0);
+    const primaryColor = Color(0xFF007BFF);
 
     final bool isCompleted = widget.exam.progress == 100;
 
@@ -48,7 +50,7 @@ class _OnlineExamCardState extends State<OnlineExamCard> {
       // Exam done → View Result
       buttonLabel = "View Result";
       buttonIcon = Icons.bar_chart;
-      buttonColor = theme.colorScheme.primary;
+      buttonColor = primaryColor;
       usePrimaryStyle = false;
     } else if (showStartExam) {
       // Exam today & not completed → Start Exam
@@ -60,14 +62,14 @@ class _OnlineExamCardState extends State<OnlineExamCard> {
       // No exam today → View Result
       buttonLabel = "View Result";
       buttonIcon = Icons.bar_chart;
-      buttonColor = theme.colorScheme.primary;
+      buttonColor = primaryColor;
       usePrimaryStyle = false;
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: theme.dividerColor)),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: dividerColor)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,14 +81,17 @@ class _OnlineExamCardState extends State<OnlineExamCard> {
               children: [
                 Text(
                   widget.exam.title,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
-                    color: theme.textTheme.bodyLarge?.color,
+                    color: textColor,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(widget.exam.board, style: theme.textTheme.bodySmall),
+                Text(
+                  widget.exam.board,
+                  style: const TextStyle(fontSize: 12, color: secondaryTextColor),
+                ),
                 const SizedBox(height: 8),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -94,8 +99,8 @@ class _OnlineExamCardState extends State<OnlineExamCard> {
                     children: [
                       OnlineBadge(
                         label: "Online",
-                        bgColor: theme.colorScheme.primary.withOpacity(0.1),
-                        textColor: theme.colorScheme.primary,
+                        bgColor: primaryColor.withOpacity(0.1),
+                        textColor: primaryColor,
                         icon: Icons.computer,
                       ),
                       const SizedBox(width: 6),
@@ -103,18 +108,14 @@ class _OnlineExamCardState extends State<OnlineExamCard> {
                         OnlineBadge(
                           label: "Proctored",
                           bgColor: Colors.green.withOpacity(0.1),
-                          textColor: isDark
-                              ? Colors.green.shade300
-                              : const Color(0xFF22C55E),
+                          textColor: const Color(0xFF22C55E),
                         ),
                       const SizedBox(width: 6),
                       if (isCompleted)
                         OnlineBadge(
                           label: "Completed",
                           bgColor: Colors.green.withOpacity(0.1),
-                          textColor: isDark
-                              ? Colors.green.shade300
-                              : const Color(0xFF22C55E),
+                          textColor: const Color(0xFF22C55E),
                         ),
                     ],
                   ),
@@ -122,10 +123,8 @@ class _OnlineExamCardState extends State<OnlineExamCard> {
                 const SizedBox(height: 6),
                 Text(
                   "Exam ID: ${widget.exam.id}",
-                  style: TextStyle(
-                    color: isDark
-                        ? Colors.pinkAccent.shade100
-                        : const Color(0xFFEC4899),
+                  style: const TextStyle(
+                    color: Color(0xFFEC4899),
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
                   ),
@@ -162,17 +161,17 @@ class _OnlineExamCardState extends State<OnlineExamCard> {
               children: [
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.calendar_today_outlined,
                       size: 14,
-                      color: theme.textTheme.bodySmall?.color,
+                      color: secondaryTextColor,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       widget.exam.date,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
-                        color: theme.textTheme.bodyMedium?.color,
+                        color: textColor,
                       ),
                     ),
                   ],
@@ -180,17 +179,17 @@ class _OnlineExamCardState extends State<OnlineExamCard> {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.access_time,
                       size: 14,
-                      color: theme.textTheme.bodySmall?.color,
+                      color: secondaryTextColor,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       widget.exam.time,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
-                        color: theme.textTheme.bodyMedium?.color,
+                        color: textColor,
                       ),
                     ),
                   ],
@@ -198,9 +197,9 @@ class _OnlineExamCardState extends State<OnlineExamCard> {
                 const SizedBox(height: 4),
                 Text(
                   "Platform: ${widget.exam.platform ?? 'Online Portal'}",
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 11,
-                    color: theme.textTheme.bodySmall?.color,
+                    color: secondaryTextColor,
                   ),
                 ),
               ],
@@ -418,35 +417,6 @@ class _OnlineExamCardState extends State<OnlineExamCard> {
                     ],
                   ),
                 const SizedBox(height: 8),
-                // Commented out Details button as requested
-                /*
-                OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            ExamWeekendDetails(examId: widget.exam.id),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.description_outlined, size: 14),
-                  label: const Text("Details"),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.textTheme.bodyLarge?.color,
-                    side: BorderSide(color: theme.dividerColor),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    minimumSize: const Size(double.infinity, 32),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    textStyle: const TextStyle(fontSize: 11),
-                  ),
-                ),
-                */
               ],
             ),
           ),
@@ -454,4 +424,5 @@ class _OnlineExamCardState extends State<OnlineExamCard> {
       ),
     );
   }
+
 }

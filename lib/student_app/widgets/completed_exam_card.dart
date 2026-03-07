@@ -18,13 +18,15 @@ class CompletedExamCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    const primaryColor = Color(0xFF007BFF);
+    const textColor = Color(0xFF1E293B);
+    const secondaryTextColor = Color(0xFF64748B);
+    const dividerColor = Color(0xFFE2E8F0);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: theme.dividerColor)),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: dividerColor)),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -43,32 +45,26 @@ class CompletedExamCard extends StatelessWidget {
                   children: [
                     Text(
                       exam.title,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
-                        color: theme.textTheme.bodyLarge?.color,
+                        color: textColor,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    RichText(
-                      text: TextSpan(
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontSize: 11,
-                        ),
-                        children: [
-                          TextSpan(text: exam.board),
-                          const TextSpan(text: " • Online"),
-                        ],
+                    Text(
+                      "${exam.board} • Online",
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: secondaryTextColor,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    // Exam ID in pink/red
+                    // Exam ID in pink
                     Text(
                       "Exam ID: ${exam.id}",
-                      style: TextStyle(
-                        color: isDark
-                            ? Colors.pinkAccent.shade100
-                            : Colors.pink[300],
+                      style: const TextStyle(
+                        color: Color(0xFFF06292), // Pink 300 equivalent
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
@@ -83,10 +79,10 @@ class CompletedExamCard extends StatelessWidget {
                 width: 60,
                 child: Text(
                   exam.marks ?? "-",
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
-                    color: theme.textTheme.bodyLarge?.color,
+                    color: textColor,
                   ),
                 ),
               ),
@@ -97,8 +93,8 @@ class CompletedExamCard extends StatelessWidget {
                 width: 80,
                 child: Text(
                   exam.percentage ?? "-",
-                  style: TextStyle(
-                    color: theme.colorScheme.primary,
+                  style: const TextStyle(
+                    color: primaryColor,
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                   ),
@@ -123,10 +119,8 @@ class CompletedExamCard extends StatelessWidget {
                       ),
                       child: Text(
                         exam.grade ?? "-",
-                        style: TextStyle(
-                          color: isDark
-                              ? Colors.amber.shade200
-                              : Colors.amber.shade800,
+                        style: const TextStyle(
+                          color: Color(0xFFB45309), // Amber 800 equivalent
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -145,10 +139,8 @@ class CompletedExamCard extends StatelessWidget {
                       ),
                       child: Text(
                         "Rank: ${exam.rank ?? 'N/A'}",
-                        style: TextStyle(
-                          color: isDark
-                              ? Colors.cyan.shade200
-                              : Colors.cyan.shade800,
+                        style: const TextStyle(
+                          color: Color(0xFF155E75), // Cyan 800 equivalent
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
                         ),
@@ -175,10 +167,8 @@ class CompletedExamCard extends StatelessWidget {
                     ),
                     child: Text(
                       exam.performance ?? "Good",
-                      style: TextStyle(
-                        color: isDark
-                            ? Colors.orange.shade200
-                            : Colors.orange.shade800,
+                      style: const TextStyle(
+                        color: Color(0xFF9A3412), // Orange 800 equivalent
                         fontSize: 11,
                       ),
                     ),
@@ -208,22 +198,22 @@ class CompletedExamCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: theme.dividerColor),
+                            border: Border.all(color: dividerColor),
                           ),
-                          child: Row(
+                          child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
                                 Icons.bar_chart,
                                 size: 14,
-                                color: theme.textTheme.bodyLarge?.color,
+                                color: textColor,
                               ),
-                              const SizedBox(width: 4),
+                              SizedBox(width: 4),
                               Text(
                                 "Marks",
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: theme.textTheme.bodyLarge?.color,
+                                  color: textColor,
                                 ),
                               ),
                             ],
@@ -240,7 +230,7 @@ class CompletedExamCard extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 7),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.primary,
+                            color: primaryColor,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           alignment: Alignment.center,
@@ -327,22 +317,22 @@ class CompletedExamCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: theme.dividerColor),
+                            border: Border.all(color: dividerColor),
                           ),
-                          child: Row(
+                          child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
                                 Icons.download,
                                 size: 14,
-                                color: theme.textTheme.bodyLarge?.color,
+                                color: textColor,
                               ),
-                              const SizedBox(width: 4),
+                              SizedBox(width: 4),
                               Text(
                                 "Download",
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: theme.textTheme.bodyLarge?.color,
+                                  color: textColor,
                                 ),
                               ),
                             ],
@@ -359,4 +349,5 @@ class CompletedExamCard extends StatelessWidget {
       ),
     );
   }
+
 }

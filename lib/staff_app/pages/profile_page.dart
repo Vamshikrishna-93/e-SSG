@@ -91,7 +91,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         IconButton(
                           onPressed: () => Get.back(),
                           icon: const Icon(
-                            Icons.account_box_outlined,
+                            Icons.account_circle_rounded,
                             color: Colors.white,
                             size: 28,
                           ),
@@ -101,19 +101,17 @@ class _ProfilePageState extends State<ProfilePage> {
                           "Profile",
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 24,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 100),
-                  Padding(padding: EdgeInsets.all(20)),
 
                   // 2. Profile Card (Overlapping)
                   Positioned(
-                    top: 100,
+                    top: 170,
                     left: 20,
                     right: 20,
                     child: Container(
@@ -150,15 +148,22 @@ class _ProfilePageState extends State<ProfilePage> {
 
                   // 3. Circular Avatar (Overlapping Card)
                   Positioned(
-                    top: 45,
+                    top: 120,
                     left: 0,
                     right: 0,
                     child: Center(
                       child: Container(
                         padding: const EdgeInsets.all(3),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
                         child: CircleAvatar(
                           radius: 50,
@@ -193,7 +198,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
 
               // Spacer to handle the overlap
-              const SizedBox(height: 170),
+              const SizedBox(height: 250),
 
               // 4. Action List
               Padding(
@@ -341,7 +346,7 @@ class _ProfilePageState extends State<ProfilePage> {
       child: RichText(
         textAlign: TextAlign.center,
         text: TextSpan(
-          style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+          style: const TextStyle(fontSize: 14, color: Color(0xFF4B5563)),
           children: [
             TextSpan(
               text: "$label ",

@@ -29,6 +29,7 @@ class AddHostelAttendancePage extends StatefulWidget {
 
 class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
   final HostelController hostelCtrl = Get.find<HostelController>();
+  final BranchController branchCtrl = Get.put(BranchController());
   final Map<int, String> attendanceStatus = {};
   String selectedDate = DateTime.now().toIso8601String().split('T')[0];
 
@@ -50,10 +51,11 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
   }
 
   Future<void> _getStudents() async {
+    final roomId = hostelCtrl.getRoomIdFromName(widget.room ?? '101');
     await hostelCtrl.loadRoomStudents(
       shift: '1',
       date: selectedDate,
-      roomId: widget.room ?? '101',
+      roomId: roomId,
     );
 
     for (final student in hostelCtrl.roomStudents) {
@@ -65,6 +67,11 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
   Future<void> _submitAttendance() async {
     final List<int> sids = [];
     final List<String> statuses = [];
+
+    if (hostelCtrl.roomStudents.isEmpty) {
+      Get.snackbar('Info', 'No students to submit attendance for');
+      return;
+    }
 
     for (final student in hostelCtrl.roomStudents) {
       sids.add(student.sid);
@@ -95,26 +102,27 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
       statuses.add(statusCode);
     }
 
-    final BranchController branchCtrl = Get.put(BranchController());
     if (branchCtrl.branches.isEmpty) await branchCtrl.loadBranches();
 
-    final branchName = widget.branch ?? 'SSJC-VIDHYA BHAVAN';
+    final branchName = widget.branch ?? hostelCtrl.activeBranch.value;
     final branchObj = branchCtrl.branches.firstWhereOrNull(
-      (b) => b.branchName == branchName,
+      (b) => b.branchName == branchName || b.id.toString() == branchName,
     );
-    final String branchId = branchObj?.id.toString() ?? '1';
+    final String branchId = branchObj?.id.toString() ?? branchName;
 
     if (hostelCtrl.hostels.isEmpty && branchObj != null) {
       await hostelCtrl.loadHostelsByBranch(branchObj.id);
     }
 
-    final hostelName = widget.hostel ?? 'VIDHYA BHAVAN';
+    final hostelName = widget.hostel ?? hostelCtrl.activeHostel.value;
     final hostelObj = hostelCtrl.hostels.firstWhereOrNull(
-      (h) => h.buildingName == hostelName,
+      (h) => h.buildingName == hostelName || h.id.toString() == hostelName,
     );
-    final String hostelId = hostelObj?.id.toString() ?? '1';
+    final String hostelId = hostelObj?.id.toString() ?? hostelName;
 
-    final floorId = hostelCtrl.getFloorIdFromName(widget.floor ?? '1-FLOOR');
+    final floorId = hostelCtrl.getFloorIdFromName(
+      widget.floor ?? hostelCtrl.activeFloor.value,
+    );
     final roomId = hostelCtrl.getRoomIdFromName(widget.room ?? '101');
 
     final success = await hostelCtrl.submitAttendance(
@@ -277,17 +285,39 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
       ),
       child: Column(
         children: [
-          _summaryRow("Branch", widget.branch ?? 'SSJC-VIDHYA BHAVAN'),
+          _summaryRow(
+            "Branch",
+            widget.branch ??
+                (hostelCtrl.activeBranch.value.isEmpty
+                    ? 'SSJC-VIDHYA BHAVAN'
+                    : hostelCtrl.activeBranch.value),
+          ),
           const SizedBox(height: 8),
-          _summaryRow("Hostel", widget.hostel ?? 'VIDHYA BHAVAN'),
+          _summaryRow(
+            "Hostel",
+            widget.hostel ??
+                (hostelCtrl.activeHostel.value.isEmpty
+                    ? 'VIDHYA BHAVAN'
+                    : hostelCtrl.activeHostel.value),
+          ),
           const SizedBox(height: 8),
-          _summaryRow("Floor", widget.floor ?? '1-FLOOR'),
+          _summaryRow(
+            "Floor",
+            widget.floor ??
+                (hostelCtrl.activeFloor.value.isEmpty
+                    ? '1-FLOOR'
+                    : hostelCtrl.activeFloor.value),
+          ),
           const SizedBox(height: 8),
           _summaryRow("Room", widget.room ?? '101'),
           const SizedBox(height: 8),
           _summaryRow(
             "Date",
-            selectedDate.isEmpty ? '2026-02-28' : selectedDate,
+            selectedDate.isEmpty
+                ? (hostelCtrl.activeDate.value.isEmpty
+                      ? '2026-02-28'
+                      : hostelCtrl.activeDate.value)
+                : selectedDate,
           ),
         ],
       ),

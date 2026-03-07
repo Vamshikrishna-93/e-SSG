@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:student_app/student_app/model/exam_item.dart';
 import 'package:student_app/student_app/services/exams_service.dart';
-import 'package:student_app/theme_controllers.dart';
 
 class ExamWeekendDetails extends StatefulWidget {
   final String examId;
@@ -83,17 +82,9 @@ class _ExamWeekendDetailsState extends State<ExamWeekendDetails> {
 
     // Loading state
     if (_isLoading) {
-      return ThemeControllerWrapper(
-        themeController: StudentThemeController.themeMode,
-        child: Builder(
-          builder: (context) {
-            final theme = Theme.of(context);
-            return Scaffold(
-              backgroundColor: theme.scaffoldBackgroundColor,
-              body: const Center(child: CircularProgressIndicator()),
-            );
-          },
-        ),
+      return const Scaffold(
+        backgroundColor: Color(0xFFF8FAFC),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -103,53 +94,45 @@ class _ExamWeekendDetailsState extends State<ExamWeekendDetails> {
 
     // Error state - only show if we have no data at all
     if (_errorMessage != null && !hasLocalData) {
-      return ThemeControllerWrapper(
-        themeController: StudentThemeController.themeMode,
-        child: Builder(
-          builder: (context) {
-            final theme = Theme.of(context);
-            return Scaffold(
-              backgroundColor: theme.scaffoldBackgroundColor,
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      color: Colors.red,
-                      size: 48,
-                    ),
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Text(
-                        "Failed to load exam details.\n$_errorMessage",
-                        style: const TextStyle(color: Colors.red),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _isLoading = true;
-                          _errorMessage = null;
-                        });
-                        _fetchExamDetails();
-                      },
-                      icon: const Icon(Icons.refresh),
-                      label: const Text("Retry"),
-                    ),
-                    const SizedBox(height: 8),
-                    OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text("Go Back"),
-                    ),
-                  ],
+      return Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                color: Colors.red,
+                size: 48,
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  "Failed to load exam details.\n$_errorMessage",
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
                 ),
               ),
-            );
-          },
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _isLoading = true;
+                    _errorMessage = null;
+                  });
+                  _fetchExamDetails();
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text("Retry"),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Go Back"),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -189,240 +172,226 @@ class _ExamWeekendDetailsState extends State<ExamWeekendDetails> {
     );
     final isProctored = _localExam?.isProctored ?? false;
 
-    return ThemeControllerWrapper(
-      themeController: StudentThemeController.themeMode,
-      child: Builder(
-        builder: (context) {
-          final theme = Theme.of(context);
-          final colorScheme = theme.colorScheme;
-          return Scaffold(
-            backgroundColor: theme.scaffoldBackgroundColor,
-            body: Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isMobile ? 12 : 32,
-                  vertical: isMobile ? 20 : 40,
-                ),
-                child: Material(
-                  elevation: 24,
-                  shadowColor: Colors.black.withOpacity(0.45),
-                  borderRadius: BorderRadius.circular(14),
-                  color: colorScheme.surface,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: 900,
-                      maxHeight: MediaQuery.of(context).size.height * 0.9,
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 12 : 32,
+            vertical: isMobile ? 20 : 40,
+          ),
+          child: Material(
+            elevation: 24,
+            shadowColor: Colors.black.withOpacity(0.45),
+            borderRadius: BorderRadius.circular(14),
+            color: Colors.white,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: 900,
+                maxHeight: MediaQuery.of(context).size.height * 0.9,
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// BACK + HEADER
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Color(0xFF1E293B),
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                          tooltip: "Back",
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Details: $examName',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1E293B),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        InkWell(
+                          borderRadius: BorderRadius.circular(20),
+                          onTap: () => Navigator.pop(context),
+                          child: Icon(
+                            Icons.close,
+                            size: 20,
+                            color: const Color(0xFF1E293B).withOpacity(0.6),
+                          ),
+                        ),
+                      ],
                     ),
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+
+                    const SizedBox(height: 20),
+
+                    /// TAB
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Details',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF2563EB),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          width: 50,
+                          height: 2,
+                          color: const Color(0xFF2563EB),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Show warning if using local data only
+                    if (!hasApiData && hasLocalData)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withOpacity(0.1),
+                          border: Border.all(
+                            color: Colors.amber.withOpacity(0.3),
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: Colors.amber.shade700,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            const Expanded(
+                              child: Text(
+                                "Showing cached data. Some details may not be available.",
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    /// DETAILS TABLE
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          /// BACK + HEADER
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  Icons.arrow_back,
-                                  color: colorScheme.onSurface,
-                                ),
-                                onPressed: () => Navigator.pop(context),
-                                tooltip: "Back",
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Details: $examName',
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: colorScheme.onSurface,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              InkWell(
-                                borderRadius: BorderRadius.circular(20),
-                                onTap: () => Navigator.pop(context),
-                                child: Icon(
-                                  Icons.close,
-                                  size: 20,
-                                  color: colorScheme.onSurface.withOpacity(0.6),
-                                ),
-                              ),
-                            ],
+                          if (studentName != 'N/A') ...[
+                            _row('Student Name', studentName),
+                            _divider(),
+                          ],
+                          if (hallticket != 'N/A') ...[
+                            _row('Hall Ticket', hallticket),
+                            _divider(),
+                          ],
+                          if (branch != 'N/A') ...[
+                            _row('Branch', branch),
+                            _divider(),
+                          ],
+                          if (group != 'N/A') ...[
+                            _row('Group', group),
+                            _divider(),
+                          ],
+                          _row('Exam Name', examName),
+                          _divider(),
+                          _row(
+                            'Exam ID',
+                            examId,
+                            valueColor: const Color(0xFFEC4899),
                           ),
-
-                          const SizedBox(height: 20),
-
-                          /// TAB
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Details',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Container(
-                                width: 50,
-                                height: 2,
-                                color: colorScheme.primary,
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Show warning if using local data only
-                          if (!hasApiData && hasLocalData)
-                            Container(
-                              margin: const EdgeInsets.only(bottom: 16),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.amber.withOpacity(0.1),
-                                border: Border.all(
-                                  color: Colors.amber.withOpacity(0.3),
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.info_outline,
-                                    color: Colors.amber.shade700,
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Expanded(
-                                    child: Text(
-                                      "Showing cached data. Some details may not be available.",
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          if (examDate != 'N/A') ...[
+                            _divider(),
+                            _row('Date', examDate),
+                          ],
+                          if (examTime != 'N/A') ...[
+                            _divider(),
+                            _row('Time', examTime),
+                          ],
+                          if (duration != 'N/A') ...[
+                            _divider(),
+                            _row('Duration', duration),
+                          ],
+                          if (totalQuestions != 'N/A') ...[
+                            _divider(),
+                            _row(
+                              'Total Questions',
+                              totalQuestions,
                             ),
-
-                          /// DETAILS TABLE
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: theme.dividerColor),
-                            ),
-                            child: Column(
-                              children: [
-                                if (studentName != 'N/A') ...[
-                                  _row(theme, 'Student Name', studentName),
-                                  _divider(theme),
-                                ],
-                                if (hallticket != 'N/A') ...[
-                                  _row(theme, 'Hall Ticket', hallticket),
-                                  _divider(theme),
-                                ],
-                                if (branch != 'N/A') ...[
-                                  _row(theme, 'Branch', branch),
-                                  _divider(theme),
-                                ],
-                                if (group != 'N/A') ...[
-                                  _row(theme, 'Group', group),
-                                  _divider(theme),
-                                ],
-                                _row(theme, 'Exam Name', examName),
-                                _divider(theme),
-                                _row(
-                                  theme,
-                                  'Exam ID',
-                                  examId,
-                                  valueColor: const Color(0xFFEC4899),
-                                ),
-                                if (examDate != 'N/A') ...[
-                                  _divider(theme),
-                                  _row(theme, 'Date', examDate),
-                                ],
-                                if (examTime != 'N/A') ...[
-                                  _divider(theme),
-                                  _row(theme, 'Time', examTime),
-                                ],
-                                if (duration != 'N/A') ...[
-                                  _divider(theme),
-                                  _row(theme, 'Duration', duration),
-                                ],
-                                if (totalQuestions != 'N/A') ...[
-                                  _divider(theme),
-                                  _row(
-                                    theme,
-                                    'Total Questions',
-                                    totalQuestions,
-                                  ),
-                                ],
-                                if (totalMarks != 'N/A') ...[
-                                  _divider(theme),
-                                  _row(theme, 'Total Marks', totalMarks),
-                                ],
-                                if (platform != 'N/A') ...[
-                                  _divider(theme),
-                                  _row(theme, 'Platform', platform),
-                                ],
-                                if (examType != 'N/A') ...[
-                                  _divider(theme),
-                                  _row(theme, 'Exam Type', examType),
-                                ],
-                                if (isProctored) ...[
-                                  _divider(theme),
-                                  _row(theme, 'Proctored', 'Yes', badge: true),
-                                ],
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 28),
-
-                          /// INSTRUCTIONS
-                          Text(
-                            'Instructions:',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-
-                          _bullet(
-                            theme,
-                            'Webcam must be enabled throughout the exam',
-                          ),
-                          _bullet(theme, 'Stable internet connection required'),
-                          _bullet(theme, 'No external assistance allowed'),
-                          _bullet(
-                            theme,
-                            'Time limits will be strictly enforced',
-                          ),
+                          ],
+                          if (totalMarks != 'N/A') ...[
+                            _divider(),
+                            _row('Total Marks', totalMarks),
+                          ],
+                          if (platform != 'N/A') ...[
+                            _divider(),
+                            _row('Platform', platform),
+                          ],
+                          if (examType != 'N/A') ...[
+                            _divider(),
+                            _row('Exam Type', examType),
+                          ],
+                          if (isProctored) ...[
+                            _divider(),
+                            _row('Proctored', 'Yes', badge: true),
+                          ],
                         ],
                       ),
                     ),
-                  ),
+
+                    const SizedBox(height: 28),
+
+                    /// INSTRUCTIONS
+                    const Text(
+                      'Instructions:',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    _bullet(
+                      'Webcam must be enabled throughout the exam',
+                    ),
+                    _bullet('Stable internet connection required'),
+                    _bullet('No external assistance allowed'),
+                    _bullet(
+                      'Time limits will be strictly enforced',
+                    ),
+                  ],
                 ),
               ),
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
-
   /// TABLE ROW
   static Widget _row(
-    ThemeData theme,
     String label,
     String value, {
     Color? valueColor,
     bool badge = false,
   }) {
-    final colorScheme = theme.colorScheme;
-
     return SizedBox(
       height: 56,
       child: Row(
@@ -433,13 +402,14 @@ class _ExamWeekendDetailsState extends State<ExamWeekendDetails> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 label,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.7),
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF64748B),
                 ),
               ),
             ),
           ),
-          Container(width: 1, color: theme.dividerColor),
+          Container(width: 1, color: const Color(0xFFE2E8F0)),
           Expanded(
             flex: 5,
             child: Padding(
@@ -451,9 +421,7 @@ class _ExamWeekendDetailsState extends State<ExamWeekendDetails> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: theme.brightness == Brightness.dark
-                            ? const Color(0xFF16A34A).withOpacity(0.2)
-                            : const Color(0xFFF0FDF4),
+                        color: const Color(0xFFF0FDF4),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -467,9 +435,10 @@ class _ExamWeekendDetailsState extends State<ExamWeekendDetails> {
                     )
                   : Text(
                       value,
-                      style: theme.textTheme.bodyMedium?.copyWith(
+                      style: TextStyle(
+                        fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: valueColor ?? colorScheme.onSurface,
+                        color: valueColor ?? const Color(0xFF1E293B),
                       ),
                     ),
             ),
@@ -479,18 +448,23 @@ class _ExamWeekendDetailsState extends State<ExamWeekendDetails> {
     );
   }
 
-  static Widget _divider(ThemeData theme) {
-    return Divider(height: 1, thickness: 1, color: theme.dividerColor);
+  static Widget _divider() {
+    return const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0));
   }
 
-  static Widget _bullet(ThemeData theme, String text) {
+  static Widget _bullet(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('•  ', style: TextStyle(fontSize: 18)),
-          Expanded(child: Text(text, style: theme.textTheme.bodyMedium)),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
+            ),
+          ),
         ],
       ),
     );

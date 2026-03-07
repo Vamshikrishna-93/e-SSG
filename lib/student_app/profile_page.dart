@@ -1,14 +1,13 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
+
 import 'package:student_app/student_app/model/student_profile.dart';
 import 'package:student_app/student_app/services/student_profile_service.dart';
-import 'package:student_app/student_app/student_app_bar.dart';
-import 'package:student_app/student_app/theme/student_theme.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:student_app/student_app/change_password_page.dart';
-import 'package:student_app/theme_controllers.dart';
+import 'package:student_app/student_app/edit_profile_page.dart';
+import 'package:student_app/student_app/widgets/loading_animation.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -18,40 +17,27 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  bool _isEditMode = false;
   bool _isLoading = true;
-  String _activeSection = '';
-  String _activeEditSection = '';
-  bool _showChangePassword = false; // Toggle for change password view
+  StudentProfile? _profile;
 
   // Mutable Data Lists
   List<Map<String, dynamic>> _personalData = [
-    {
-      "label": "First Name",
-      "value": "N/A",
-      "key": "first_name",
-      "required": true,
-    },
+    {"label": "First Name", "value": "N/A", "key": "sfname", "required": true},
+    {"label": "Last Name", "value": "N/A", "key": "slname", "required": true},
     {
       "label": "Father's Name",
       "value": "N/A",
-      "key": "father_name",
+      "key": "fname",
       "required": true,
     },
     {
-      "label": "Last Name",
+      "label": "Mother;s Name", // Replicated exact typo from the design image
       "value": "N/A",
-      "key": "last_name",
-      "required": true,
-    },
-    {
-      "label": "Mother's Name",
-      "value": "N/A",
-      "key": "mother_name",
+      "key": "mname",
       "required": true,
     },
     {"label": "Date of Birth", "value": "N/A", "key": "dob"},
-    {"label": "Aadhar Number", "value": "N/A", "key": "aadhar"},
+    {"label": "Aadhar Number", "value": "N/A", "key": "aadharno"},
     {"label": "Gender", "value": "N/A", "key": "gender"},
     {"label": "Nationality", "value": "N/A", "key": "nationality"},
     {"label": "Caste", "value": "N/A", "key": "caste"},
@@ -62,30 +48,29 @@ class _ProfilePageState extends State<ProfilePage> {
 
   List<Map<String, dynamic>> _contactData = [
     {"label": "Mandal", "value": "N/A", "key": "mandal"},
-    {"label": "Mother's Mobile", "value": "N/A", "key": "mothers_mobile"},
+    {"label": "Mother's Mobile", "value": "N/A", "key": "amobile"},
     {"label": "Village/Town", "value": "N/A", "key": "village"},
     {"label": "Proctor ID", "value": "N/A", "key": "proctor_id"},
-    {"label": "Address", "value": "N/A", "key": "address", "isLarge": true},
+    {"label": "Address", "value": "N/A", "key": "address"},
     {"label": "Proctor Phone", "value": "N/A", "key": "proctor_phone"},
     {
       "label": "Father's Mobile",
       "value": "N/A",
-      "key": "fathers_mobile",
+      "key": "pmobile",
       "required": true,
     },
-    {"label": "LSM", "value": "N/A", "key": "lsm"},
+    {"label": "Lsm", "value": "N/A", "key": "lsm"},
   ];
 
   List<Map<String, dynamic>> _academicData = [
     {"label": "10th GPA/Percentage", "value": "N/A", "key": "gpa"},
     {"label": "Religion", "value": "N/A", "key": "religion_academic"},
-    {"label": "Last School", "value": "N/A", "key": "last_school"},
+    {"label": "Last School", "value": "N/A", "key": "lastschool"},
     {"label": "Comments", "value": "", "key": "comments", "isLarge": true},
     {
       "label": "Last School Address",
       "value": "N/A",
-      "key": "last_school_address",
-      "isLarge": true,
+      "key": "lastschooladdress",
     },
     {"label": "Branch ID", "value": "N/A", "key": "branch_id"},
     {"label": "Group ID", "value": "N/A", "key": "group_id"},
@@ -101,35 +86,34 @@ class _ProfilePageState extends State<ProfilePage> {
       "label": "Fee Status",
       "value": "N/A",
       "isBadge": true,
-      "color": Colors.orange,
+      "color": Color(0xFFFFA000),
     },
     {"label": "Admission Date", "value": "N/A"},
     {
       "label": "Admission Status",
       "value": "N/A",
       "isBadge": true,
-      "color": Colors.green,
+      "color": Color(0xFF4CAF50),
     },
     {"label": "Join Date", "value": "N/A"},
     {
       "label": "Application Status",
       "value": "N/A",
       "isBadge": true,
-      "color": Colors.green,
+      "color": Color(0xFF4CAF50),
     },
     {"label": "Actual Fee", "value": "₹0"},
     {
       "label": "Student Status",
       "value": "N/A",
       "isBadge": true,
-      "color": Colors.green,
+      "color": Color(0xFF4CAF50),
     },
     {"label": "Admission Type", "value": "N/A"},
   ];
 
   String _displayName = "Loading...";
   String _displayAdmissionNo = "-";
-  String _displayCampus = "-";
 
   @override
   void initState() {
@@ -150,6 +134,7 @@ class _ProfilePageState extends State<ProfilePage> {
             if (_displayName.isEmpty) _displayName = "Student";
             _displayAdmissionNo = profile.admno ?? "240018";
 
+            _profile = profile;
             _updateFromModel(profile);
             _isLoading = false;
           });
@@ -174,8 +159,8 @@ class _ProfilePageState extends State<ProfilePage> {
   void _updateFromModel(StudentProfile p) {
     // Personal Data
     _personalData[0]['value'] = p.sfname ?? 'N/A';
-    _personalData[1]['value'] = p.fname ?? 'N/A';
-    _personalData[2]['value'] = p.slname ?? 'N/A';
+    _personalData[1]['value'] = p.slname ?? 'N/A';
+    _personalData[2]['value'] = p.fname ?? 'N/A';
     _personalData[3]['value'] = p.mname ?? 'N/A';
     _personalData[4]['value'] = p.dob ?? 'N/A';
     _personalData[5]['value'] = p.aadharno ?? 'N/A';
@@ -215,54 +200,17 @@ class _ProfilePageState extends State<ProfilePage> {
     _academicData[8]['value'] = p.courseId?.toString() ?? 'N/A';
   }
 
-  void _cancelEdit() {
-    setState(() {
-      _isEditMode = false;
-      _activeEditSection = '';
-    });
-  }
-
-  void _saveChanges(String section, Map<String, String> updatedValues) {
-    setState(() {
-      List<Map<String, dynamic>> targetList;
-      if (section == 'Personal')
-        targetList = _personalData;
-      else if (section == 'Contact')
-        targetList = _contactData;
-      else
-        targetList = _academicData;
-
-      for (var item in targetList) {
-        final key = item['key'];
-        if (updatedValues.containsKey(key)) {
-          item['value'] = updatedValues[key];
-        }
-      }
-
-      _isEditMode = false;
-      _activeEditSection = '';
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Profile updated locally"),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
   Future<void> _pickAndUploadImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
     if (image != null) {
-      setState(() => _isLoading = true);
+      if (mounted) setState(() => _isLoading = true);
       try {
         final success = await StudentProfileService.uploadProfileImage(
           File(image.path),
         );
         if (success) {
-          // Re-fetch profile to get the new image URL
           await _fetchProfileData();
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -296,363 +244,566 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return ThemeControllerWrapper(
-      themeController: StudentThemeController.themeMode,
-      child: Builder(
-        builder: (context) {
-          final theme = Theme.of(context);
-          final isDark = theme.brightness == Brightness.dark;
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: StudentLoadingAnimation()));
+    }
 
-          if (_isLoading) {
-            return Scaffold(
-              backgroundColor: theme.scaffoldBackgroundColor,
-              appBar: const StudentAppBar(title: "", showLeading: true),
-              body: const Center(child: CircularProgressIndicator()),
-            );
-          }
-
-          return Scaffold(
-            backgroundColor: theme.scaffoldBackgroundColor,
-            appBar: const StudentAppBar(title: "Profile", showLeading: true),
-            body: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Center(
-                child: Column(
-                  children: [
-                    // MAIN CARD (Avatar + Menu Buttons)
-                    Container(
-                      constraints: const BoxConstraints(maxWidth: 500),
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: theme.cardColor,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: StudentTheme.containerBorderColor(context),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(
-                              isDark ? 0.3 : 0.05,
-                            ),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Stack(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: isDark
-                                        ? Colors.grey.shade700
-                                        : Colors.white,
-                                    width: 4,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 8,
-                                    ),
-                                  ],
-                                ),
-                                child: ValueListenableBuilder<String?>(
-                                  valueListenable:
-                                      StudentProfileService.profileImageUrl,
-                                  builder: (context, imageUrl, _) {
-                                    final isBase64 =
-                                        imageUrl != null &&
-                                        imageUrl.startsWith('data:image');
-                                    return CircleAvatar(
-                                      radius: 50,
-                                      backgroundColor: isDark
-                                          ? Colors.grey.shade800
-                                          : Colors.grey.shade200,
-                                      backgroundImage:
-                                          imageUrl != null &&
-                                              imageUrl.isNotEmpty
-                                          ? (isBase64
-                                                    ? MemoryImage(
-                                                        base64Decode(
-                                                          imageUrl
-                                                              .split(',')
-                                                              .last,
-                                                        ),
-                                                      )
-                                                    : NetworkImage(imageUrl))
-                                                as ImageProvider
-                                          : const NetworkImage(
-                                              "https://i.pravatar.cc/150",
-                                            ),
-                                    );
-                                  },
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: Material(
-                                  color: const Color(0xFF2563EB),
-                                  shape: const CircleBorder(),
-                                  child: InkWell(
-                                    onTap: _pickAndUploadImage,
-                                    child: const Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Icon(
-                                        Icons.camera_alt,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _displayName,
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: theme.textTheme.bodyLarge?.color,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Admission No: $_displayAdmissionNo",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: theme.textTheme.bodyMedium?.color,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _displayCampus,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: theme.textTheme.bodyMedium?.color,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // MENU BUTTONS
-                          _MenuButton(
-                            label: _isEditMode
-                                ? "Edit Personal Info"
-                                : "Personal Information",
-                            icon: Icons.person,
-                            isActive:
-                                !_showChangePassword &&
-                                (_isEditMode
-                                    ? _activeEditSection == 'Personal'
-                                    : _activeSection == 'Personal'),
-                            onTap: () => setState(() {
-                              _showChangePassword = false;
-                              if (_isEditMode)
-                                _activeEditSection = 'Personal';
-                              else
-                                _activeSection = 'Personal';
-                            }),
-                          ),
-                          const SizedBox(height: 8),
-                          _MenuButton(
-                            label: _isEditMode
-                                ? "Edit Academic Info"
-                                : "Academic Details",
-                            icon: Icons.school,
-                            isActive:
-                                !_showChangePassword &&
-                                (_isEditMode
-                                    ? _activeEditSection == 'Academic'
-                                    : _activeSection == 'Academic'),
-                            onTap: () => setState(() {
-                              _showChangePassword = false;
-                              if (_isEditMode)
-                                _activeEditSection = 'Academic';
-                              else
-                                _activeSection = 'Academic';
-                            }),
-                          ),
-                          const SizedBox(height: 8),
-                          _MenuButton(
-                            label: _isEditMode
-                                ? "Edit Contact Info"
-                                : "Contact Information",
-                            icon: Icons.contact_mail,
-                            isActive:
-                                !_showChangePassword &&
-                                (_isEditMode
-                                    ? _activeEditSection == 'Contact'
-                                    : _activeSection == 'Contact'),
-                            onTap: () => setState(() {
-                              _showChangePassword = false;
-                              if (_isEditMode)
-                                _activeEditSection = 'Contact';
-                              else
-                                _activeSection = 'Contact';
-                            }),
-                          ),
-                          const SizedBox(height: 8),
-                          if (!_isEditMode)
-                            _MenuButton(
-                              label: "Admission Details",
-                              icon: Icons.description,
-                              isActive:
-                                  !_showChangePassword &&
-                                  _activeSection == 'Admission',
-                              onTap: () => setState(() {
-                                _showChangePassword = false;
-                                _activeSection = 'Admission';
-                              }),
-                            ),
-
-                          // CHANGE PASSWORD BUTTON (New)
-                          const SizedBox(height: 8),
-                          if (!_isEditMode)
-                            _MenuButton(
-                              label: "Change Password",
-                              icon: Icons.lock_outline_rounded,
-                              isActive: false,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => ThemeControllerWrapper(
-                                      themeController:
-                                          StudentThemeController.themeMode,
-                                      child: const ChangePasswordPage(),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-
-                          const SizedBox(height: 24),
-                          // EDIT TOGGLE / CANCEL
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton.icon(
-                              onPressed: _showChangePassword
-                                  ? () => setState(
-                                      () => _showChangePassword = false,
-                                    )
-                                  : (_isEditMode
-                                        ? _cancelEdit
-                                        : () => setState(() {
-                                            _isEditMode = true;
-                                            _activeEditSection = 'Personal';
-                                            _activeSection = '';
-                                          })),
-                              icon: Icon(
-                                _isEditMode ? Icons.close : Icons.edit_note,
-                                size: 18,
-                              ),
-                              label: Text(
-                                _isEditMode ? "Cancel" : "Edit Profile",
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _isEditMode
-                                    ? Colors.grey.shade600
-                                    : const Color(0xFF2563EB),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // DETAILS / FORM DISPLAY
-                    const SizedBox(height: 24),
-
-                    if (_showChangePassword)
-                      Container(
-                        constraints: const BoxConstraints(maxWidth: 500),
-                        child: const ChangePasswordForm(),
-                      )
-                    else if (_isEditMode && _activeEditSection.isNotEmpty)
-                      Container(
-                        constraints: const BoxConstraints(maxWidth: 500),
-                        child: _buildEditFormForSection(_activeEditSection),
-                      )
-                    else if (_activeSection.isNotEmpty)
-                      Container(
-                        constraints: const BoxConstraints(maxWidth: 500),
-                        child: _buildDetailsCardForSection(_activeSection),
-                      ),
-                  ],
-                ),
-              ),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildHeader(context),
+            const SizedBox(height: 65),
+            Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.topCenter,
+              children: [
+                _buildNameCard(),
+                Positioned(top: -60, child: _buildOverlappingAvatar()),
+              ],
             ),
-          );
-        },
+            const SizedBox(height: 25),
+            _buildMenuCard(),
+            const SizedBox(height: 30),
+          ],
+        ),
+      ),
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 10,
+        bottom: 25,
+        left: 20,
+        right: 20,
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFF7E49FF),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(Icons.person, color: Colors.white, size: 28),
+          SizedBox(width: 10),
+          Text(
+            "Profile",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildEditFormForSection(String section) {
-    if (section == 'Personal') {
-      return EditProfileForm(
-        title: "Edit Personal Information",
-        data: _personalData,
-        onSave: (v) => _saveChanges('Personal', v),
-        onCancel: _cancelEdit,
-      );
-    } else if (section == 'Contact') {
-      return EditProfileForm(
-        title: "Edit Contact Information",
-        data: _contactData,
-        onSave: (v) => _saveChanges('Contact', v),
-        onCancel: _cancelEdit,
-      );
-    } else {
-      return EditProfileForm(
-        title: "Edit Academic Information",
-        data: _academicData,
-        onSave: (v) => _saveChanges('Academic', v),
-        onCancel: _cancelEdit,
-      );
-    }
+  // ── OVERLAPPING AVATAR ──────────────────────
+  Widget _buildOverlappingAvatar() {
+    return GestureDetector(
+      onTap: _pickAndUploadImage,
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: ValueListenableBuilder<String?>(
+          valueListenable: StudentProfileService.profileImageUrl,
+          builder: (context, imageUrl, _) {
+            final isBase64 =
+                imageUrl != null && imageUrl.startsWith('data:image');
+            return CircleAvatar(
+              radius: 55,
+              backgroundColor: Colors.grey.shade200,
+              backgroundImage: imageUrl != null && imageUrl.isNotEmpty
+                  ? (isBase64
+                            ? MemoryImage(
+                                base64Decode(imageUrl.split(',').last),
+                              )
+                            : NetworkImage(imageUrl))
+                        as ImageProvider
+                  : const NetworkImage("https://i.pravatar.cc/150"),
+            );
+          },
+        ),
+      ),
+    );
   }
 
-  Widget _buildDetailsCardForSection(String section) {
-    String title = "";
-    IconData icon = Icons.info;
-    List<Map<String, dynamic>> data = [];
+  // ── NAME AND ADMISSION CARD ────────────────────────────────────────
+  Widget _buildNameCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.fromLTRB(20, 75, 20, 25),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF4EDFF),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Column(
+        children: [
+          Text(
+            _displayName,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          RichText(
+            text: TextSpan(
+              style: const TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
+              children: [
+                const TextSpan(text: "Admission No :  "),
+                TextSpan(
+                  text: _displayAdmissionNo,
+                  style: const TextStyle(fontWeight: FontWeight.w400),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-    if (section == 'Personal') {
-      title = "Personal Information";
-      icon = Icons.person;
-      data = _personalData;
-    } else if (section == 'Academic') {
-      title = "Academic Details";
-      icon = Icons.school;
-      data = _academicData;
-    } else if (section == 'Contact') {
-      title = "Contact Information";
-      icon = Icons.contact_mail;
-      data = _contactData;
-    } else if (section == 'Admission') {
-      title = "Admission Details";
-      icon = Icons.description;
-      data = _admissionData;
-    }
+  // ── MENU CARD ──────────────────────────────────────────────────────
+  Widget _buildMenuCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildMenuItemRow(
+            Icons.person,
+            "Personal Information",
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ProfileDetailPage(
+                  title: "Personal Information",
+                  data: _personalData,
+                ),
+              ),
+            ),
+          ),
+          const Divider(height: 24, thickness: 0.5, indent: 40),
+          _buildMenuItemRow(
+            Icons.school,
+            "Academic Details",
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ProfileDetailPage(
+                  title: "Academic Details",
+                  data: _academicData,
+                ),
+              ),
+            ),
+          ),
+          const Divider(height: 24, thickness: 0.5, indent: 40),
+          _buildMenuItemRow(
+            Icons.contact_mail,
+            "Contact Information",
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ProfileDetailPage(
+                  title: "Contact Information",
+                  data: _contactData,
+                ),
+              ),
+            ),
+          ),
+          const Divider(height: 24, thickness: 0.5, indent: 40),
+          _buildMenuItemRow(
+            Icons.description,
+            "Admission Details",
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ProfileDetailPage(
+                  title: "Admission Details",
+                  data: _admissionData,
+                ),
+              ),
+            ),
+          ),
+          const Divider(height: 24, thickness: 0.5, indent: 40),
+          _buildMenuItemRow(
+            Icons.lock,
+            "Change Password",
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ChangePasswordPage()),
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Gradient Edit Button
+          GestureDetector(
+            onTap: () async {
+              if (_profile == null) return;
 
-    return DetailsCard(title: title, icon: icon, data: data);
+              final Map<String, dynamic> personal = {};
+              _personalData.forEach((item) {
+                personal[item['key']] = item['value'];
+              });
+
+              final Map<String, dynamic> academic = {};
+              _academicData.forEach((item) {
+                academic[item['key']] = item['value'];
+              });
+
+              final Map<String, dynamic> contact = {};
+              _contactData.forEach((item) {
+                contact[item['key']] = item['value'];
+              });
+
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => EditProfilePage(
+                    initialPersonalData: personal,
+                    initialAcademicData: academic,
+                    initialContactData: contact,
+                  ),
+                ),
+              );
+
+              if (result == true) {
+                _fetchProfileData(); // Refresh profile after editing
+              }
+            },
+            child: Container(
+              height: 50,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF8B5CF6), Color(0xFFD8B4FE)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.edit_note, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text(
+                    "Edit Profile",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuItemRow(
+    IconData icon,
+    String title, {
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(icon, color: const Color(0xFF8247E5), size: 24),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF1F2937),
+              ),
+            ),
+          ),
+          const Icon(Icons.chevron_right, color: Colors.black, size: 24),
+        ],
+      ),
+    );
+  }
+
+  // ── BOTTOM NAV ─────────────────────────────────────────────────────
+  Widget _buildBottomNav() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: const BoxDecoration(
+        color: Color(0xFF8247E5),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      child: SafeArea(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(
+              Icons.home_filled,
+              "Home",
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, '/studentDashboard'),
+            ),
+            _buildNavItem(
+              Icons.bar_chart,
+              "Marks",
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, '/studentMarks'),
+            ),
+            _buildNavItem(
+              Icons.edit_document,
+              "Exams",
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, '/studentExams'),
+            ),
+            _buildNavItem(Icons.person, "Profile", isActive: true),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(
+    IconData icon,
+    String label, {
+    bool isActive = false,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            decoration: BoxDecoration(
+              color: isActive ? const Color(0xFFB590F3) : Colors.transparent,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Icon(icon, color: Colors.white, size: 28),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
-// ================= CHANGE PASSWORD FORM =================
+// ═══════════════════════════════════════════════════════════════════
+// PROFILE DETAIL PAGE  (matches the image exactly)
+// ═══════════════════════════════════════════════════════════════════
+
+class ProfileDetailPage extends StatelessWidget {
+  static const Color primaryPurple = Color(0xFF7E3FF2);
+  final String title;
+  final List<Map<String, dynamic>> data;
+
+  const ProfileDetailPage({super.key, required this.title, required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          // ── Purple header identical to the image ──────────────────
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 10,
+              bottom: 25,
+              left: 20,
+              right: 20,
+            ),
+            decoration: const BoxDecoration(
+              color: primaryPurple,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(35),
+                bottomRight: Radius.circular(35),
+              ),
+            ),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // ── Fields list ───────────────────────────────────────────
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+              itemCount: data.length,
+              itemBuilder: (context, index) {
+                final item = data[index];
+                final label = item['label'] as String;
+                final value = (item['value'] as String?) ?? 'N/A';
+                final isBadge = item['isBadge'] == true;
+                final isLarge = item['isLarge'] == true;
+                final badgeColor = item['color'] as Color?;
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (isBadge)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: badgeColor ?? Colors.grey,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            value,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                      else
+                        Container(
+                          width: double.infinity,
+                          constraints: BoxConstraints(
+                            minHeight: isLarge ? 100 : 0,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: const Color(0xFFE0E0E0),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            value,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SHARED COMPONENTS (Moved to separate files where applicable)
+// ═══════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════
+// SMALL HELPER WIDGETS
+// ═══════════════════════════════════════════════════════════════════
+
+// ignore: unused_element
+class _Divider extends StatelessWidget {
+  const _Divider();
+  @override
+  Widget build(BuildContext context) {
+    return Divider(
+      height: 1,
+      thickness: 1,
+      color: Colors.grey.withOpacity(0.1),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CHANGE PASSWORD FORM
+// ═══════════════════════════════════════════════════════════════════
 
 class ChangePasswordForm extends StatefulWidget {
   const ChangePasswordForm({super.key});
@@ -692,7 +843,6 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
           ),
         );
         if (success) {
-          // Clear fields
           _currentController.clear();
           _newController.clear();
           _confirmController.clear();
@@ -703,17 +853,14 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Container(
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
@@ -721,31 +868,26 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // Header (White bg, Blue text)
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            width: double.infinity,
-            color: isDark ? theme.scaffoldBackgroundColor : Colors.white,
-            alignment: Alignment.center,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: const BoxDecoration(color: Color(0xFF7C3AED)),
+            child: const Row(
               children: [
-                const Icon(Icons.lock, color: Color(0xFF2563EB)),
-                const SizedBox(width: 8),
+                Icon(Icons.lock_outline, color: Colors.white, size: 20),
+                SizedBox(width: 10),
                 Text(
                   "Change Password",
-                  style: const TextStyle(
-                    fontSize: 18,
+                  style: TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2563EB),
+                    color: Colors.white,
                   ),
                 ),
               ],
             ),
           ),
-
           Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(20),
             child: Form(
               key: _formKey,
               child: Column(
@@ -768,34 +910,25 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
                     "Confirm new password",
                     _confirmController,
                   ),
-
                   const SizedBox(height: 24),
-
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _updatePassword,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2563EB),
+                        backgroundColor: const Color(0xFF7C3AED),
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                       child: _isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
+                          ? const StudentLoadingAnimation()
                           : const Text(
                               "Update Password",
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -828,16 +961,16 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
           obscureText: true,
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: const Icon(Icons.key, size: 18), // or lock
+            prefixIcon: const Icon(Icons.lock_outline, size: 18),
             suffixIcon: const Icon(Icons.visibility_outlined, size: 18),
             filled: true,
-            fillColor: Colors.grey.withValues(alpha: 0.1), // Darkish input bg
+            fillColor: Colors.grey.withOpacity(0.07),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 14,
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide.none,
             ),
           ),
@@ -848,8 +981,9 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
   }
 }
 
-// ... [Rest of the existing widgets: DetailsCard, _MenuButton, EditProfileForm remain unchanged]
-// I will include them here to ensure the file is complete and correct.
+// ═══════════════════════════════════════════════════════════════════
+// DETAILS CARD
+// ═══════════════════════════════════════════════════════════════════
 
 class DetailsCard extends StatelessWidget {
   final String title;
@@ -865,17 +999,14 @@ class DetailsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ... [Same implementation]
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(6),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
@@ -883,38 +1014,41 @@ class DetailsCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
+          // Header
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: const Color(0xFF2563EB),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: const BoxDecoration(color: Color(0xFF7C3AED)),
             child: Row(
               children: [
                 Icon(icon, color: Colors.white, size: 20),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Text(
                   title,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
           ),
+          // Data fields
           Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(20),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final isWide = constraints.maxWidth > 500;
+                final isWide = constraints.maxWidth > 400;
                 return Wrap(
-                  spacing: 24,
-                  runSpacing: 24,
+                  spacing: 20,
+                  runSpacing: 20,
                   children: data.map((item) {
+                    final isLarge = item['isLarge'] == true;
                     return SizedBox(
-                      width: isWide
-                          ? (constraints.maxWidth - 24) / 2 - 1
-                          : constraints.maxWidth,
+                      width: (isLarge || !isWide)
+                          ? constraints.maxWidth
+                          : (constraints.maxWidth - 20) / 2,
                       child: _buildField(
                         context,
                         item['label'] as String,
@@ -940,26 +1074,25 @@ class DetailsCard extends StatelessWidget {
     bool isBadge,
     Color? badgeColor,
   ) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: theme.textTheme.bodySmall?.color,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: Colors.black45,
+            letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         if (isBadge)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: badgeColor,
-              borderRadius: BorderRadius.circular(4),
+              color: badgeColor ?? Colors.grey,
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               value,
@@ -973,9 +1106,10 @@ class DetailsCard extends StatelessWidget {
         else
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
-              color: isDark ? Colors.grey.shade100 : Colors.black87,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1A1A2E),
             ),
           ),
       ],
@@ -983,68 +1117,9 @@ class DetailsCard extends StatelessWidget {
   }
 }
 
-class _MenuButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-  final bool isActive;
-
-  const _MenuButton({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-    this.isActive = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(6),
-          color: isActive ? const Color(0xFF2563EB) : Colors.transparent,
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: isActive
-                  ? Colors.white
-                  : (isDark ? Colors.blue.shade400 : const Color(0xFF2563EB)),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: isActive
-                      ? Colors.white
-                      : (isDark
-                            ? Colors.blue.shade100
-                            : const Color(0xFF2563EB)),
-                ),
-              ),
-            ),
-            if (!isActive)
-              Icon(
-                Icons.chevron_right,
-                size: 18,
-                color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// ═══════════════════════════════════════════════════════════════════
+// EDIT PROFILE FORM
+// ═══════════════════════════════════════════════════════════════════
 
 class EditProfileForm extends StatefulWidget {
   final String title;
@@ -1096,43 +1171,42 @@ class _EditProfileFormState extends State<EditProfileForm> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(6),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: const Color(0xFF2563EB),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: const BoxDecoration(color: Color(0xFF7C3AED)),
             child: Row(
               children: [
-                const Icon(Icons.edit, color: Colors.white, size: 20),
-                const SizedBox(width: 12),
+                const Icon(Icons.edit_outlined, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
                 Text(
                   widget.title,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(20),
             child: Form(
               key: _formKey,
               child: Column(
@@ -1140,34 +1214,57 @@ class _EditProfileFormState extends State<EditProfileForm> {
                   LayoutBuilder(
                     builder: (context, constraints) {
                       return Wrap(
-                        spacing: 24,
-                        runSpacing: 24,
+                        spacing: 20,
+                        runSpacing: 20,
                         children: widget.data.map((item) {
                           final isLarge = item['isLarge'] == true;
                           return SizedBox(
                             width: isLarge
                                 ? constraints.maxWidth
-                                : (constraints.maxWidth > 500
-                                      ? (constraints.maxWidth - 24) / 2 - 1
+                                : (constraints.maxWidth > 400
+                                      ? (constraints.maxWidth - 20) / 2
                                       : constraints.maxWidth),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "${item['label']}*",
-                                  style: TextStyle(
+                                  item['label'],
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: theme.textTheme.bodySmall?.color,
+                                    color: Colors.black54,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 6),
                                 TextFormField(
                                   controller: _controllers[item['key']],
                                   maxLines: isLarge ? 3 : 1,
                                   decoration: InputDecoration(
                                     filled: true,
-                                    border: OutlineInputBorder(),
+                                    fillColor: Colors.grey.withOpacity(0.06),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withOpacity(0.2),
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withOpacity(0.2),
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: const BorderSide(
+                                        color: Color(0xFF7C3AED),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 12,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -1180,21 +1277,35 @@ class _EditProfileFormState extends State<EditProfileForm> {
                   const SizedBox(height: 24),
                   Row(
                     children: [
-                      ElevatedButton(
-                        onPressed: _submit,
-                        child: const Text("Save Changes"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _submit,
+                          icon: const Icon(Icons.check, size: 18),
+                          label: const Text("Save Changes"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF7C3AED),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: widget.onCancel,
-                        child: const Text("Cancel"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey,
-                          foregroundColor: Colors.white,
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: widget.onCancel,
+                          icon: const Icon(Icons.close, size: 18),
+                          label: const Text("Cancel"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey.shade400,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                         ),
                       ),
                     ],

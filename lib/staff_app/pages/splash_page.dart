@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:student_app/staff_app/pages/staff_auth_wrapper.dart';
+import 'package:student_app/staff_app/utils/get_storage.dart';
+import 'package:student_app/student_app/services/student_profile_service.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -16,11 +19,31 @@ class _SplashPageState extends State<SplashPage> {
     _navigateToNext();
   }
 
-  void _navigateToNext() {
-    // Navigate after 3 seconds to show off the animation
-    Future.delayed(const Duration(seconds: 3), () {
-      // StaffAuthWrapper decides: Dashboard if logged in, Login otherwise.
-      Get.offAll(() => const StaffAuthWrapper());
+  Future<void> _navigateToNext() async {
+    // 🕒 Minimum display time for Splash (to show off the logo/animation)
+    final startTime = DateTime.now();
+
+    // 🔄 Determine if we're a logged-in student to pre-fetch profile data
+    // This ensures names, IDs, and avatars are ready before Dashboard appears.
+    if (AppStorage.isLoggedIn() &&
+        AppStorage.getUserRole()?.toLowerCase() == 'student') {
+      try {
+        await StudentProfileService.fetchAndSetProfileData();
+      } catch (e) {
+        debugPrint("Splash - Student Profile Prefetch Error: $e");
+      }
+    }
+
+    // ⌛ Calculate remaining time to fulfill the 3-second minimum requirement
+    final elapsed = DateTime.now().difference(startTime).inMilliseconds;
+    final delay = (3000 - elapsed).clamp(
+      500,
+      3000,
+    ); // Wait at least 500ms even if init was slow
+
+    Future.delayed(Duration(milliseconds: delay), () {
+      // StaffAuthWrapper determines final destination: Dashboard (if logged in) or Login (if not).
+      Get.offAll(() => const StaffAuthWrapper(), transition: Transition.fadeIn);
     });
   }
 
@@ -31,9 +54,9 @@ class _SplashPageState extends State<SplashPage> {
         decoration: const BoxDecoration(
           gradient: RadialGradient(
             colors: [
-              Color(0xFFE5DFFF), // Lighter, glowing center
+              Color(0xFFF3F0FF), // Lighter, glowing center
               Color(0xFF9E92FF), // Transition color
-              Color(0xFF7B6DFE), // Vibrant outer purple
+              Color(0xFF7C3AED), // Vibrant outer purple (Primary brand color)
             ],
             center: Alignment.center,
             radius: 1.1,
@@ -56,7 +79,7 @@ class _SplashPageState extends State<SplashPage> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF7B6DFE).withOpacity(0.3),
+                          color: const Color(0xFF7C3AED).withOpacity(0.3),
                           blurRadius: 40,
                           spreadRadius: 2,
                           offset: const Offset(0, 15),
@@ -70,8 +93,8 @@ class _SplashPageState extends State<SplashPage> {
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) => const Icon(
                         Icons.school,
-                        size: 100,
-                        color: Color(0xFF7367F0),
+                        size: 80,
+                        color: Color(0xFF7C3AED),
                       ),
                     ),
                   ),

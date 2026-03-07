@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 
 class ExamQuestionCard extends StatelessWidget {
-  final bool isDark;
   final int currentIndex;
   final Map<String, dynamic> question;
   final String strippedQuestion;
 
   const ExamQuestionCard({
     super.key,
-    required this.isDark,
     required this.currentIndex,
     required this.question,
     required this.strippedQuestion,
@@ -31,13 +29,11 @@ class ExamQuestionCard extends StatelessWidget {
                           .toUpperCase() ??
                       "SU",
                   Colors.blue,
-                  isDark,
                 ),
                 const SizedBox(width: 8),
                 _buildBadge(
                   question['section_name'] ?? "Section A",
                   Colors.green,
-                  isDark,
                 ),
               ],
             ),
@@ -62,7 +58,7 @@ class ExamQuestionCard extends StatelessWidget {
                   "${question['subject_name'] ?? 'Subject'} - ${question['section_name'] ?? 'Section'}",
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                    color: Colors.grey.shade600,
                   ),
                 ),
               ],
@@ -93,10 +89,10 @@ class ExamQuestionCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Text(
             strippedQuestion,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 18,
               height: 1.5,
-              color: isDark ? Colors.white : const Color(0xFF1E293B),
+              color: Color(0xFF1E293B),
               fontWeight: FontWeight.w400,
             ),
           ),
@@ -124,7 +120,7 @@ class ExamQuestionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildBadge(String label, Color color, bool isDark) {
+  Widget _buildBadge(String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
