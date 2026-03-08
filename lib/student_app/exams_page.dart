@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:student_app/student_app/exam_summary_dialog.dart';
 import 'package:student_app/student_app/model/exam_item.dart';
+import 'package:student_app/student_app/widgets/student_bottom_nav.dart';
 import 'package:student_app/student_app/services/exams_service.dart';
 import 'package:student_app/student_app/student_calendar.dart';
 import 'package:student_app/student_app/studentdrawer.dart';
-import 'package:student_app/student_app/widgets/online_exam_card.dart';
 import 'package:student_app/student_app/widgets/stat_card.dart';
 import 'package:student_app/student_app/widgets/exam_tab_item.dart';
 import 'package:student_app/student_app/widgets/standard_exam_card.dart';
 import 'package:student_app/student_app/widgets/completed_exam_card.dart';
 import 'package:student_app/student_app/widgets/exam_headers.dart';
 import 'package:student_app/student_app/widgets/loading_animation.dart';
+import 'package:student_app/student_app/widgets/online_exam_card.dart';
+import 'package:student_app/student_app/exam_details_dialog_page.dart';
 
 class ExamsPage extends StatefulWidget {
   const ExamsPage({super.key});
@@ -28,12 +29,6 @@ class _ExamsPageState extends State<ExamsPage> {
   String _searchQuery = "";
   String _selectedSubject = "All Subjects";
   final List<String> _subjects = ["All Subjects"];
-  String _selectedProctoringType = "All Proctoring Types";
-  final List<String> _proctoringTypes = [
-    "All Proctoring Types",
-    "Proctored",
-    "Non-Proctored",
-  ];
 
   // Data lists
   List<ExamModel> _currentTabExams = [];
@@ -97,7 +92,23 @@ class _ExamsPageState extends State<ExamsPage> {
           _courseName = response['course_name'] ?? "";
 
           // Convert API data to ExamModel and categorize
-          List<ExamModel> onlineExamsList = [];
+          List<ExamModel> onlineExamsList = [
+            const ExamModel(
+              title: "weekend Exam Testing",
+              board: "SSJC-VRB CAMPUS",
+              date: "2026-02-17",
+              time: "17:00:00",
+              progress: 100,
+              type: "Online",
+              id: "699",
+              subject: "General",
+              color: Colors.blue,
+              duration: "N/A",
+              questions: 2,
+              passingMarks: "10.00",
+              platform: "Online Portal",
+            ),
+          ];
           List<ExamModel> upcomingExamsList = [];
           List<ExamModel> completedExamsList = [];
           List<ExamModel> offlineExamsList = [];
@@ -280,13 +291,13 @@ class _ExamsPageState extends State<ExamsPage> {
 
   int _getTotalPages() {
     if (_currentTabExams.isEmpty) return 1;
-    if (_selectedTabIndex == 2) return 1;
 
     // Calculate total pages for current filtered list
     List<ExamModel> filtered = _currentTabExams.where((exam) {
       if (_selectedSubject != "All Subjects" &&
-          exam.subject != _selectedSubject)
+          exam.subject != _selectedSubject) {
         return false;
+      }
       if (_searchQuery.isNotEmpty) {
         final query = _searchQuery.toLowerCase();
         return exam.title.toLowerCase().contains(query) ||
@@ -302,609 +313,467 @@ class _ExamsPageState extends State<ExamsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    const primaryColor = Color(0xFF8B5CF6);
+    const lightPurple = Color(0xFFC084FC);
+    const textColor = Color(0xFF1E293B);
+    const secondaryTextColor = Color(0xFF64748B);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(title: const Text("Exams"), centerTitle: true),
+      backgroundColor: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(80),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: primaryColor,
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(24),
+              bottomRight: Radius.circular(24),
+            ),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: Row(
+                children: [
+                  InkWell(
+                    onTap: () => Scaffold.of(context).openDrawer(),
+                    child: const Icon(
+                      Icons.assignment_outlined,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    "Exams",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
       drawer: const StudentDrawerPage(),
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: const StudentBottomNav(currentIndex: 2),
       body: _isLoading
           ? const Center(child: StudentLoadingAnimation())
           : RefreshIndicator(
               onRefresh: _fetchExams,
+              color: primaryColor,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Title Header
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Exams",
-                              style: theme.textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF1E293B),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "Manage your exams and view results",
-                              style: theme.textTheme.bodySmall,
-                            ),
-                            if (_studentFullName.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 12),
-                                child: Wrap(
-                                  spacing: 16,
-                                  runSpacing: 8,
-                                  children: [
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.person_outline,
-                                          size: 14,
-                                          color: Colors.blue.shade700,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          _studentFullName,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.blue.shade700,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    if (_admno.isNotEmpty)
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Icon(
-                                            Icons.badge_outlined,
-                                            size: 14,
-                                            color: Colors.grey,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            "ADM: $_admno",
-                                            style: const TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    if (_courseName.isNotEmpty)
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Icon(
-                                            Icons.school_outlined,
-                                            size: 14,
-                                            color: Colors.grey,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            _courseName,
-                                            style: const TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                  ],
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const StudentCalendar(),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.calendar_month, size: 18),
-                          label: const Text("Open Calendar"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
+                    const Text(
+                      "Exam",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      "Manage your exams and view results",
+                      style: TextStyle(fontSize: 14, color: secondaryTextColor),
+                    ),
+                    const SizedBox(height: 12),
+                    // Student Info Row
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildInfoItem(
+                            Icons.person_outline,
+                            _studentFullName,
+                            const Color(0xFF3B82F6),
                           ),
+                          const SizedBox(width: 16),
+                          _buildInfoItem(
+                            Icons.badge_outlined,
+                            "ADM: $_admno",
+                            const Color(0xFF3B82F6),
+                          ),
+                          const SizedBox(width: 16),
+                          _buildInfoItem(
+                            Icons.school_outlined,
+                            _courseName,
+                            const Color(0xFF3B82F6),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Open Calendar Button
+                    SizedBox(
+                      height: 44,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const StudentCalendar(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.calendar_month, size: 18),
+                        label: const Text("Open Calender"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: lightPurple,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                         ),
-                      ],
+                      ),
                     ),
 
                     const SizedBox(height: 24),
 
                     // Stats Cards
-                    Column(
-                      children: [
-                        StatCard(
-                          title: "Upcoming Exams",
-                          value: "$_upcomingCount",
-                          subtext: "Total assigned: $_totalExamsCount",
-                          icon: Icons.calendar_today,
-                          iconColor: Colors.blue,
-                          content: null,
-                        ),
-                        const SizedBox(height: 16),
-                        StatCard(
-                          title: "Completed",
-                          value: "$_completedCount",
-                          subtext: "Based on your submissions",
-                          icon: Icons.emoji_events_outlined,
-                          iconColor: Colors.green,
-                          content: null,
-                        ),
-                        const SizedBox(height: 16),
-                        StatCard(
-                          title: "Class Rank",
-                          value: "1/85",
-                          subtext: "Top 10 of the class",
-                          icon: Icons.star_outline,
-                          iconColor: Colors.purple,
-                          content: null,
-                        ),
-                        const SizedBox(height: 16),
-                        StatCard(
-                          title: "Study Hours",
-                          value: "${_upcomingCount * 2} hrs",
-                          subtext: "Approx. 2 hrs per upcoming exam",
-                          icon: Icons.access_time,
-                          iconColor: Colors.teal,
-                          content: null,
-                        ),
-                      ],
+                    StatCard(
+                      title: "Upcoming Exams",
+                      value: "$_upcomingCount",
+                      subtext: "Total assigned: $_totalExamsCount",
+                      icon: Icons.calendar_today,
+                      iconColor: const Color(0xFF3B82F6),
+                    ),
+                    const SizedBox(height: 16),
+                    StatCard(
+                      title: "Completed",
+                      value: "$_completedCount",
+                      subtext: "Based on your Submissions",
+                      icon: Icons.emoji_events_outlined,
+                      iconColor: const Color(0xFF22C55E),
+                    ),
+                    const SizedBox(height: 16),
+                    StatCard(
+                      title: "Class Rank",
+                      value: "1/85",
+                      subtext: "Top 10 of the class",
+                      icon: Icons.star_outline,
+                      iconColor: const Color(0xFFA855F7),
+                    ),
+                    const SizedBox(height: 16),
+                    StatCard(
+                      title: "Study Hours",
+                      value: "32 hrs",
+                      subtext: "Recommended for upcoming exams",
+                      icon: Icons.access_time,
+                      iconColor: const Color(0xFF14B8A6),
                     ),
 
                     const SizedBox(height: 32),
 
-                    // Tab Container
-                    Container(
-                      decoration: BoxDecoration(
-                        color: theme.cardColor,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                    // Tab Row
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          ExamTabItem(
+                            index: 0,
+                            label: "Upcoming Exams",
+                            count: _upcomingCount,
+                            icon: Icons.calendar_today_outlined,
+                            isSelected: _selectedTabIndex == 0,
+                            onTap: () {
+                              setState(() {
+                                _selectedTabIndex = 0;
+                                _updateCurrentTabExams();
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 24),
+                          ExamTabItem(
+                            index: 1,
+                            label: "Completed Exams",
+                            count: _completedCount,
+                            icon: Icons.check_circle_outline,
+                            isSelected: _selectedTabIndex == 1,
+                            onTap: () {
+                              setState(() {
+                                _selectedTabIndex = 1;
+                                _updateCurrentTabExams();
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 24),
+                          ExamTabItem(
+                            index: 2,
+                            label: "Online Exam",
+                            count: ExamModel.onlineExams.length,
+                            icon: Icons.computer_outlined,
+                            isSelected: _selectedTabIndex == 2,
+                            onTap: () {
+                              setState(() {
+                                _selectedTabIndex = 2;
+                                _updateCurrentTabExams();
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 24),
+                          ExamTabItem(
+                            index: 3,
+                            label: "Offline Exams",
+                            count: ExamModel.offlineExams.length,
+                            icon: Icons.assignment_outlined,
+                            isSelected: _selectedTabIndex == 3,
+                            onTap: () {
+                              setState(() {
+                                _selectedTabIndex = 3;
+                                _updateCurrentTabExams();
+                              });
+                            },
                           ),
                         ],
                       ),
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Tabs Row
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                ExamTabItem(
-                                  index: 0,
-                                  label: "Upcoming Exams",
-                                  count: _upcomingCount,
-                                  icon: Icons.calendar_today_outlined,
-                                  isSelected: _selectedTabIndex == 0,
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedTabIndex = 0;
-                                      _updateCurrentTabExams();
-                                    });
-                                  },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Filters Row
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                            height: 48,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _selectedSubject,
+                                isExpanded: true,
+                                icon: const Icon(
+                                  Icons.keyboard_arrow_down,
+                                  size: 20,
                                 ),
-                                const SizedBox(width: 24),
-                                ExamTabItem(
-                                  index: 1,
-                                  label: "Completed Exams",
-                                  count: _completedCount,
-                                  icon: Icons.check_circle_outline,
-                                  isSelected: _selectedTabIndex == 1,
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedTabIndex = 1;
-                                      _updateCurrentTabExams();
-                                    });
-                                  },
-                                ),
-                                const SizedBox(width: 24),
-                                ExamTabItem(
-                                  index: 2,
-                                  label: "Online Exam",
-                                  count: ExamModel.onlineExams.length,
-                                  icon: Icons.computer,
-                                  isSelected: _selectedTabIndex == 2,
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedTabIndex = 2;
-                                      _updateCurrentTabExams();
-                                    });
-                                  },
-                                ),
-                                const SizedBox(width: 24),
-                                ExamTabItem(
-                                  index: 3,
-                                  label: "Offline Exam",
-                                  count: ExamModel.offlineExams.length,
-                                  icon: Icons.class_outlined,
-                                  isSelected: _selectedTabIndex == 3,
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedTabIndex = 3;
-                                      _updateCurrentTabExams();
-                                    });
-                                  },
-                                ),
-                              ],
+                                items: _subjects
+                                    .map(
+                                      (s) => DropdownMenuItem(
+                                        value: s,
+                                        child: Text(
+                                          s,
+                                          style: const TextStyle(fontSize: 14),
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (val) {
+                                  if (val != null) {
+                                    setState(() => _selectedSubject = val);
+                                  }
+                                },
+                              ),
                             ),
                           ),
-
-                          // Online Exam Banner
-                          if (_selectedTabIndex == 2) const OnlineExamBanner(),
-                          const SizedBox(height: 24),
-                          // Filters: Dropdown + Search
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 2,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(
-                                      color: theme.dividerColor,
-                                    ),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      value: _selectedSubject,
-                                      isExpanded: true,
-                                      dropdownColor: theme.cardColor,
-                                      items: _subjects
-                                          .map(
-                                            (s) => DropdownMenuItem(
-                                              value: s,
-                                              child: Text(
-                                                s,
-                                                style: TextStyle(
-                                                  color: theme
-                                                      .textTheme
-                                                      .bodyMedium
-                                                      ?.color,
-                                                ),
-                                              ),
-                                            ),
-                                          )
-                                          .toList(),
-                                      onChanged: (val) {
-                                        if (val != null) {
-                                          setState(
-                                            () => _selectedSubject = val,
-                                          );
-                                        }
-                                      },
-                                    ),
-                                  ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: TextField(
+                              onChanged: (val) {
+                                setState(() => _searchQuery = val);
+                              },
+                              decoration: const InputDecoration(
+                                hintText: "Search Exams..",
+                                hintStyle: TextStyle(
+                                  fontSize: 14,
+                                  color: secondaryTextColor,
+                                ),
+                                prefixIcon: Icon(
+                                  Icons.search,
+                                  size: 20,
+                                  color: secondaryTextColor,
+                                ),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(
+                                  vertical: 12,
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              if (_selectedTabIndex == 2) ...[
-                                Expanded(
-                                  flex: 2,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      border: Border.all(
-                                        color: theme.dividerColor,
-                                      ),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: DropdownButtonHideUnderline(
-                                      child: DropdownButton<String>(
-                                        value: _selectedProctoringType,
-                                        isExpanded: true,
-                                        dropdownColor: theme.cardColor,
-                                        items: _proctoringTypes
-                                            .map(
-                                              (s) => DropdownMenuItem(
-                                                value: s,
-                                                child: Text(
-                                                  s,
-                                                  style: TextStyle(
-                                                    color: theme
-                                                        .textTheme
-                                                        .bodyMedium
-                                                        ?.color,
-                                                  ),
-                                                ),
-                                              ),
-                                            )
-                                            .toList(),
-                                        onChanged: (val) {
-                                          if (val != null) {
-                                            setState(
-                                              () =>
-                                                  _selectedProctoringType = val,
-                                            );
-                                          }
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                              ],
-                              Expanded(
-                                flex: 3,
-                                child: TextField(
-                                  onChanged: (val) {
-                                    setState(() => _searchQuery = val);
-                                  },
-                                  style: TextStyle(
-                                    color: theme.textTheme.bodyMedium?.color,
-                                  ),
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: Colors.white,
-                                    hintText: _selectedTabIndex == 2
-                                        ? "Search online exams..."
-                                        : "Search exams...",
-                                    hintStyle: TextStyle(
-                                      color: theme.textTheme.bodySmall?.color,
-                                    ),
-                                    prefixIcon: Icon(
-                                      Icons.search,
-                                      size: 20,
-                                      color: theme.textTheme.bodySmall?.color,
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: BorderSide(
-                                        color: theme.dividerColor,
-                                      ),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: BorderSide(
-                                        color: theme.dividerColor,
-                                      ),
-                                    ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 0,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                          const SizedBox(height: 24),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
 
-                          // Completed Exam Banner (Only on Completed Tab)
-                          if (_selectedTabIndex == 1 &&
-                              _getFilteredAndPagedExams().isNotEmpty)
+                    // Performance Banner for Completed Tab
+                    if (_selectedTabIndex == 1 &&
+                        _getFilteredAndPagedExams().isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 24),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0FDF4),
+                          border: Border.all(color: const Color(0xFFBBF7D0)),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
                             Container(
-                              margin: const EdgeInsets.only(bottom: 24),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF22C55E),
+                                shape: BoxShape.circle,
                               ),
-                              decoration: BoxDecoration(
-                                color: Colors.lightGreen.shade50.withAlpha(127),
-                                border: Border.all(
-                                  color: Colors.lightGreen.shade200,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
+                              child: const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 14,
                               ),
-                              child: Row(
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    decoration: const BoxDecoration(
-                                      color: Colors.green,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    padding: const EdgeInsets.all(2),
-                                    child: const Icon(
-                                      Icons.check,
-                                      color: Colors.white,
-                                      size: 14,
+                                  const Text(
+                                    "Your overall performance is Excellent!",
+                                    style: TextStyle(
+                                      color: Color(0xFF166534),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: RichText(
-                                      text: TextSpan(
-                                        style: TextStyle(
-                                          color: Colors.green.shade900,
-                                          fontSize: 14,
-                                        ),
-                                        children: [
-                                          const TextSpan(
-                                            text:
-                                                "Your average score in online exams is ",
-                                          ),
-                                          TextSpan(
-                                            text:
-                                                "${_averageScore.toStringAsFixed(1)}%",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.green.shade900,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                  Text(
+                                    "Average score: ${_averageScore.toStringAsFixed(1)}%",
+                                    style: const TextStyle(
+                                      color: Color(0xFF166534),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
+                          ],
+                        ),
+                      ),
 
-                          // List Header & Items
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              double minTableWidth = 1000;
-                              double actualWidth = max(
-                                constraints.maxWidth,
-                                minTableWidth,
-                              );
+                    // List Section
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFFF1F5F9)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          double minTableWidth = 1200;
+                          double actualWidth = max(
+                            constraints.maxWidth,
+                            minTableWidth,
+                          );
 
-                              return SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: SizedBox(
-                                  width: actualWidth,
-                                  child: Column(
-                                    children: [
-                                      // Header
-                                      _selectedTabIndex == 1
-                                          ? const CompletedExamHeader()
-                                          : _selectedTabIndex == 2
-                                          ? const OnlineExamHeader()
-                                          : const StandardExamHeader(),
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: SizedBox(
+                              width: actualWidth,
+                              child: Column(
+                                children: [
+                                  // Table Header
+                                  _selectedTabIndex == 1
+                                      ? const CompletedExamHeader()
+                                      : _selectedTabIndex == 2
+                                      ? const OnlineExamHeader()
+                                      : const StandardExamHeader(),
 
-                                      // List Items
-                                      ..._getFilteredAndPagedExams().map((
-                                        exam,
-                                      ) {
-                                        if (_selectedTabIndex == 1) {
-                                          return CompletedExamCard(
-                                            exam: exam,
-                                            onViewScoreCard: () =>
-                                                _showExamSummaryDialog(
-                                                  context,
-                                                  exam.id,
-                                                ),
-                                          );
-                                        }
-                                        if (_selectedTabIndex == 2) {
-                                          return OnlineExamCard(
-                                            exam: exam,
-                                            onViewResult: () =>
-                                                _showExamSummaryDialog(
-                                                  context,
-                                                  exam.id,
-                                                ),
-                                          );
-                                        }
-                                        return StandardExamCard(exam: exam);
-                                      }),
-
-                                      if (_getFilteredAndPagedExams().isEmpty)
-                                        Padding(
-                                          padding: const EdgeInsets.all(40.0),
-                                          child: Center(
-                                            child: Text(
-                                              "No exams found.",
-                                              style: TextStyle(
-                                                color: Colors.grey[500],
-                                              ),
+                                  // List Items
+                                  ..._getFilteredAndPagedExams().map((exam) {
+                                    if (_selectedTabIndex == 1) {
+                                      return CompletedExamCard(
+                                        exam: exam,
+                                        onViewScoreCard: () =>
+                                            _showExamSummaryDialog(
+                                              context,
+                                              exam.id,
                                             ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Pagination Controls
-                          if (_getTotalPages() > 1)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                IconButton(
-                                  onPressed: _currentPage > 1
-                                      ? () {
-                                          setState(() {
-                                            _currentPage--;
-                                          });
-                                        }
-                                      : null,
-                                  icon: const Icon(Icons.chevron_left),
-                                ),
-                                // Page numbers
-                                ...List.generate(_getTotalPages(), (index) {
-                                  int pageNum = index + 1;
-                                  bool isCurrent = pageNum == _currentPage;
-                                  return InkWell(
-                                    onTap: () {
-                                      setState(() => _currentPage = pageNum);
-                                    },
-                                    child: Container(
-                                      width: 32,
-                                      height: 32,
-                                      alignment: Alignment.center,
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isCurrent
-                                            ? Colors.blue.shade50
-                                            : Colors.transparent,
-                                        border: isCurrent
-                                            ? Border.all(color: Colors.blue)
-                                            : Border.all(
-                                                color: Colors.transparent,
-                                              ),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        "$pageNum",
-                                        style: TextStyle(
-                                          color: isCurrent
-                                              ? Colors.blue
-                                              : Colors.grey[700],
-                                          fontWeight: isCurrent
-                                              ? FontWeight.bold
-                                              : FontWeight.normal,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }),
-                                IconButton(
-                                  onPressed: _currentPage < _getTotalPages()
-                                      ? () {
-                                          setState(() {
-                                            _currentPage++;
-                                          });
-                                        }
-                                      : null,
-                                  icon: const Icon(Icons.chevron_right),
-                                ),
-                              ],
+                                      );
+                                    } else if (_selectedTabIndex == 2) {
+                                      return OnlineExamCard(
+                                        exam: exam,
+                                        onViewResult: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  ExamDetailsPhysicsDialog(
+                                                    exam: exam,
+                                                  ),
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    } else {
+                                      return StandardExamCard(exam: exam);
+                                    }
+                                  }),
+                                ],
+                              ),
                             ),
-                        ],
+                          );
+                        },
                       ),
                     ),
+                    const SizedBox(height: 24),
+
+                    // Pagination
+                    if (_getTotalPages() > 1)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: List.generate(_getTotalPages(), (index) {
+                          final pageNum = index + 1;
+                          final isSelected = _currentPage == pageNum;
+                          return InkWell(
+                            onTap: () => setState(() => _currentPage = pageNum),
+                            child: Container(
+                              margin: const EdgeInsets.only(left: 8),
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? primaryColor
+                                    : const Color(0xFFE2E8F0),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                "$pageNum",
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : secondaryTextColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -912,72 +781,21 @@ class _ExamsPageState extends State<ExamsPage> {
     );
   }
 
-  Widget _buildBottomNav() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      decoration: const BoxDecoration(
-        color: Color(0xFF7C3AED),
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(35),
-          topRight: Radius.circular(35),
+  Widget _buildInfoItem(IconData icon, String text, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: TextStyle(
+            color: color,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
         ),
-      ),
-      child: SafeArea(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(
-              Icons.home,
-              "Home",
-              onTap: () => Get.offNamed('/studentDashboard'),
-            ),
-            _buildNavItem(
-              Icons.bar_chart,
-              "Marks",
-              onTap: () => Get.offNamed('/studentMarks'),
-            ),
-            _buildNavItem(Icons.assignment_outlined, "Exams", active: true),
-            _buildNavItem(
-              Icons.person,
-              "Profile",
-              onTap: () => Get.offNamed('/studentProfile'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-    IconData icon,
-    String label, {
-    bool active = false,
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        decoration: BoxDecoration(
-          color: active ? Colors.white.withOpacity(0.25) : Colors.transparent,
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white, size: 28),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-      ),
+      ],
     );
   }
 }

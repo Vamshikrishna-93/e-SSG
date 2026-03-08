@@ -45,17 +45,36 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   void _initializeControllers() {
-    // Personal
+    // Define all keys used in form fields across all tabs
+    final List<String> allKeys = [
+      "sfname", "slname", "fname", "mname", "dob", "aadharno", "gender",
+      "nationality", "caste", "religion", "subcaste", "mother_tongue",
+      "tenthgpa", "lastschool", "comments", "lastschooladdress",
+      "branch_id", "group_id", "batch_id", "course_id",
+      "mandal", "amobile", "village", "proctor_id", "address",
+      "proctor_phone", "pmobile", "lsm"
+    ];
+
+    // Initialize all as empty
+    for (var key in allKeys) {
+      _controllers[key] = TextEditingController();
+    }
+
+    // Populate with actual values
     widget.initialPersonalData.forEach((key, value) {
-      _controllers[key] = TextEditingController(text: value?.toString() ?? "");
+      if (_controllers.containsKey(key)) {
+        _controllers[key]!.text = (value != null && value != "N/A") ? value.toString() : "";
+      }
     });
-    // Academic
     widget.initialAcademicData.forEach((key, value) {
-      _controllers[key] = TextEditingController(text: value?.toString() ?? "");
+      if (_controllers.containsKey(key)) {
+        _controllers[key]!.text = (value != null && value != "N/A") ? value.toString() : "";
+      }
     });
-    // Contact
     widget.initialContactData.forEach((key, value) {
-      _controllers[key] = TextEditingController(text: value?.toString() ?? "");
+      if (_controllers.containsKey(key)) {
+        _controllers[key]!.text = (value != null && value != "N/A") ? value.toString() : "";
+      }
     });
   }
 

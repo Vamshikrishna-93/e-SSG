@@ -52,6 +52,8 @@ class _SubjectMarksUploadPageState extends State<SubjectMarksUploadPage> {
     "English",
   ];
 
+  bool _showStudents = false;
+
   @override
   void initState() {
     super.initState();
@@ -102,7 +104,13 @@ class _SubjectMarksUploadPageState extends State<SubjectMarksUploadPage> {
             child: Row(
               children: [
                 GestureDetector(
-                  onTap: () => Get.back(),
+                  onTap: () {
+                    if (_showStudents) {
+                      setState(() => _showStudents = false);
+                    } else {
+                      Get.back();
+                    }
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -118,7 +126,7 @@ class _SubjectMarksUploadPageState extends State<SubjectMarksUploadPage> {
                 ),
                 const SizedBox(width: 20),
                 const Text(
-                  "Subject Mark Upload",
+                  "Subject Marks",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 22,
@@ -134,251 +142,389 @@ class _SubjectMarksUploadPageState extends State<SubjectMarksUploadPage> {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  // ================= FILTER CONTAINER =================
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: lavenderBg.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        /// -------- BRANCH --------
-                        _buildLabel("Branch"),
-                        Obx(
-                          () => _buildDropdown(
-                            hint: "Select Branch",
-                            value: branch,
-                            items: branchCtrl.branches
-                                .map((b) => b.branchName)
-                                .toList(),
-                            onChanged: (v) {
-                              final b = branchCtrl.branches.firstWhere(
-                                (e) => e.branchName == v,
-                              );
-                              setState(() {
-                                branch = v;
-                                group = null;
-                                course = null;
-                              });
-                              groupCtrl.loadGroups(b.id);
-                            },
-                          ),
-                        ),
-
-                        /// -------- GROUP --------
-                        _buildLabel("Group"),
-                        Obx(
-                          () => _buildDropdown(
-                            hint: groupCtrl.groups.isEmpty
-                                ? "Select Branch First"
-                                : "Select Group",
-                            value: group,
-                            items: groupCtrl.groups.map((g) => g.name).toList(),
-                            onChanged: groupCtrl.groups.isEmpty
-                                ? null
-                                : (v) {
-                                    final g = groupCtrl.groups.firstWhere(
-                                      (e) => e.name == v,
-                                    );
-                                    setState(() {
-                                      group = v;
-                                      course = null;
-                                    });
-                                    courseCtrl.loadCourses(g.id);
-                                  },
-                          ),
-                        ),
-
-                        /// -------- COURSE --------
-                        _buildLabel("Course"),
-                        Obx(
-                          () => _buildDropdown(
-                            hint: courseCtrl.courses.isEmpty
-                                ? "Select Group First"
-                                : "Select Course",
-                            value: course,
-                            items: courseCtrl.courses
-                                .map((c) => c.courseName)
-                                .toList(),
-                            onChanged: courseCtrl.courses.isEmpty
-                                ? null
-                                : (v) {
-                                    final c = courseCtrl.courses.firstWhere(
-                                      (e) => e.courseName == v,
-                                    );
-                                    setState(() {
-                                      course = v;
-                                      selectedCourseId = c.id;
-                                    });
-                                  },
-                          ),
-                        ),
-
-                        _buildLabel("Batch"),
-                        _buildDropdown(
-                          hint: "Select Batch",
-                          value: batch,
-                          items: batches,
-                          onChanged: (v) => setState(() => batch = v),
-                        ),
-
-                        _buildLabel("Exam"),
-                        _buildDropdown(
-                          hint: "Select Exam",
-                          value: exam,
-                          items: exams,
-                          onChanged: (v) => setState(() => exam = v),
-                        ),
-
-                        _buildLabel("Subject"),
-                        _buildDropdown(
-                          hint: "Select Subject",
-                          value: subject,
-                          items: subjects,
-                          onChanged: (v) => setState(() => subject = v),
-                        ),
-
-                        const SizedBox(height: 25),
-
-                        // ================= GET STUDENTS BUTTON =================
-                        Container(
-                          width: double.infinity,
-                          height: 55,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF7C69FF), Color(0xFFD38DFA)],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
+                  if (!_showStudents)
+                    // ================= FILTER CONTAINER =================
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: lavenderBg.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          /// -------- BRANCH --------
+                          _buildLabel("Branch"),
+                          Obx(
+                            () => _buildDropdown(
+                              hint: "Select Branch",
+                              value: branch,
+                              items: branchCtrl.branches
+                                  .map((b) => b.branchName)
+                                  .toList(),
+                              onChanged: (v) {
+                                final b = branchCtrl.branches.firstWhere(
+                                  (e) => e.branchName == v,
+                                );
+                                setState(() {
+                                  branch = v;
+                                  group = null;
+                                  course = null;
+                                });
+                                groupCtrl.loadGroups(b.id);
+                              },
                             ),
-                            borderRadius: BorderRadius.circular(15),
                           ),
-                          child: ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
+
+                          /// -------- GROUP --------
+                          _buildLabel("Group"),
+                          Obx(
+                            () => _buildDropdown(
+                              hint: groupCtrl.groups.isEmpty
+                                  ? "Select Branch First"
+                                  : "Select Group",
+                              value: group,
+                              items: groupCtrl.groups
+                                  .map((g) => g.name)
+                                  .toList(),
+                              onChanged: groupCtrl.groups.isEmpty
+                                  ? null
+                                  : (v) {
+                                      final g = groupCtrl.groups.firstWhere(
+                                        (e) => e.name == v,
+                                      );
+                                      setState(() {
+                                        group = v;
+                                        course = null;
+                                      });
+                                      courseCtrl.loadCourses(g.id);
+                                    },
+                            ),
+                          ),
+
+                          /// -------- COURSE --------
+                          _buildLabel("Course"),
+                          Obx(
+                            () => _buildDropdown(
+                              hint: courseCtrl.courses.isEmpty
+                                  ? "Select Group First"
+                                  : "Select Course",
+                              value: course,
+                              items: courseCtrl.courses
+                                  .map((c) => c.courseName)
+                                  .toList(),
+                              onChanged: courseCtrl.courses.isEmpty
+                                  ? null
+                                  : (v) {
+                                      final c = courseCtrl.courses.firstWhere(
+                                        (e) => e.courseName == v,
+                                      );
+                                      setState(() {
+                                        course = v;
+                                        selectedCourseId = c.id;
+                                      });
+                                    },
+                            ),
+                          ),
+
+                          _buildLabel("Batch"),
+                          _buildDropdown(
+                            hint: "Select Batch",
+                            value: batch,
+                            items: batches,
+                            onChanged: (v) => setState(() => batch = v),
+                          ),
+
+                          _buildLabel("Exam"),
+                          _buildDropdown(
+                            hint: "Select Exam",
+                            value: exam,
+                            items: exams,
+                            onChanged: (v) => setState(() => exam = v),
+                          ),
+
+                          _buildLabel("Subject"),
+                          _buildDropdown(
+                            hint: "Select Subject",
+                            value: subject,
+                            items: subjects,
+                            onChanged: (v) => setState(() => subject = v),
+                          ),
+
+                          const SizedBox(height: 25),
+
+                          // ================= GET STUDENTS BUTTON =================
+                          Container(
+                            width: double.infinity,
+                            height: 55,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF7C69FF), Color(0xFFD38DFA)],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _showStudents = true;
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Get Students",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Icon(
+                                    Icons.arrow_forward,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ],
                               ),
                             ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "Get Students",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(width: 10),
-                                Icon(
-                                  Icons.arrow_forward,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ],
-                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                    )
+                  else
+                    // ================= STUDENTS LIST CONTAINER =================
+                    Container(
+                      padding: const EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        color: lavenderBg.withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildStudentMarkCard(0),
+                          _buildStudentMarkCard(1),
+                          _buildStudentMarkCard(2),
+                        ],
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
           ),
 
           // ================= BOTTOM BAR =================
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
+          if (!_showStudents)
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -5),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 50,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF7E49FF), Color(0xFFD199FF)],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.file_download_outlined,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      label: const Text(
-                        "Download Format",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF7E49FF), Color(0xFFD199FF)],
                         ),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
+                      child: ElevatedButton.icon(
+                        onPressed: () {},
+                        icon: const Icon(
+                          Icons.file_download_outlined,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        label: const Text(
+                          "Download Format",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: Container(
-                    height: 50,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF4ACBC9), Color(0xFFA5E68C)],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.file_upload_outlined,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      label: const Text(
-                        "Mark Bulk Upload",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF4ACBC9), Color(0xFFA5E68C)],
                         ),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
+                      child: ElevatedButton.icon(
+                        onPressed: () {},
+                        icon: const Icon(
+                          Icons.file_upload_outlined,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        label: const Text(
+                          "Mark Bulk Upload",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStudentMarkCard(int index) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "S.NO: 1",
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              Text(
+                "Adm No : 251288",
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Divider(color: Colors.grey.shade200, height: 1.5),
+          const SizedBox(height: 12),
+          _infoRow("Student Name", "Pulagara Veera Vasatha\nRayudu"),
+          const SizedBox(height: 12),
+          _badgeRow(
+            "Marks",
+            "28",
+            const Color(0xFFE0E7FF), // Light blue background
+            const Color(0xFF3B82F6), // Strong blue text
+          ),
+          const SizedBox(height: 12),
+          _badgeRow(
+            "Rank",
+            "357",
+            const Color(0xFFDCFCE7), // Light green background
+            const Color(0xFF22C55E), // Strong green text
           ),
         ],
       ),
+    );
+  }
+
+  Widget _infoRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 105,
+          child: Text(
+            "$label :",
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey.shade700,
+              height: 1.3,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _badgeRow(String label, String value, Color bgColor, Color textColor) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 105,
+          child: Text(
+            "$label :",
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            value,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../api/api_service.dart';
+import 'outing_pending_listPage.dart';
 
 class IssueOutingPage extends StatefulWidget {
   final String studentName;
@@ -28,6 +29,7 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
   final TextEditingController _searchController = TextEditingController();
   List<dynamic> _searchResults = [];
   bool _isSearching = false;
+  Map<String, dynamic>? _selectedStudentData;
 
   @override
   void initState() {
@@ -66,6 +68,7 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
 
   void _onStudentSelected(Map<String, dynamic> student) {
     setState(() {
+      _selectedStudentData = student;
       selectedStudent = student['sfname'] ?? student['name'] ?? '';
       _searchController.text = student['admno'] ?? '';
       _searchResults = [];
@@ -494,7 +497,7 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () => Get.back(),
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -701,6 +704,18 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
   Widget _buildGradientButton() {
     return GestureDetector(
       onTap: () {
+        if (_selectedStudentData == null) {
+          Get.snackbar(
+            "Required",
+            "Please select a student first",
+            backgroundColor: Colors.orange,
+            colorText: Colors.white,
+          );
+          return;
+        }
+
+        Get.to(() => const OutingPendingListPage());
+
         Get.snackbar(
           "Success",
           "Outing Issued Successfully",
@@ -729,7 +744,7 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                "Issue Outing",
+                "Grant Outing",
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,

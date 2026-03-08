@@ -26,10 +26,10 @@ class _OutingsPermissionsPageState extends State<OutingsPermissionsPage> {
     _fetchData();
   }
 
-  Future<void> _fetchData() async {
+  Future<void> _fetchData({bool forceRefresh = true}) async {
     setState(() => _isLoading = true);
     try {
-      final response = await OutingService.getOutings();
+      final response = await OutingService.getOutings(forceRefresh: forceRefresh);
       if (mounted) {
         setState(() {
           _outings = response['data'] is List ? response['data'] : [];
@@ -37,10 +37,25 @@ class _OutingsPermissionsPageState extends State<OutingsPermissionsPage> {
           _calculateStats();
           _isLoading = false;
         });
+        if (forceRefresh) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Outings data refreshed"),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to refresh: ${e.toString()}"),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -227,7 +242,7 @@ class _OutingsPermissionsPageState extends State<OutingsPermissionsPage> {
 
   Widget _buildRefreshButton() {
     return GestureDetector(
-      onTap: _fetchData,
+      onTap: () => _fetchData(forceRefresh: true),
       child: Container(
         width: 160,
         padding: const EdgeInsets.symmetric(vertical: 10),

@@ -6,7 +6,6 @@ import 'package:student_app/staff_app/pages/staff_auth_wrapper.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:student_app/staff_app/pages/splash_page.dart';
 import 'package:student_app/staff_app/pages/verify_attendance_page.dart';
-import 'package:student_app/student_app/dashboard_page.dart';
 import 'package:student_app/student_app/services/dashboard_controller.dart';
 import 'package:student_app/student_app/services/documents_controller.dart';
 
@@ -53,13 +52,14 @@ import 'package:student_app/staff_app/pages/hostel_attendance_status_page.dart';
 import 'package:student_app/staff_app/pages/add_hostel_attendance_page.dart';
 // Student Pages
 import 'package:student_app/student_app/class_attendance_page.dart';
-import 'package:student_app/student_app/exams_page.dart';
 import 'package:student_app/student_app/hostel_attendence_page.dart';
 import 'package:student_app/student_app/hostel_fee_page.dart';
 import 'package:student_app/student_app/documents_page.dart';
 import 'package:student_app/student_app/outings_permissions_page.dart';
 import 'package:student_app/student_app/remarks_page.dart';
+import 'package:student_app/student_app/dashboard_page.dart';
 import 'package:student_app/student_app/marks_page.dart';
+import 'package:student_app/student_app/exams_page.dart';
 import 'package:student_app/student_app/profile_page.dart' as student_profile;
 
 void main() async {
@@ -109,7 +109,11 @@ class SsJcApp extends StatelessWidget {
         GetPage(name: '/authWrapper', page: () => const StaffAuthWrapper()),
         GetPage(name: '/login', page: () => const LoginPage()),
         GetPage(name: '/dashboard', page: () => const HomeDashboardPage()),
-        GetPage(name: '/studentDashboard', page: () => const DashboardPage()),
+        GetPage(
+          name: '/studentDashboard',
+          page: () => const DashboardPage(),
+          transition: Transition.noTransition,
+        ),
         GetPage(name: '/profile', page: () => const ProfilePage()),
 
         // 👨🏫 STAFF
@@ -215,11 +219,20 @@ class SsJcApp extends StatelessWidget {
           page: () => const OutingsPermissionsPage(),
         ),
         GetPage(name: '/studentRemarks', page: () => const RemarksPage()),
-        GetPage(name: '/studentMarks', page: () => const MarksPage()),
-        GetPage(name: '/studentExams', page: () => const ExamsPage()),
+        GetPage(
+          name: '/studentMarks',
+          page: () => const MarksPage(),
+          transition: Transition.noTransition,
+        ),
+        GetPage(
+          name: '/studentExams',
+          page: () => const ExamsPage(),
+          transition: Transition.noTransition,
+        ),
         GetPage(
           name: '/studentProfile',
           page: () => const student_profile.ProfilePage(),
+          transition: Transition.noTransition,
         ),
       ],
     );

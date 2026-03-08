@@ -133,8 +133,9 @@ class ApiService {
       debugPrint("API GET RESPONSE [$endpoint]: ${response.body}");
 
       if (response.body.trim().isEmpty) {
-        if (response.statusCode == 200)
+        if (response.statusCode == 200) {
           return {"success": false, "message": "Empty response from server"};
+        }
         throw Exception(
           "Server returned empty body with status ${response.statusCode}",
         );
@@ -190,8 +191,9 @@ class ApiService {
       debugPrint("API POST RESPONSE [$endpoint]: ${response.body}");
 
       if (response.body.trim().isEmpty) {
-        if (response.statusCode == 200)
+        if (response.statusCode == 200) {
           return {"success": false, "message": "Empty response from server"};
+        }
         throw Exception(
           "Server returned empty body with status ${response.statusCode}",
         );

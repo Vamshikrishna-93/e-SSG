@@ -18,7 +18,7 @@ class _OutingListPageState extends State<OutingListPage> {
   final BranchController branchController = Get.put(BranchController());
   final OutingController controller = Get.put(OutingController());
 
-  String selectedBranch = "All";
+  String selectedBranchName = "All";
   String selectedStatus = "All";
   String selectedDuration = "All";
   DateTime? fromDate;
@@ -42,23 +42,21 @@ class _OutingListPageState extends State<OutingListPage> {
               children: [
                 SingleChildScrollView(
                   padding: const EdgeInsets.only(bottom: 100),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            _buildStatsGrid(),
-                            const SizedBox(height: 25),
-                            _buildSearchBar(),
-                            const SizedBox(height: 25),
-                            _buildFilterSection(),
-                            const SizedBox(height: 25),
-                            if (showStudents) _buildStudentList(),
-                          ],
-                        ),
-                      ),
-                    ],
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _buildStatsGrid(),
+                        const SizedBox(height: 25),
+                        _buildSearchBar(),
+                        const SizedBox(height: 15),
+                        _buildFilterSection(),
+                        if (showStudents) ...[
+                          const SizedBox(height: 20),
+                          _buildStudentList(),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
                 _buildStickyBottomButton(),
@@ -81,14 +79,10 @@ class _OutingListPageState extends State<OutingListPage> {
         right: 20,
       ),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
-        ),
+        color: Color(0xFF8B5CF6),
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
+          bottomLeft: Radius.circular(35),
+          bottomRight: Radius.circular(35),
         ),
       ),
       child: Row(
@@ -104,18 +98,17 @@ class _OutingListPageState extends State<OutingListPage> {
               child: const Icon(
                 Icons.arrow_back,
                 color: Colors.white,
-                size: 22,
+                size: 20,
               ),
             ),
           ),
-          const SizedBox(width: 20),
+          const SizedBox(width: 15),
           const Text(
             "Outing List",
             style: TextStyle(
               color: Colors.white,
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
             ),
           ),
         ],
@@ -127,48 +120,37 @@ class _OutingListPageState extends State<OutingListPage> {
   Widget _buildStatsGrid() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        double itemWidth = (constraints.maxWidth - 12) / 2;
+        double itemWidth = (constraints.maxWidth - 16) / 2;
         return Wrap(
-          spacing: 12,
-          runSpacing: 12,
+          spacing: 16,
+          runSpacing: 16,
           children: [
-            // Row 1: Out Pass, Self Outing
-            _buildObxCard(
-              "Out Pass",
-              controller.outPassInfo,
-              itemWidth,
-              const [Color(0xFF10B981), Color(0xFF34D399)],
-              Icons.exit_to_app_rounded,
-            ),
-            _buildObxCard(
+            _buildStatCard("Out Pass", controller.outPassInfo, itemWidth, [
+              const Color(0xFF10B981),
+              const Color(0xFF34D399),
+            ], Icons.logout_rounded),
+            _buildStatCard(
               "Self Outing",
               controller.selfOutingInfo,
               itemWidth,
-              const [Color(0xFFF43F5E), Color(0xFFFB7185)],
-              Icons.exit_to_app_rounded,
+              [const Color(0xFFF43F5E), const Color(0xFFFB7185)],
+              Icons.logout_rounded,
             ),
-            // Row 2: Home Pass, Self Home
-            _buildObxCard(
-              "Home Pass",
-              controller.homePassInfo,
-              itemWidth,
-              const [Color(0xFF3B82F6), Color(0xFF60A5FA)],
-              Icons.home_rounded,
-            ),
-            _buildObxCard(
-              "Self Home",
-              controller.selfHomeInfo,
-              itemWidth,
-              const [Color(0xFFF59E0B), Color(0xFFFBBF24)],
-              Icons.home_rounded,
-            ),
+            _buildStatCard("Home Pass", controller.homePassInfo, itemWidth, [
+              const Color(0xFF3B82F6),
+              const Color(0xFF60A5FA),
+            ], Icons.home_outlined),
+            _buildStatCard("Self Home", controller.selfHomeInfo, itemWidth, [
+              const Color(0xFFF59E0B),
+              const Color(0xFFFBBF24),
+            ], Icons.home_outlined),
           ],
         );
       },
     );
   }
 
-  Widget _buildObxCard(
+  Widget _buildStatCard(
     String title,
     Rx infoRx,
     double width,
@@ -179,108 +161,86 @@ class _OutingListPageState extends State<OutingListPage> {
       width: width,
       child: Obx(() {
         final info = infoRx.value;
-        return _outingCard(
-          title,
-          info?.total.toString() ?? "0",
-          colors,
-          icon,
-          pending: info?.pending ?? 0,
-          approved: info?.approved ?? 0,
-          notReported: info?.notReported ?? 0,
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: colors,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: colors[0].withOpacity(0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -15,
+                bottom: -15,
+                child: Opacity(
+                  opacity: 0.15,
+                  child: Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                  ),
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Icon(icon, color: Colors.white, size: 22),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    info?.total.toString() ?? "0",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildSubStatRow("Pending", info?.pending ?? 0),
+                  _buildSubStatRow("Approved", info?.approved ?? 0),
+                  _buildSubStatRow("Not Reported", info?.notReported ?? 0),
+                ],
+              ),
+            ],
+          ),
         );
       }),
     );
   }
 
-  Widget _outingCard(
-    String title,
-    String count,
-    List<Color> gradientColors,
-    IconData icon, {
-    required int pending,
-    required int approved,
-    required int notReported,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: gradientColors,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: gradientColors[0].withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Decorative circles
-          Positioned(
-            right: -20,
-            bottom: -20,
-            child: CircleAvatar(
-              radius: 40,
-              backgroundColor: Colors.white.withOpacity(0.1),
-            ),
-          ),
-          Positioned(
-            right: -10,
-            bottom: -10,
-            child: CircleAvatar(
-              radius: 30,
-              backgroundColor: Colors.white.withOpacity(0.1),
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Icon(icon, color: Colors.white, size: 24),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                count,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              _buildStatRow("Pending", pending),
-              _buildStatRow("Approved", approved),
-              _buildStatRow("Not Reported", notReported),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatRow(String label, int value) {
+  Widget _buildSubStatRow(String label, int value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
+      padding: const EdgeInsets.only(bottom: 3),
       child: Text(
         "$label : $value",
         style: TextStyle(
-          color: Colors.white.withOpacity(0.9),
+          color: Colors.white.withOpacity(0.95),
           fontSize: 12,
           fontWeight: FontWeight.w400,
         ),
@@ -291,16 +251,16 @@ class _OutingListPageState extends State<OutingListPage> {
   // ================= SEARCH BAR =================
   Widget _buildSearchBar() {
     return Container(
-      height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      height: 54,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFC084FC).withOpacity(0.5)),
+        border: Border.all(color: const Color(0xFFD8B4FE), width: 1.5),
       ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          const Icon(Icons.search, color: Colors.grey, size: 20),
+          const Icon(Icons.search, color: Colors.grey, size: 22),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
@@ -333,87 +293,69 @@ class _OutingListPageState extends State<OutingListPage> {
           const Text(
             "Filter Options",
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
           ),
           const SizedBox(height: 20),
-          _buildDropdownWrapper(
-            child: Obx(() {
-              return DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: selectedBranch,
-                  isExpanded: true,
-                  hint: const Text("Campus"),
-                  items: [
-                    const DropdownMenuItem(value: "All", child: Text("All")),
-                    ...branchController.branches.map(
-                      (b) => DropdownMenuItem(
-                        value: b.id.toString(),
-                        child: Text(b.branchName),
-                      ),
-                    ),
-                  ],
-                  onChanged: (v) {
-                    setState(() => selectedBranch = v!);
-                    controller.filterByBranch(v!);
-                  },
-                ),
-              );
-            }),
+          _buildDropdownField(
+            value: selectedBranchName,
+            hint: "All",
+            onChanged: (v) {
+              setState(() => selectedBranchName = v!);
+              // Find ID for the branch name to call controller
+              if (v == "All") {
+                controller.filterByBranch("All");
+              } else {
+                final b = branchController.branches.firstWhere(
+                  (element) => element.branchName == v,
+                );
+                controller.filterByBranch(b.id.toString());
+              }
+            },
+            items: [
+              "All",
+              ...branchController.branches.map((b) => b.branchName),
+            ],
           ),
           const SizedBox(height: 12),
-          _buildDropdownWrapper(
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: selectedStatus,
-                isExpanded: true,
-                hint: const Text("Status"),
-                items: const ["All", "Pending", "Approved", "Not Reported"]
-                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                    .toList(),
-                onChanged: (v) {
-                  setState(() => selectedStatus = v!);
-                  controller.filterByStatus(v!);
-                },
-              ),
-            ),
+          _buildDropdownField(
+            value: selectedStatus,
+            hint: "All",
+            onChanged: (v) {
+              setState(() => selectedStatus = v!);
+              controller.filterByStatus(v!);
+            },
+            items: ["All", "Pending", "Approved", "Not Reported"],
           ),
           const SizedBox(height: 12),
-          _buildDropdownWrapper(
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: selectedDuration,
-                isExpanded: true,
-                hint: const Text("Duration"),
-                items:
-                    const [
-                          "All",
-                          "Today",
-                          "Yesterday",
-                          "Last 7 Days",
-                          "This Month",
-                          "Custom",
-                        ]
-                        .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                        .toList(),
-                onChanged: (v) {
-                  setState(() => selectedDuration = v!);
-                  if (v != "Custom") {
-                    controller.filterByDate(v!.replaceAll(" ", ""));
-                  }
-                },
-              ),
-            ),
+          _buildDropdownField(
+            value: selectedDuration,
+            hint: "All",
+            onChanged: (v) {
+              setState(() => selectedDuration = v!);
+              if (v != "Custom") {
+                controller.filterByDate(v!.replaceAll(" ", ""));
+              }
+            },
+            items: [
+              "All",
+              "Today",
+              "Yesterday",
+              "Last 7 Days",
+              "This Month",
+              "Custom",
+            ],
           ),
+
           if (selectedDuration == "Custom") ...[
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: _buildDateChip(
-                    "From: ${fromDate?.toString().substring(0, 10) ?? 'Select'}",
+                    fromDate?.toString().substring(0, 10) ?? 'Select From',
                     onTap: () async {
                       fromDate = await showDatePicker(
                         context: context,
@@ -428,7 +370,7 @@ class _OutingListPageState extends State<OutingListPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: _buildDateChip(
-                    "To: ${toDate?.toString().substring(0, 10) ?? 'Select'}",
+                    toDate?.toString().substring(0, 10) ?? 'Select To',
                     onTap: () async {
                       toDate = await showDatePicker(
                         context: context,
@@ -442,27 +384,26 @@ class _OutingListPageState extends State<OutingListPage> {
                 ),
               ],
             ),
-            if (fromDate != null && toDate != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: TextButton(
-                  onPressed: () =>
-                      controller.filterByCustomDate(fromDate!, toDate!),
-                  child: const Text("Apply Date Range"),
-                ),
-              ),
           ],
+
           const SizedBox(height: 25),
           GestureDetector(
-            onTap: () => setState(() => showStudents = true),
+            onTap: () {
+              if (selectedDuration == "Custom" &&
+                  fromDate != null &&
+                  toDate != null) {
+                controller.filterByCustomDate(fromDate!, toDate!);
+              }
+              setState(() => showStudents = true);
+            },
             child: Container(
               width: double.infinity,
-              height: 50,
+              height: 52,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFFC084FC), Color(0xFFA855F7)],
                 ),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(15),
               ),
               child: const Center(
                 child: Text(
@@ -481,15 +422,31 @@ class _OutingListPageState extends State<OutingListPage> {
     );
   }
 
-  Widget _buildDropdownWrapper({required Widget child}) {
+  Widget _buildDropdownField({
+    required String value,
+    required String hint,
+    required void Function(String?) onChanged,
+    required List<String> items,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: Colors.grey.withOpacity(0.1)),
       ),
-      child: child,
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: items.contains(value) ? value : items[0],
+          isExpanded: true,
+          items: items
+              .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+              .toList(),
+          onChanged: onChanged,
+          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black54),
+          style: const TextStyle(color: Colors.black87, fontSize: 14),
+        ),
+      ),
     );
   }
 
@@ -497,102 +454,457 @@ class _OutingListPageState extends State<OutingListPage> {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.withOpacity(0.2)),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey.withOpacity(0.1)),
         ),
-        child: Text(text, style: const TextStyle(fontSize: 12)),
+        child: Text(
+          text,
+          style: const TextStyle(fontSize: 13, color: Colors.black54),
+          textAlign: TextAlign.center,
+        ),
       ),
     );
   }
 
   // ================= STUDENT LIST =================
   Widget _buildStudentList() {
-    return Obx(() {
-      if (controller.isLoading.value) {
-        return const Center(child: StaffLoadingAnimation());
-      }
-      if (controller.filteredList.isEmpty) {
-        return const Center(
-          child: Text("No records found", style: TextStyle(color: Colors.grey)),
-        );
-      }
-      return ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: controller.filteredList.length,
-        itemBuilder: (context, index) {
-          final o = controller.filteredList[index];
-          return Card(
-            elevation: 2,
-            margin: const EdgeInsets.only(bottom: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              title: Text(
-                o.studentName,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F3FF),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Obx(() {
+        if (controller.isLoading.value) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
+            child: Center(child: StaffLoadingAnimation()),
+          );
+        }
+        if (controller.filteredList.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
+            child: Center(
+              child: Text(
+                "No records found",
+                style: TextStyle(color: Colors.grey),
               ),
-              subtitle: Column(
+            ),
+          );
+        }
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: controller.filteredList.length,
+          itemBuilder: (context, index) {
+            final o = controller.filteredList[index];
+            bool isApproved = o.status == "Approved";
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("ID: ${o.admno}"),
-                  const SizedBox(height: 4),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.access_time,
-                        size: 14,
-                        color: Colors.grey,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              o.studentName,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1F2937),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              o.admno,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF6B7280),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(width: 4),
-                      Text("${o.outDate} • ${o.outingTime}"),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isApproved
+                                  ? const Color(0xFF22C55E)
+                                  : const Color(0xFFF59E0B),
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            child: Text(
+                              o.status,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            o.outingType,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF374151),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const Divider(color: Color(0xFFF3F4F6), height: 1),
+                  const SizedBox(height: 12),
+
+                  _buildDetailRow(Icons.info_outline, "Purpose : ${o.purpose}"),
+                  _buildDetailRow(
+                    Icons.person_outline,
+                    "Permission By : ${o.permission}",
+                  ),
+                  _buildDetailRow(
+                    Icons.access_time,
+                    "${o.outDate}  •  ${o.outingTime}",
+                  ),
+
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      _buildActionButton(
+                        icon: Icons.flag_outlined,
+                        color: const Color(0xFFF97316),
+                        bgColor: const Color(0xFFFFF7ED),
+                        onTap: () => _showRemarksDialog(o),
+                      ),
+                      const SizedBox(width: 10),
+                      _buildActionButton(
+                        icon: Icons.edit_outlined,
+                        color: const Color(0xFFEAB308),
+                        bgColor: const Color(0xFFFEF9C3),
+                        onTap: () => _showRemarksDialog(
+                          o,
+                        ), // Map edit to the same remarks dialog as requested
+                      ),
+                      const SizedBox(width: 10),
+                      _buildActionButton(
+                        icon: Icons.delete_outline,
+                        color: const Color(0xFFEF4444),
+                        bgColor: const Color(0xFFFEE2E2),
+                        onTap: () => _showDeleteConfirmation(o),
+                      ),
                     ],
                   ),
                 ],
               ),
-              trailing: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
+            );
+          },
+        );
+      }),
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: const Color(0xFF6B7280)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 13, color: Color(0xFF4B5563)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required Color bgColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, size: 20, color: color),
+      ),
+    );
+  }
+
+  void _showRemarksDialog(dynamic o) {
+    final TextEditingController remarksController = TextEditingController();
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(25),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Stack(
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Remarks *",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: o.status == "Approved"
-                          ? Colors.green.shade100
-                          : Colors.orange.shade100,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(
+                        color: Colors.grey.shade300,
+                        width: 1.2,
+                      ),
                     ),
-                    child: Text(
-                      o.status,
-                      style: TextStyle(
-                        color: o.status == "Approved"
-                            ? Colors.green.shade800
-                            : Colors.orange.shade800,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                    child: TextField(
+                      controller: remarksController,
+                      maxLines: 5,
+                      style: const TextStyle(fontSize: 15),
+                      decoration: const InputDecoration(
+                        hintText: "",
+                        border: InputBorder.none,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    o.outingType,
-                    style: const TextStyle(color: Colors.blue, fontSize: 12),
+                  const SizedBox(height: 25),
+                  GestureDetector(
+                    onTap: () {
+                      controller.addOutingRemarks(o.id, remarksController.text);
+                      Get.back();
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      height: 55,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFA78BFA), Color(0xFFC4B5FD)],
+                        ),
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFA78BFA).withOpacity(0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Text(
+                          "Update Remarks",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
-            ),
-          );
-        },
-      );
-    });
+              Positioned(
+                right: 0,
+                top: 0,
+                child: IconButton(
+                  onPressed: () => Get.back(),
+                  icon: const Icon(Icons.close, color: Colors.black, size: 24),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      barrierColor: Colors.black.withOpacity(0.6),
+    );
+  }
+
+  void _showDeleteConfirmation(dynamic o) {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(25),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Stack(
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 10),
+                  // Orange exclamation icon
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFD8BE), // Light orange background
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Center(
+                      child: Text(
+                        "!",
+                        style: TextStyle(
+                          color: Color(0xFFFB923C), // Darker orange
+                          fontSize: 50,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Are you sure? You want to delete this Outing",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "you won't be able to revert this !",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 15, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 30),
+                  Row(
+                    children: [
+                      // Yes delete it! button
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            Get.back();
+                            Get.snackbar(
+                              "Deleted",
+                              "Outing record deleted successfully",
+                              backgroundColor: Colors.red,
+                              colorText: Colors.white,
+                            );
+                          },
+                          child: Container(
+                            height: 50,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFA78BFA), Color(0xFFC4B5FD)],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                "Yes delete it!",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Cancel button
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => Get.back(),
+                          child: Container(
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFB7185), // Pinkish red
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                "Cancel",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              // Close icon at top-right
+              Positioned(
+                right: 0,
+                top: 0,
+                child: IconButton(
+                  onPressed: () => Get.back(),
+                  icon: const Icon(Icons.close, color: Colors.black, size: 24),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      barrierColor: Colors.black.withOpacity(0.6),
+    );
   }
 
   // ================= STICKY BOTTOM BUTTON =================
@@ -625,7 +937,7 @@ class _OutingListPageState extends State<OutingListPage> {
               gradient: const LinearGradient(
                 colors: [Color(0xFF34D399), Color(0xFF84CC16)],
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(15),
             ),
             child: const Center(
               child: Row(

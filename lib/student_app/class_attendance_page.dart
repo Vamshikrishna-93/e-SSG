@@ -53,8 +53,13 @@ class _AttendancePageState extends State<AttendancePage> {
     super.dispose();
   }
 
-  Future<void> _fetchAttendanceData({bool forceRefresh = true}) async {
-    setState(() => _isLoading = true);
+  Future<void> _fetchAttendanceData({
+    bool forceRefresh = true,
+    bool showLoading = true,
+  }) async {
+    if (showLoading && mounted) {
+      setState(() => _isLoading = true);
+    }
 
     try {
       // Fetch both Grid and Summary in parallel
@@ -130,6 +135,15 @@ class _AttendancePageState extends State<AttendancePage> {
 
           _isLoading = false;
         });
+        if (forceRefresh && !showLoading) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Class attendance refreshed"),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -332,7 +346,10 @@ class _AttendancePageState extends State<AttendancePage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: ElevatedButton.icon(
-                    onPressed: () => _fetchAttendanceData(forceRefresh: true),
+                    onPressed: () => _fetchAttendanceData(
+                      forceRefresh: true,
+                      showLoading: false,
+                    ),
                     icon: const Icon(
                       Icons.refresh,
                       size: 16,

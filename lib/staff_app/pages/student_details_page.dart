@@ -152,7 +152,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () => Get.back(),
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(

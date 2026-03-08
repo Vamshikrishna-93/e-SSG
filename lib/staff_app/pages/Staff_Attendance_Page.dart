@@ -75,7 +75,7 @@ class _StaffAttendancePageState extends State<StaffAttendancePage> {
                 child: Row(
                   children: [
                     GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () => Get.back(),
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(

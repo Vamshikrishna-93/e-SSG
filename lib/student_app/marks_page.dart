@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:student_app/student_app/studentdrawer.dart';
 import 'package:student_app/student_app/widgets/marks_widgets.dart';
+import 'package:student_app/student_app/widgets/student_bottom_nav.dart';
 
 class MarksPage extends StatefulWidget {
   const MarksPage({super.key});
@@ -54,7 +55,7 @@ class _MarksPageState extends State<MarksPage> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: const StudentBottomNav(currentIndex: 1),
     );
   }
 
@@ -811,72 +812,6 @@ class _MarksPageState extends State<MarksPage> {
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: const BoxDecoration(
-        color: Color(0xFF7E3FF2),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      child: SafeArea(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(
-              Icons.home,
-              "Home",
-              onTap: () => Get.offNamed('/studentDashboard'),
-            ),
-            _buildNavItem(Icons.bar_chart, "Marks", isActive: true),
-            _buildNavItem(
-              Icons.assignment_outlined,
-              "Exams",
-              onTap: () => Get.offNamed('/studentExams'),
-            ),
-            _buildNavItem(
-              Icons.person,
-              "Profile",
-              onTap: () => Get.offNamed('/studentProfile'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-    IconData icon,
-    String label, {
-    bool isActive = false,
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? Colors.white.withOpacity(0.2) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white, size: 24),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

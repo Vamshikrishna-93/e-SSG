@@ -34,7 +34,7 @@ class StudentDrawerPage extends StatelessWidget {
                       children: [
                         _buildMenuItem(
                           context,
-                          icon: Icons.chat_bubble_outline_rounded,
+                          icon: Icons.people_outline,
                           title: "Class Attendance",
                           onTap: () {
                             Navigator.pop(context);
@@ -43,7 +43,7 @@ class StudentDrawerPage extends StatelessWidget {
                         ),
                         _buildMenuItem(
                           context,
-                          icon: Icons.chat_bubble_outline_rounded,
+                          icon: Icons.badge_outlined,
                           title: "Hostel Attendance",
                           onTap: () {
                             Navigator.pop(context);
@@ -52,7 +52,7 @@ class StudentDrawerPage extends StatelessWidget {
                         ),
                         _buildMenuItem(
                           context,
-                          icon: Icons.chat_bubble_outline_rounded,
+                          icon: Icons.currency_rupee,
                           title: "Hostel Fee",
                           onTap: () {
                             Navigator.pop(context);
@@ -61,7 +61,7 @@ class StudentDrawerPage extends StatelessWidget {
                         ),
                         _buildMenuItem(
                           context,
-                          icon: Icons.chat_bubble_outline_rounded,
+                          icon: Icons.description_outlined,
                           title: "Documents",
                           onTap: () {
                             Navigator.pop(context);
@@ -70,7 +70,7 @@ class StudentDrawerPage extends StatelessWidget {
                         ),
                         _buildMenuItem(
                           context,
-                          icon: Icons.chat_bubble_outline_rounded,
+                          icon: Icons.directions_walk_outlined,
                           title: "Outings",
                           onTap: () {
                             Navigator.pop(context);
@@ -79,7 +79,7 @@ class StudentDrawerPage extends StatelessWidget {
                         ),
                         _buildMenuItem(
                           context,
-                          icon: Icons.chat_bubble_outline_rounded,
+                          icon: Icons.speaker_notes_outlined,
                           title: "Remarks",
                           onTap: () {
                             Navigator.pop(context);

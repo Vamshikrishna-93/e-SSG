@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-
 import 'package:student_app/student_app/model/student_profile.dart';
+import 'package:student_app/student_app/widgets/student_bottom_nav.dart';
 import 'package:student_app/student_app/services/student_profile_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -63,8 +63,8 @@ class _ProfilePageState extends State<ProfilePage> {
   ];
 
   List<Map<String, dynamic>> _academicData = [
-    {"label": "10th GPA/Percentage", "value": "N/A", "key": "gpa"},
-    {"label": "Religion", "value": "N/A", "key": "religion_academic"},
+    {"label": "10th GPA/Percentage", "value": "N/A", "key": "tenthgpa"},
+    {"label": "Religion", "value": "N/A", "key": "religion"},
     {"label": "Last School", "value": "N/A", "key": "lastschool"},
     {"label": "Comments", "value": "", "key": "comments", "isLarge": true},
     {
@@ -118,12 +118,28 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    _fetchProfileData();
+    if (StudentProfileService.cachedProfileData != null) {
+      _isLoading = false;
+      final response = StudentProfileService.cachedProfileData!;
+      if (response['status'] == true && response['data'] != null) {
+        final profile = StudentProfile.fromJson(response['data']);
+        _displayName = "${profile.sfname ?? ''} ${profile.slname ?? ''}".trim();
+        if (_displayName.isEmpty) _displayName = "Student";
+        _displayAdmissionNo = profile.admno ?? "240018";
+        _profile = profile;
+        _updateFromModel(profile);
+      }
+      _fetchProfileData(forceRefresh: true);
+    } else {
+      _fetchProfileData();
+    }
   }
 
-  Future<void> _fetchProfileData() async {
+  Future<void> _fetchProfileData({bool forceRefresh = false}) async {
     try {
-      final response = await StudentProfileService.getProfile();
+      final response = await StudentProfileService.getProfile(
+        forceRefresh: forceRefresh,
+      );
       if (response['status'] == true && response['data'] != null) {
         final profile = StudentProfile.fromJson(response['data']);
 
@@ -157,30 +173,46 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _updateFromModel(StudentProfile p) {
-    // Personal Data
-    _personalData[0]['value'] = p.sfname ?? 'N/A';
-    _personalData[1]['value'] = p.slname ?? 'N/A';
-    _personalData[2]['value'] = p.fname ?? 'N/A';
-    _personalData[3]['value'] = p.mname ?? 'N/A';
-    _personalData[4]['value'] = p.dob ?? 'N/A';
-    _personalData[5]['value'] = p.aadharno ?? 'N/A';
-    _personalData[6]['value'] = p.gender ?? 'N/A';
-    _personalData[8]['value'] = p.caste ?? 'N/A';
-    _personalData[10]['value'] = p.subcaste ?? 'N/A';
+    // Map model values to keys for easier matching
+    final Map<String, dynamic> modelValues = {
+      'sfname': p.sfname,
+      'slname': p.slname,
+      'fname': p.fname,
+      'mname': p.mname,
+      'dob': p.dob,
+      'aadharno': p.aadharno,
+      'gender': p.gender,
+      'caste': p.caste,
+      'subcaste': p.subcaste,
+      'mandal': p.mandal,
+      'village': p.village,
+      'address': p.address,
+      'amobile': p.amobile,
+      'pmobile': p.pmobile,
+      'tenthgpa': p.tenthgpa,
+      'lastschool': p.lastschool,
+      'lastschooladdress': p.lastschooladdress,
+      'branch_id': p.branchId,
+      'group_id': p.groupId,
+      'batch_id': p.batchId,
+      'course_id': p.courseId,
+    };
 
-    // Contact Data
-    _contactData[0]['value'] = p.mandal ?? 'N/A';
-    _contactData[2]['value'] = p.village ?? 'N/A';
-    _contactData[4]['value'] = p.address ?? 'N/A';
-    _contactData[1]['value'] = p.amobile ?? 'N/A';
-    _contactData[6]['value'] = p.pmobile ?? 'N/A';
+    void updateListData(List<Map<String, dynamic>> list) {
+      for (var item in list) {
+        final key = item['key'];
+        if (key != null && modelValues.containsKey(key)) {
+          final val = modelValues[key];
+          item['value'] = (val != null && val.toString().isNotEmpty) ? val.toString() : 'N/A';
+        }
+      }
+    }
 
-    // Academic Data
-    _academicData[0]['value'] = p.tenthgpa ?? 'N/A';
-    _academicData[2]['value'] = p.lastschool ?? 'N/A';
-    _academicData[4]['value'] = p.lastschooladdress ?? 'N/A';
+    updateListData(_personalData);
+    updateListData(_contactData);
+    updateListData(_academicData);
 
-    // Admission Data
+    // Admission Data (Manual updates for badge indices)
     _admissionData[0]['value'] = p.admno ?? 'N/A';
     _admissionData[1]['value'] = "₹${p.committedfee ?? 0}";
     _admissionData[2]['value'] = p.appno ?? 'N/A';
@@ -191,13 +223,6 @@ class _ProfilePageState extends State<ProfilePage> {
     _admissionData[8]['value'] = "₹${p.actualfee ?? 0}";
     _admissionData[9]['value'] = p.status?.toUpperCase() ?? 'N/A';
     _admissionData[10]['value'] = p.admtype ?? 'N/A';
-
-    // Additional Academic/Batch Data
-    _academicData[4]['value'] = p.lastschooladdress ?? 'N/A';
-    _academicData[5]['value'] = p.branchId?.toString() ?? 'N/A';
-    _academicData[6]['value'] = p.groupId?.toString() ?? 'N/A';
-    _academicData[7]['value'] = p.batchId?.toString() ?? 'N/A';
-    _academicData[8]['value'] = p.courseId?.toString() ?? 'N/A';
   }
 
   Future<void> _pickAndUploadImage() async {
@@ -211,7 +236,7 @@ class _ProfilePageState extends State<ProfilePage> {
           File(image.path),
         );
         if (success) {
-          await _fetchProfileData();
+          await _fetchProfileData(forceRefresh: true);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -269,7 +294,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: const StudentBottomNav(currentIndex: 3),
     );
   }
 
@@ -501,7 +526,9 @@ class _ProfilePageState extends State<ProfilePage> {
               );
 
               if (result == true) {
-                _fetchProfileData(); // Refresh profile after editing
+                _fetchProfileData(
+                  forceRefresh: false,
+                ); // Refresh profile after editing
               }
             },
             child: Container(
@@ -562,79 +589,8 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
-
-  // ── BOTTOM NAV ─────────────────────────────────────────────────────
-  Widget _buildBottomNav() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      decoration: const BoxDecoration(
-        color: Color(0xFF8247E5),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      child: SafeArea(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(
-              Icons.home_filled,
-              "Home",
-              onTap: () =>
-                  Navigator.pushReplacementNamed(context, '/studentDashboard'),
-            ),
-            _buildNavItem(
-              Icons.bar_chart,
-              "Marks",
-              onTap: () =>
-                  Navigator.pushReplacementNamed(context, '/studentMarks'),
-            ),
-            _buildNavItem(
-              Icons.edit_document,
-              "Exams",
-              onTap: () =>
-                  Navigator.pushReplacementNamed(context, '/studentExams'),
-            ),
-            _buildNavItem(Icons.person, "Profile", isActive: true),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-    IconData icon,
-    String label, {
-    bool isActive = false,
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            decoration: BoxDecoration(
-              color: isActive ? const Color(0xFFB590F3) : Colors.transparent,
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Icon(icon, color: Colors.white, size: 28),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
-// ═══════════════════════════════════════════════════════════════════
 // PROFILE DETAIL PAGE  (matches the image exactly)
 // ═══════════════════════════════════════════════════════════════════
 

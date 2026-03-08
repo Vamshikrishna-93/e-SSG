@@ -66,7 +66,48 @@ class _DocumentsPageState extends State<DocumentsPage>
 
               if (_controller.errorMessage.value != null) {
                 return Center(
-                  child: Text("Error: ${_controller.errorMessage.value}"),
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.folder_off_outlined,
+                          size: 56,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "Unable to load documents",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          "Please check your connection and try again.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 13, color: Colors.black54),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton.icon(
+                          onPressed: () =>
+                              _controller.fetchDocuments(forceRefresh: true),
+                          icon: const Icon(Icons.refresh, size: 18),
+                          label: const Text("Retry"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF7E3FF2),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               }
 

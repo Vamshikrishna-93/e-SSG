@@ -3,10 +3,12 @@ import 'package:get/get.dart';
 import '../controllers/profile_controller.dart';
 import '../controllers/main_controller.dart';
 import '../controllers/auth_controller.dart';
+import '../utils/get_storage.dart';
 import '../widgets/staff_bottom_nav_bar.dart';
 import 'package:student_app/staff_app/pages/profile_page.dart';
 import '../api/api_service.dart';
 import './student_details_page.dart';
+import './add_hostel_members_page.dart';
 
 class HomeDashboardPage extends StatefulWidget {
   const HomeDashboardPage({super.key});
@@ -769,6 +771,10 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                         () => Get.toNamed('/hostelMembers'),
                       ),
                       _buildDrawerSubItem(
+                        "Add Hostel Members",
+                        () => Get.to(() => const AddHostelMembersPage()),
+                      ),
+                      _buildDrawerSubItem(
                         "Add Hostel",
                         () => Get.toNamed('/addHostel'),
                       ),
@@ -818,6 +824,7 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
         top: MediaQuery.of(context).padding.top + 20,
         bottom: 30,
         left: 20,
+        right: 20,
       ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -826,54 +833,87 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
           colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Logo Circle
-          Container(
-            width: 70,
-            height: 70,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-            child: const Center(
-              child: Text(
-                "Logo",
-                style: TextStyle(
-                  color: Color(0xFF8B5CF6),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+      child: Obx(() {
+        final p = profileCtrl.profile.value;
+        final name = p?.name ?? "";
+        final avatar = p?.avatar ?? "";
+        final bool hasValidAvatar =
+            avatar.isNotEmpty && avatar != "avatar.png";
+        final userId = AppStorage.getUserId();
+        final userLogin = p?.userLogin ?? "";
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Avatar / Logo Circle
+            Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: ClipOval(
+                child: hasValidAvatar
+                    ? Image.network(
+                        "https://dev.srisaraswathigroups.in/uploads/$avatar",
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _avatarFallback(name),
+                      )
+                    : _avatarFallback(name),
               ),
             ),
-          ),
-          const SizedBox(height: 20),
-          // User Name
-          Obx(
-            () => Text(
-              profileCtrl.profile.value?.name ?? "Ashok Reddy",
+            const SizedBox(height: 20),
+            // User Name
+            Text(
+              name.isNotEmpty ? name : "Loading...",
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
-          const SizedBox(height: 4),
-          // User ID
-          const Text(
-            "User ID :  666700",
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+            const SizedBox(height: 4),
+            // User ID — show userLogin if set, else fall back to numeric userId
+            Text(
+              "User ID :  ${userLogin.isNotEmpty ? userLogin : (userId?.toString() ?? '-')}",
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      }),
     );
   }
+
+  Widget _avatarFallback(String name) {
+    return Center(
+      child: name.isNotEmpty
+          ? Text(
+              name[0].toUpperCase(),
+              style: const TextStyle(
+                color: Color(0xFF8B5CF6),
+                fontWeight: FontWeight.bold,
+                fontSize: 26,
+              ),
+            )
+          : const Icon(Icons.person, color: Color(0xFF8B5CF6), size: 32),
+    );
+  }
+
 
   Widget _buildDrawerPillItem({
     required IconData icon,

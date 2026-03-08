@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:student_app/staff_app/model/attendance_model.dart';
 
 import 'branch_controller.dart';
 import 'group_controller.dart';
@@ -9,7 +10,6 @@ import 'batch_controller.dart';
 import 'shift_controller.dart';
 import '../api/api_service.dart';
 import '../api/api_collection.dart';
-import '../models/attendance_model.dart';
 import '../widgets/success_dialog.dart';
 
 class ClassAttendanceController extends GetxController {

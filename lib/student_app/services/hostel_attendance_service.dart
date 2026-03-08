@@ -18,7 +18,7 @@ class HostelAttendanceService {
       final String? studentId = prefs.getString('student_id');
 
       if (token == null || studentId == null) {
-        throw Exception('User or Student ID not found. Please log in again.');
+        return HostelAttendance(success: false, attendance: []);
       }
 
       final String cacheKey = year != null && year.isNotEmpty

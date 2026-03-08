@@ -34,7 +34,7 @@ class HostelAttendanceStatusPage extends StatelessWidget {
             child: Row(
               children: [
                 GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: () => Get.back(),
                   child: Container(
                     width: 40,
                     height: 40,

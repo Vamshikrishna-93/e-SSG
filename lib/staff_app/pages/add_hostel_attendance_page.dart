@@ -237,7 +237,7 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () => Get.back(),
             child: Container(
               width: 40,
               height: 40,

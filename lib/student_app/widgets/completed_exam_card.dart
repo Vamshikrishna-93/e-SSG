@@ -18,99 +18,137 @@ class CompletedExamCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF007BFF);
     const textColor = Color(0xFF1E293B);
     const secondaryTextColor = Color(0xFF64748B);
-    const dividerColor = Color(0xFFE2E8F0);
+    const primaryColor = Color(0xFF007BFF);
+    const dividerColor = Color(0xFFF1F5F9);
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: dividerColor)),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minWidth: MediaQuery.of(context).size.width - 16,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. Exam Name column (Title, Board, ID)
-              SizedBox(
-                width: 150,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        children: [
+          // 1. Exam Name
+          SizedBox(
+            width: 250,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  exam.title.toUpperCase(),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: textColor,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  exam.board.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: textColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
                   children: [
                     Text(
-                      exam.title,
+                      "ID: ${exam.id} ",
                       style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: textColor,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "${exam.board} • Online",
-                      style: const TextStyle(
-                        fontSize: 11,
+                        fontSize: 12,
                         color: secondaryTextColor,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    // Exam ID in pink
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEDE9FE),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        "ONLINE",
+                        style: TextStyle(
+                          color: Color(0xFF8B5CF6),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // 2. Result Info
+          SizedBox(
+            width: 150,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.emoji_events_outlined,
+                      size: 18,
+                      color: Colors.black87,
+                    ),
+                    const SizedBox(width: 8),
                     Text(
-                      "Exam ID: ${exam.id}",
+                      exam.marks ?? "-",
                       style: const TextStyle(
-                        color: Color(0xFFF06292), // Pink 300 equivalent
-                        fontSize: 10,
+                        fontSize: 14,
+                        color: Colors.black87,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 12),
-
-              // 2. Marks
-              SizedBox(
-                width: 60,
-                child: Text(
-                  exam.marks ?? "-",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: textColor,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-
-              // 3. Percentage
-              SizedBox(
-                width: 80,
-                child: Text(
-                  exam.percentage ?? "-",
-                  style: const TextStyle(
-                    color: primaryColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-
-              // 4. Grade & Rank
-              SizedBox(
-                width: 150,
-                child: Row(
+                const SizedBox(height: 12),
+                Row(
                   children: [
-                    // Grade Badge
+                    const Icon(Icons.percent, size: 18, color: primaryColor),
+                    const SizedBox(width: 8),
+                    Text(
+                      exam.percentage ?? "-",
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // 3. Academic Stats
+          SizedBox(
+            width: 180,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
+                        horizontal: 10,
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
@@ -118,19 +156,22 @@ class CompletedExamCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        exam.grade ?? "-",
+                        "Grade: ${exam.grade ?? '-'}",
                         style: const TextStyle(
-                          color: Color(0xFFB45309), // Amber 800 equivalent
+                          color: Color(0xFFB45309),
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    // Rank Badge
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
+                        horizontal: 10,
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
@@ -140,214 +181,167 @@ class CompletedExamCard extends StatelessWidget {
                       child: Text(
                         "Rank: ${exam.rank ?? 'N/A'}",
                         style: const TextStyle(
-                          color: Color(0xFF155E75), // Cyan 800 equivalent
+                          color: Color(0xFF155E75),
                           fontSize: 11,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 12),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
 
-              // 5. Performance
-              SizedBox(
-                width: 90,
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+          // 4. Performance
+          SizedBox(
+            width: 120,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  exam.performance?.toUpperCase() ?? "GOOD",
+                  style: const TextStyle(
+                    color: Color(0xFF9A3412),
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // 5. Actions
+          SizedBox(
+            width: 300,
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              MarksGradesPage(examId: exam.id, exam: const {}),
+                        ),
+                      );
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: textColor,
+                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.bar_chart, size: 14),
+                        SizedBox(width: 4),
+                        Text(
+                          "Marks",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
-                    child: Text(
-                      exam.performance ?? "Good",
-                      style: const TextStyle(
-                        color: Color(0xFF9A3412), // Orange 800 equivalent
-                        fontSize: 11,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: onViewScoreCard,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    child: const Text(
+                      "Score Card",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-
-              // 6. Actions
-              SizedBox(
-                width: 280,
-                child: Row(
-                  children: [
-                    // Marks
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  MarksGradesPage(examId: exam.id, exam: {}),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () async {
+                      try {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Preparing report...")),
+                        );
+                        final data = await ExamsService.downloadExamReport(
+                          exam.id,
+                        );
+                        final directory = await getTemporaryDirectory();
+                        final filePath =
+                            '${directory.path}/exam_report_${exam.id}.pdf';
+                        final file = File(filePath);
+                        await file.writeAsBytes(data);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "Report ready: exam_report_${exam.id}.pdf",
+                              ),
+                              action: SnackBarAction(
+                                label: "Open",
+                                textColor: Colors.white,
+                                onPressed: () => OpenFilex.open(filePath),
+                              ),
+                              backgroundColor: Colors.green,
                             ),
                           );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: dividerColor),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.bar_chart,
-                                size: 14,
-                                color: textColor,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                "Marks",
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: textColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-
-                    // Score Card (Color Button)
-                    Expanded(
-                      child: InkWell(
-                        onTap: onViewScoreCard,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 7),
-                          decoration: BoxDecoration(
-                            color: primaryColor,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          alignment: Alignment.center,
-                          child: const Text(
-                            "Score Card",
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Download failed: $e"),
+                              backgroundColor: Colors.red,
                             ),
-                          ),
-                        ),
+                          );
+                        }
+                      }
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: textColor,
+                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
                       ),
                     ),
-                    const SizedBox(width: 8),
-
-                    // Download
-                    Expanded(
-                      child: InkWell(
-                        onTap: () async {
-                          try {
-                            // Show loading indicator
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Preparing report..."),
-                              ),
-                            );
-
-                            final data = await ExamsService.downloadExamReport(
-                              exam.id,
-                            );
-
-                            // Get directory to save file
-                            final directory = await getTemporaryDirectory();
-                            final filePath =
-                                '${directory.path}/exam_report_${exam.id}.pdf';
-                            final file = File(filePath);
-
-                            // Write bytes to file
-                            await file.writeAsBytes(data);
-
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(
-                                context,
-                              ).hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    "Report ready: exam_report_${exam.id}.pdf (${(data.length / 1024).toStringAsFixed(2)} KB)",
-                                  ),
-                                  action: SnackBarAction(
-                                    label: "Open",
-                                    textColor: Colors.white,
-                                    onPressed: () {
-                                      OpenFilex.open(filePath);
-                                    },
-                                  ),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(
-                                context,
-                              ).hideCurrentSnackBar();
-                              String errorMsg = e.toString();
-                              if (errorMsg.contains('MissingPluginException') ||
-                                  errorMsg.contains('Unsupported operation')) {
-                                errorMsg =
-                                    "App restart required to activate download plugin. Please stop and re-run the app.";
-                              }
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Download failed: $errorMsg"),
-                                  backgroundColor: Colors.red,
-                                  duration: const Duration(seconds: 5),
-                                ),
-                              );
-                            }
-                          }
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: dividerColor),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.download,
-                                size: 14,
-                                color: textColor,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                "Download",
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: textColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                    child: const Icon(Icons.download, size: 16),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
-
 }

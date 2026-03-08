@@ -20,37 +20,40 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const textColor = Color(0xFF1E293B);
+    const secondaryTextColor = Color(0xFF64748B);
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 13, color: Colors.black54)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: textColor,
+            ),
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(icon, color: iconColor, size: 28),
-              const SizedBox(width: 8),
+              Icon(icon, color: iconColor, size: 24),
+              const SizedBox(width: 12),
               Expanded(
                 child: content != null
                     ? content!
                     : Text(
                         value,
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: iconColor,
                         ),
@@ -61,7 +64,10 @@ class StatCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             subtext,
-            style: const TextStyle(fontSize: 12, color: Colors.black54),
+            style: const TextStyle(
+              fontSize: 13,
+              color: secondaryTextColor,
+            ),
           ),
         ],
       ),

@@ -8,6 +8,7 @@ import 'package:student_app/student_app/studentdrawer.dart';
 import 'package:student_app/student_app/widgets/loading_animation.dart';
 import 'package:student_app/student_app/services/dashboard_controller.dart';
 import 'package:student_app/staff_app/controllers/auth_controller.dart';
+import 'package:student_app/student_app/widgets/student_bottom_nav.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -27,8 +28,20 @@ class _DashboardPageState extends State<DashboardPage> {
     "Academic Year",
   ];
 
-  final String _emptyIllustrationPath =
-      r'C:\Users\Vamsikrishna\.gemini\antigravity\brain\bbe2a901-f8d4-4d85-92c1-4990b498ac94\empty_state_illustration_1772721945968.png';
+  // Helper to map a range string to the TimeRange enum for the chart widget
+  TimeRange _toTimeRange(String rangeStr) {
+    switch (rangeStr) {
+      case "This Month":
+        return TimeRange.lastMonth;
+      case "3 Months":
+        return TimeRange.last3Months;
+      case "6 Months":
+        return TimeRange.last6Months;
+      case "Academic Year":
+      default:
+        return TimeRange.academicYear;
+    }
+  }
 
   @override
   void initState() {
@@ -74,23 +87,24 @@ class _DashboardPageState extends State<DashboardPage> {
                   child: Column(
                     children: [
                       const SizedBox(height: 16),
-                      _buildAttendanceGrid(),
+                      // Wrap reactive sections in Obx so they rebuild on data changes
+                      Obx(() => _buildAttendanceGrid()),
                       const SizedBox(height: 16),
-                      _buildExamStats(),
+                      Obx(() => _buildExamStats()),
                       const SizedBox(height: 16),
-                      _buildRankState(),
+                      Obx(() => _buildRankState()),
                       const SizedBox(height: 16),
                       _buildTimeTable(),
                       const SizedBox(height: 16),
-                      _buildClassAttendance(),
+                      Obx(() => _buildClassAttendance()),
                       const SizedBox(height: 16),
-                      _buildHostelAttendance(),
+                      Obx(() => _buildHostelAttendance()),
                       const SizedBox(height: 16),
-                      _buildRemarks(),
+                      Obx(() => _buildRemarks()),
                       const SizedBox(height: 16),
-                      _buildAnnouncements(),
+                      Obx(() => _buildAnnouncements()),
                       const SizedBox(height: 16),
-                      _buildUpcomingExams(),
+                      Obx(() => _buildUpcomingExams()),
                       const SizedBox(height: 16),
                       _buildCalendar(),
                       const SizedBox(height: 16),
@@ -103,7 +117,7 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ),
         ),
-        bottomNavigationBar: _buildBottomNav(),
+        bottomNavigationBar: const StudentBottomNav(currentIndex: 0),
         extendBody: true,
       );
     });
@@ -228,7 +242,26 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildAttendanceGrid() {
-    // Note: These values seem static in the original code but can be mapped to real data if available
+    // Derive totals by summing across all monthly class attendance data
+    int totalDays = 0;
+    int totalPresent = 0;
+    int totalAbsent = 0;
+    int totalOutings = 0;
+    int totalHolidays = 0;
+
+    for (final entry in _controller.classChartData) {
+      totalDays += (entry['total'] ?? 0) as int;
+      totalPresent += (entry['present'] ?? 0) as int;
+      totalAbsent += (entry['absent'] ?? 0) as int;
+      totalOutings += (entry['outings'] ?? 0) as int;
+      totalHolidays += (entry['holidays'] ?? 0) as int;
+    }
+
+    // If no chart data yet, show dashes as placeholders
+    final bool hasData = _controller.classChartData.isNotEmpty;
+
+    String fmt(int v) => hasData ? v.toString() : "--";
+
     return DashboardSection(
       title: "Attendance",
       child: Padding(
@@ -240,7 +273,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Expanded(
                   child: ModernStatCard(
                     title: "Total Days",
-                    value: "334",
+                    value: fmt(totalDays),
                     icon: Icons.calendar_month,
                     gradientColors: const [
                       Color(0xFF3B82F6),
@@ -252,7 +285,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Expanded(
                   child: ModernStatCard(
                     title: "Present",
-                    value: "89",
+                    value: fmt(totalPresent),
                     icon: Icons.calendar_today,
                     gradientColors: const [
                       Color(0xFF22C55E),
@@ -268,7 +301,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Expanded(
                   child: ModernStatCard(
                     title: "Absent",
-                    value: "39",
+                    value: fmt(totalAbsent),
                     icon: Icons.calendar_today_outlined,
                     gradientColors: const [
                       Color(0xFFEF4444),
@@ -280,7 +313,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Expanded(
                   child: ModernStatCard(
                     title: "Outing",
-                    value: "6",
+                    value: fmt(totalOutings),
                     icon: Icons.directions_walk,
                     gradientColors: const [
                       Color(0xFF06B6D4),
@@ -296,7 +329,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Expanded(
                   child: ModernStatCard(
                     title: "Holidays",
-                    value: "0",
+                    value: fmt(totalHolidays),
                     icon: Icons.calendar_today,
                     gradientColors: const [
                       Color(0xFFEAB308),
@@ -397,7 +430,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildTimeTable() {
-    return const DashboardSection(
+    return DashboardSection(
       title: "Time Table",
       child: Column(
         children: [
@@ -436,7 +469,7 @@ class _DashboardPageState extends State<DashboardPage> {
         months: List<String>.from(_controller.classChartMonths),
         maxValue: 35,
         data: List<Map<String, dynamic>>.from(_controller.classChartData),
-        selectedRange: TimeRange.academicYear,
+        selectedRange: _toTimeRange(_controller.classRange.value),
       ),
     );
   }
@@ -453,7 +486,7 @@ class _DashboardPageState extends State<DashboardPage> {
         months: List<String>.from(_controller.hostelChartMonths),
         maxValue: 35,
         data: List<Map<String, dynamic>>.from(_controller.hostelChartData),
-        selectedRange: TimeRange.academicYear,
+        selectedRange: _toTimeRange(_controller.hostelRange.value),
         isHostel: true,
       ),
     );
@@ -463,10 +496,7 @@ class _DashboardPageState extends State<DashboardPage> {
     return DashboardSection(
       title: "Remarks",
       child: _controller.remarks.isEmpty
-          ? EmptyStateWidget(
-              message: "No Remarks yet",
-              imagePath: _emptyIllustrationPath,
-            )
+          ? const _EmptyState(message: "No Remarks yet")
           : Column(
               children: _controller.remarks.map((r) {
                 final remark = r['remark']?.toString() ?? "No Remark";
@@ -564,10 +594,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildEventsThisMonth() {
     return DashboardSection(
       title: "Events This Month",
-      child: EmptyStateWidget(
-        message: "No events this month",
-        imagePath: _emptyIllustrationPath,
-      ),
+      child: const _EmptyState(message: "No events this month"),
     );
   }
 
@@ -634,72 +661,42 @@ class _DashboardPageState extends State<DashboardPage> {
       },
     );
   }
+}
 
-  Widget _buildBottomNav() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      decoration: const BoxDecoration(
-        color: Color(0xFF7C3AED),
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(35),
-          topRight: Radius.circular(35),
-        ),
-      ),
-      child: SafeArea(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(Icons.home, "Home", active: true, onTap: () {}),
-            _buildNavItem(
-              Icons.bar_chart,
-              "Marks",
-              onTap: () => Get.offNamed('/studentMarks'),
-            ),
-            _buildNavItem(
-              Icons.assignment_outlined,
-              "Exams",
-              onTap: () => Get.offNamed('/studentExams'),
-            ),
-            _buildNavItem(
-              Icons.person,
-              "Profile",
-              onTap: () => Get.offNamed('/studentProfile'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+/// A portable empty-state widget that uses a built-in Flutter icon instead of
+/// a machine-specific file path, so it works on every device.
+class _EmptyState extends StatelessWidget {
+  final String message;
+  const _EmptyState({required this.message});
 
-  Widget _buildNavItem(
-    IconData icon,
-    String label, {
-    bool active = false,
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        decoration: BoxDecoration(
-          color: active ? Colors.white.withOpacity(0.25) : Colors.transparent,
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white, size: 28),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-              ),
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEDE9FE),
+              shape: BoxShape.circle,
             ),
-          ],
-        ),
+            child: const Icon(
+              Icons.inbox_outlined,
+              size: 56,
+              color: Color(0xFF7C3AED),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+            ),
+          ),
+        ],
       ),
     );
   }

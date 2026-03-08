@@ -5,64 +5,74 @@ class StandardExamHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    const textColor = Color(0xFF1E293B);
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark
-            ? theme.colorScheme.surface
-            : Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(6),
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(4),
       ),
-      child: Row(
+      child: const Row(
         children: [
-          Expanded(
-            flex: 3,
+          SizedBox(
+            width: 250,
             child: Text(
               "Exam Name",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
+                fontSize: 14,
+                color: textColor,
               ),
             ),
           ),
-          Expanded(
-            flex: 2,
+          SizedBox(width: 12),
+          SizedBox(
+            width: 180,
             child: Text(
               "Date & Time",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
+                fontSize: 14,
+                color: textColor,
               ),
             ),
           ),
-          Expanded(
-            flex: 3,
+          SizedBox(width: 12),
+          SizedBox(
+            width: 180,
             child: Text(
               "Preparation",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
+                fontSize: 14,
+                color: textColor,
               ),
             ),
           ),
-          Expanded(
-            flex: 2,
+          SizedBox(width: 12),
+          SizedBox(
+            width: 150,
             child: Text(
               "Status",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
+                fontSize: 14,
+                color: textColor,
               ),
             ),
           ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              "Actions",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
+          SizedBox(width: 12),
+          SizedBox(
+            width: 90,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                "Action",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: textColor,
+                ),
               ),
             ),
           ),
@@ -77,74 +87,74 @@ class CompletedExamHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    const textColor = Color(0xFF1E293B);
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark
-            ? theme.colorScheme.surface
-            : Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(6),
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(4),
       ),
-      child: Row(
+      child: const Row(
         children: [
-          Expanded(
-            flex: 3,
+          SizedBox(
+            width: 250,
             child: Text(
-              "Exam",
+              "Exam Name",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
+                fontSize: 14,
+                color: textColor,
               ),
             ),
           ),
-          Expanded(
-            flex: 1,
+          SizedBox(width: 12),
+          SizedBox(
+            width: 150,
             child: Text(
-              "Marks",
+              "Result Info",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
+                fontSize: 14,
+                color: textColor,
               ),
             ),
           ),
-          Expanded(
-            flex: 2,
+          SizedBox(width: 12),
+          SizedBox(
+            width: 180,
             child: Text(
-              "Percentage",
+              "Academic Stats",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
+                fontSize: 14,
+                color: textColor,
               ),
             ),
           ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              "Grade & Rank",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 2,
+          SizedBox(width: 12),
+          SizedBox(
+            width: 120,
             child: Text(
               "Performance",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
+                fontSize: 14,
+                color: textColor,
               ),
             ),
           ),
-          Expanded(
-            flex: 3,
-            child: Text(
-              "Actions",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
+          SizedBox(width: 12),
+          SizedBox(
+            width: 300,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Actions",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: textColor,
+                ),
               ),
             ),
           ),
@@ -159,64 +169,71 @@ class OnlineExamHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    const textColor = Color(0xFF1E293B);
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark
-            ? theme.colorScheme.surface
-            : Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(6),
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(4),
       ),
-      child: Row(
+      child: const Row(
         children: [
-          Expanded(
-            flex: 3,
+          SizedBox(
+            width: 250,
             child: Text(
               "Exam Name",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
+                fontSize: 14,
+                color: textColor,
               ),
             ),
           ),
-          Expanded(
-            flex: 2,
+          SizedBox(width: 12),
+          SizedBox(
+            width: 180,
             child: Text(
               "Exam Details",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
+                fontSize: 14,
+                color: textColor,
               ),
             ),
           ),
-          Expanded(
-            flex: 2,
+          SizedBox(width: 8),
+          SizedBox(
+            width: 100,
             child: Text(
               "Schedule",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
+                fontSize: 14,
+                color: textColor,
               ),
             ),
           ),
-          Expanded(
-            flex: 2,
+          SizedBox(width: 8),
+          SizedBox(
+            width: 220,
             child: Text(
               "Requirements",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
+                fontSize: 14,
+                color: textColor,
               ),
             ),
           ),
-          Expanded(
-            flex: 2,
+          SizedBox(width: 8),
+          SizedBox(
+            width: 200,
             child: Text(
               "Actions",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
+                fontSize: 14,
+                color: textColor,
               ),
             ),
           ),
@@ -256,7 +273,7 @@ class OnlineExamBanner extends StatelessWidget {
             color: isDark ? theme.colorScheme.primary : const Color(0xFF0EA5E9),
             size: 32,
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

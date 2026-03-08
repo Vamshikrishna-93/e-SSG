@@ -145,7 +145,7 @@ class _HostelAttendanceMarkPageState extends State<HostelAttendanceMarkPage> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () => Get.back(),
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:student_app/staff_app/widgets/skeleton.dart';
 import '../controllers/floor_student_controller.dart';
 import '../model/floor_student_model.dart';
-import '../widgets/search_field.dart';
 
 class FloorStudentsPage extends StatefulWidget {
   final int floorId;
@@ -29,245 +27,248 @@ class _FloorStudentsPageState extends State<FloorStudentsPage> {
     _controller.fetchStudentsByFloor(widget.floorId);
   }
 
-  // ================= COLORS & TOKENS =================
-  static const Color dark1 = Color(0xFF1a1a2e);
-  static const Color dark2 = Color(0xFF16213e);
-  static const Color dark3 = Color(0xFF0f3460);
-  static const Color purpleDark = Color(0xFF533483);
-  static const Color neon = Color(0xFF00FFF5);
-
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: isDark ? Colors.white : Colors.black,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          "${widget.floorName} Students",
-          style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isDark
-                ? const [dark1, dark2, dark3, purpleDark]
-                : const [Color(0xFFF5F6FA), Color(0xFFE8ECF4)],
-          ),
-        ),
-        child: Column(
-          children: [
-            const SizedBox(height: 95),
-
-            // ================= SEARCH BAR =================
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withOpacity(0.12)
-                      : Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white24
-                        : Theme.of(context).dividerColor,
-                  ),
-                ),
-                child: SearchField(
-                  onChanged: (v) => setState(() => _query = v),
-                  hintStyle: TextStyle(
-                    color: isDark ? Colors.white70 : Colors.black54,
-                  ),
-                  textColor: isDark ? Colors.white : Colors.black,
-                  iconColor: isDark ? Colors.white : Colors.black,
-                  hint: '',
-                ),
-              ),
-            ),
-
-            Expanded(
-              child: Obx(() {
-                if (_controller.isLoading.value) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: SkeletonList(itemCount: 8),
-                  );
-                }
-
-                final filteredStudents = _controller.students.where((s) {
-                  if (_query.isEmpty) return true;
-                  final q = _query.toLowerCase();
-                  return s.fullName.toLowerCase().contains(q) ||
-                      s.admno.toLowerCase().contains(q) ||
-                      s.roomname.toLowerCase().contains(q);
-                }).toList();
-
-                if (filteredStudents.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.person_off_outlined,
-                          size: 80,
-                          color: isDark
-                              ? Colors.white24
-                              : Colors.grey.withOpacity(0.3),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _query.isEmpty
-                              ? "No students found on this floor"
-                              : "No results for '$_query'",
-                          style: TextStyle(
-                            color: isDark ? Colors.white70 : Colors.black54,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  itemCount: filteredStudents.length,
-                  itemBuilder: (context, index) {
-                    final student = filteredStudents[index];
-                    return _buildStudentCard(student, isDark);
-                  },
-                );
-              }),
-            ),
-          ],
-        ),
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          _buildHeader(context),
+          Expanded(child: _buildMainContent()),
+        ],
       ),
     );
   }
 
-  Widget _buildStudentCard(FloorStudentModel student, bool isDark) {
+  Widget _buildHeader(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: isDark
-            ? LinearGradient(
-                colors: [dark3.withOpacity(0.45), purpleDark.withOpacity(0.45)],
-              )
-            : const LinearGradient(
-                colors: [Color(0xFFFFFFFF), Color(0xFFF0F2F5)],
-              ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDark ? neon.withOpacity(0.35) : Colors.transparent,
-          width: 1.3,
+      width: double.infinity,
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 10,
+        bottom: 25,
+        left: 20,
+        right: 20,
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFF8147E7),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
         ),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Get.back(),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Text(
+              "${widget.floorName} - Floor Students",
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMainContent() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9F5FF),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF7C3AED).withOpacity(0.5),
+                ),
+              ),
+              child: TextField(
+                onChanged: (v) => setState(() => _query = v),
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: Colors.black45,
+                    size: 20,
+                  ),
+                  hintText: "Search by name / adm.no / room",
+                  hintStyle: TextStyle(color: Colors.black38, fontSize: 13),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Obx(() {
+              if (_controller.isLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Color(0xFF8147E7)),
+                );
+              }
+
+              final filteredStudents = _controller.students.where((s) {
+                if (_query.isEmpty) return true;
+                final q = _query.toLowerCase();
+                return s.sfname.toLowerCase().contains(q) ||
+                    s.slname.toLowerCase().contains(q) ||
+                    s.admno.toLowerCase().contains(q) ||
+                    s.roomname.toLowerCase().contains(q);
+              }).toList();
+
+              if (filteredStudents.isEmpty) {
+                return const Center(
+                  child: Text(
+                    "No students found",
+                    style: TextStyle(color: Colors.black54),
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: filteredStudents.length,
+                itemBuilder: (context, i) => _studentCard(filteredStudents[i]),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _studentCard(FloorStudentModel student) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: isDark ? neon.withOpacity(0.15) : Colors.black12,
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Row(
         children: [
+          // Avatar
           Container(
             width: 50,
             height: 50,
-            decoration: BoxDecoration(
-              color: isDark
-                  ? neon.withOpacity(0.1)
-                  : const Color(0xFF7C79E0).withOpacity(0.1),
+            decoration: const BoxDecoration(
+              color: Color(0xFFC7D2FE), // Light indigo/purple circle
               shape: BoxShape.circle,
             ),
             child: Center(
               child: Text(
-                student.sfname.isNotEmpty ? student.sfname[0] : "?",
-                style: TextStyle(
-                  fontSize: 20,
+                student.sfname.isNotEmpty
+                    ? student.sfname[0].toLowerCase()
+                    : "?",
+                style: const TextStyle(
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? neon : const Color(0xFF7C79E0),
+                  fontSize: 20,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
+          // Info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  student.fullName,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        "${student.sfname} ${student.slname}",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDBEAFE),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        "ID: ${student.studentId}",
+                        style: const TextStyle(
+                          color: Color(0xFF2563EB),
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "Adm No: ${student.admno}",
-                  style: TextStyle(
-                    color: isDark ? Colors.white70 : Colors.black54,
-                    fontSize: 13,
-                  ),
+                  "Adm No : ${student.admno}",
+                  style: const TextStyle(color: Colors.black87, fontSize: 13),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(
-                      Icons.meeting_room_outlined,
-                      size: 14,
-                      color: isDark ? neon : const Color(0xFF7C79E0),
+                    const Icon(
+                      Icons.door_front_door_outlined,
+                      size: 16,
+                      color: Color(0xFF8147E7),
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      "Room: ${student.roomname}",
-                      style: TextStyle(
-                        color: isDark ? Colors.white60 : Colors.black54,
-                        fontSize: 12,
+                      "Room : ${student.roomname}",
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 13,
                       ),
                     ),
                   ],
                 ),
               ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? neon.withOpacity(0.15)
-                  : Colors.blue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              "ID: ${student.studentId}",
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: isDark ? neon : Colors.blue,
-              ),
             ),
           ),
         ],

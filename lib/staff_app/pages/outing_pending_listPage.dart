@@ -162,17 +162,16 @@ class _OutingPendingListPageState extends State<OutingPendingListPage> {
 
           return GestureDetector(
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => VerifyOutingPage(
-                    adm: s.admNo,
-                    name: s.name,
-                    status: s.status,
-                    time: "10:30",
-                    type: "Hospital",
-                    imageUrl: s.image,
-                  ),
+              Get.to(
+                () => VerifyOutingPage(
+                  adm: s.admNo,
+                  name: s.name,
+                  status: s.status,
+                  time: "08:47 PM",
+                  type: "Home Pass",
+                  imageUrl: s.image,
+                  permissionBy: s.permissionBy,
+                  isReportIn: false,
                 ),
               );
             },
@@ -224,19 +223,20 @@ class _OutingPendingListPageState extends State<OutingPendingListPage> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          s.name,
+                          s.name.toUpperCase(),
                           style: const TextStyle(
                             fontSize: 14,
-                            color: Colors.black87,
+                            color: Colors.black,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           "Permission By : ${s.permissionBy}",
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade600,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
                       ],

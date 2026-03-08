@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:student_app/student_app/model/exam_item.dart';
 
 class ExamDetailsPhysicsDialog extends StatefulWidget {
-  const ExamDetailsPhysicsDialog({super.key});
+  const ExamDetailsPhysicsDialog({super.key, required ExamModel exam});
 
   @override
   State<ExamDetailsPhysicsDialog> createState() =>
@@ -11,7 +12,8 @@ class ExamDetailsPhysicsDialog extends StatefulWidget {
 class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
   @override
   Widget build(BuildContext context) {
-    const isMobile = true; // Defaulting for simple static UI or compute as needed
+    const isMobile =
+        true; // Defaulting for simple static UI or compute as needed
     const scaffoldBackgroundColor = Color(0xFFF8FAFC);
     const cardColor = Colors.white;
     const dividerColor = Color(0xFFE2E8F0);
@@ -20,10 +22,7 @@ class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
       backgroundColor: scaffoldBackgroundColor,
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 20,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
           child: Material(
             elevation: 24,
             shadowColor: Colors.black.withOpacity(0.45),
@@ -207,10 +206,7 @@ class _ExamDetailsPhysicsDialogState extends State<ExamDetailsPhysicsDialog> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
-          ),
+          Text(title, style: const TextStyle(fontSize: 14, color: Colors.grey)),
           const SizedBox(height: 12),
           Row(
             children: [

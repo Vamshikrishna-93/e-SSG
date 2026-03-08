@@ -57,10 +57,13 @@ class _HostelFeesPageState extends State<HostelFeesPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _fetchData();
+    _fetchData(showLoading: true, forceRefresh: false);
   }
 
-  Future<void> _fetchData({bool showLoading = true}) async {
+  Future<void> _fetchData({
+    bool showLoading = true,
+    bool forceRefresh = true,
+  }) async {
     if (showLoading && mounted) {
       setState(() {
         _isLoading = true;
@@ -68,7 +71,9 @@ class _HostelFeesPageState extends State<HostelFeesPage>
       });
     }
     try {
-      final response = await HostelFeeService.getHostelFeeData();
+      final response = await HostelFeeService.getHostelFeeData(
+        forceRefresh: forceRefresh,
+      );
       if (mounted) {
         setState(() {
           if (response is Map<String, dynamic> && response['status'] == true) {
@@ -78,6 +83,15 @@ class _HostelFeesPageState extends State<HostelFeesPage>
           }
           _isLoading = false;
         });
+        if (forceRefresh && !showLoading) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Fee data refreshed"),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -85,6 +99,12 @@ class _HostelFeesPageState extends State<HostelFeesPage>
           _isLoading = false;
           _errorMessage = e.toString();
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to refresh: ${e.toString()}"),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -291,7 +311,7 @@ class _HostelFeesPageState extends State<HostelFeesPage>
               _customBtn(Icons.refresh, "Refresh", [
                 const Color(0xFF9F7AEA),
                 const Color(0xFFD6BCFA),
-              ], _fetchData),
+              ], () => _fetchData(showLoading: false, forceRefresh: true)),
               const SizedBox(width: 8),
               _customBtn(Icons.print, "Print Statement", [
                 const Color(0xFF48BB78),

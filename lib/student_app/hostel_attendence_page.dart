@@ -20,7 +20,8 @@ class HostelAttendancePage extends StatefulWidget {
 class _HostelAttendancePageState extends State<HostelAttendancePage> {
   String selectedPeriod = "All Months";
   int currentPage = 1;
-  final int itemsPerPage = 10;
+  int itemsPerPage = 10;
+  bool _isLoading = false;
   String _searchQuery = "";
   final ScrollController _horizontalScrollController = ScrollController();
 
@@ -80,8 +81,10 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
     super.dispose();
   }
 
-  Future<void> _fetchAttendance() async {
-    setState(() {});
+  Future<void> _fetchAttendance({bool showLoading = true}) async {
+    if (showLoading && mounted) {
+      setState(() => _isLoading = true);
+    }
 
     try {
       final data = await HostelAttendanceService.getHostelAttendance(
@@ -115,11 +118,22 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
           _allTrendData = data.attendance.map((m) => m.percentage).toList();
 
           _applyPeriodFilter();
+          _isLoading = false;
         });
+        
+        if (!showLoading) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Hostel attendance refreshed"),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
-        setState(() {});
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to load attendance: ${e.toString()}'),
@@ -159,7 +173,9 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
       backgroundColor: Colors.white,
       body: SafeArea(
         top: false,
-        child: SingleChildScrollView(
+        child: _isLoading 
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -302,7 +318,7 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: ElevatedButton.icon(
-                onPressed: _fetchAttendance,
+                onPressed: () => _fetchAttendance(showLoading: false),
                 icon: const Icon(Icons.refresh, size: 16, color: Colors.white),
                 label: const Text(
                   'Refresh',

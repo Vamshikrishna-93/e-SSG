@@ -20,7 +20,7 @@ class ExamTabItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF007BFF);
+    const primaryColor = Color(0xFF8B5CF6);
     const secondaryTextColor = Color(0xFF64748B);
 
     return InkWell(
@@ -36,37 +36,40 @@ class ExamTabItem extends StatelessWidget {
           ),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
-              size: 16,
+              size: 20,
               color: isSelected ? primaryColor : secondaryTextColor,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
                 color: isSelected ? primaryColor : secondaryTextColor,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                fontSize: 14,
               ),
             ),
-            const SizedBox(width: 6),
-            if (count > 0)
+            if (count > 0) ...[
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isSelected ? primaryColor : const Color(0xFFE2E8F0),
-                  borderRadius: BorderRadius.circular(10),
+                  color: isSelected ? primaryColor : const Color(0xFFCBD5E1),
+                  shape: BoxShape.circle,
                 ),
                 child: Text(
                   "$count",
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : secondaryTextColor,
-                    fontSize: 10,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
+            ],
           ],
         ),
       ),

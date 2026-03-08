@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:student_app/staff_app/pages/outing_pending_listPage.dart';
+import 'package:get/get.dart';
 
 class VerifyOutingPage extends StatefulWidget {
   final String? name;
@@ -9,6 +11,16 @@ class VerifyOutingPage extends StatefulWidget {
   final String? status;
   final String? type;
   final String? imageUrl;
+  final String? fatherName;
+  final String? mobile;
+  final String? branch;
+  final String? group;
+  final String? course;
+  final String? batch;
+  final String? outDate;
+  final String? permissionBy;
+  final String? purpose;
+  final bool? isReportIn;
 
   const VerifyOutingPage({
     super.key,
@@ -18,6 +30,16 @@ class VerifyOutingPage extends StatefulWidget {
     this.status,
     this.type,
     this.imageUrl,
+    this.fatherName,
+    this.mobile,
+    this.branch,
+    this.group,
+    this.course,
+    this.batch,
+    this.outDate,
+    this.permissionBy,
+    this.purpose,
+    this.isReportIn,
   });
 
   @override
@@ -27,6 +49,13 @@ class VerifyOutingPage extends StatefulWidget {
 class _VerifyOutingPageState extends State<VerifyOutingPage> {
   final ImagePicker _picker = ImagePicker();
   File? _capturedImage;
+  bool _isApproved = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isApproved = widget.isReportIn ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,89 +67,14 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5F3FF),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // AVATAR & ID
-                        Column(
-                          children: [
-                            Container(
-                              width: 110,
-                              height: 110,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 4,
-                                ),
-                                image: DecorationImage(
-                                  image: _capturedImage != null
-                                      ? FileImage(_capturedImage!)
-                                      : (widget.imageUrl != null &&
-                                            widget.imageUrl!.isNotEmpty)
-                                      ? NetworkImage(widget.imageUrl!)
-                                      : const AssetImage("assets/boy.jpg")
-                                            as ImageProvider,
-                                  fit: BoxFit.cover,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 5),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              widget.adm ?? "251238",
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(width: 20),
-
-                        // DETAILS
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildDetailLabel("Student Name :"),
-                              _buildDetailValue(
-                                widget.name ?? "Gujjula Ganesh Reddy",
-                              ),
-                              const SizedBox(height: 12),
-                              _buildDetailLabel("Type :"),
-                              _buildDetailValue(widget.type ?? "Hospital"),
-                              const SizedBox(height: 12),
-                              _buildDetailLabel("Time :"),
-                              _buildDetailValue(widget.time ?? "10:30"),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 25),
-
-                    // ACTION BUTTONS
-                    _buildGradientButton(context),
-                    const SizedBox(height: 15),
-                    _buildApproveButton(context),
-                  ],
-                ),
+              child: Column(
+                children: [
+                  _buildInfoCard(),
+                  const SizedBox(height: 20),
+                  _buildPhotoCard(),
+                  const SizedBox(height: 20),
+                  _buildActionButtons(),
+                ],
               ),
             ),
           ),
@@ -129,7 +83,6 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
     );
   }
 
-  // ================= HEADER =================
   Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.infinity,
@@ -140,11 +93,7 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
         right: 20,
       ),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
-        ),
+        color: Color(0xFF8147E7),
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
@@ -153,7 +102,7 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () => Get.back(),
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -167,14 +116,13 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
               ),
             ),
           ),
-          const SizedBox(width: 20),
+          const SizedBox(width: 15),
           const Text(
             "Verify Outing",
             style: TextStyle(
               color: Colors.white,
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
             ),
           ),
         ],
@@ -182,99 +130,236 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
     );
   }
 
-  // ================= DETAIL UTILS =================
-  Widget _buildDetailLabel(String label) {
-    return Text(
-      label,
-      style: const TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.bold,
-        color: Colors.black87,
+  Widget _buildInfoCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F3FF),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            widget.adm ?? "241530",
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 20),
+          _buildRow("Student Name :", widget.name ?? "Gujjula Ganesh Reddy"),
+          _buildRow("Father Name :", widget.fatherName ?? "Srinu"),
+          _buildRow("Admission No :", widget.adm ?? "241530"),
+          _buildRow("Mobile :", widget.mobile ?? ""),
+          if (!_isApproved) ...[
+            _buildRow(
+              "Branch :",
+              widget.branch ?? "SSJC-SSG NEET & MAINS CAMPUS",
+            ),
+            _buildRow("Group :", widget.group ?? "SR MPC"),
+            _buildRow("Course :", widget.course ?? "MAINS"),
+            _buildRow("Batch :", widget.batch ?? "SS-SR-SM1"),
+          ],
+          _buildRow("Out Date :", widget.outDate ?? "2026-03-05"),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12.0),
+            child: Divider(color: Colors.grey, height: 1),
+          ),
+          _buildRow("Permission By :", widget.permissionBy ?? "Ashok Reddy"),
+          _buildRow("Purpose :", widget.purpose ?? "Temple Visit"),
+          _buildRow("Type :", widget.type ?? "Home Pass"),
+          _buildRow("Time :", widget.time ?? "08:47 PM"),
+        ],
       ),
     );
   }
 
-  Widget _buildDetailValue(String value) {
-    return Text(
-      value,
-      style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+  Widget _buildRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  // ================= ACTION BUTTONS =================
-  Widget _buildGradientButton(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _showCaptureDialog(context),
-      child: Container(
-        width: double.infinity,
-        height: 50,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF8B5CF6).withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+  Widget _buildPhotoCard() {
+    return Container(
+      width: double.infinity,
+      height: 200,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200, width: 2),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: _capturedImage != null
+            ? Image.file(
+                _capturedImage!,
+                fit: BoxFit.cover,
+                width: double.infinity,
+              )
+            : (_isApproved &&
+                  widget.imageUrl != null &&
+                  widget.imageUrl!.isNotEmpty)
+            ? Image.network(
+                widget.imageUrl!,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                errorBuilder: (context, error, stackTrace) =>
+                    _buildCapturePlaceholder(),
+              )
+            : _buildCapturePlaceholder(),
+      ),
+    );
+  }
+
+  Widget _buildCapturePlaceholder() {
+    return Center(
+      child: Image.network(
+        "https://cdn3d.iconscout.com/3d/premium/thumb/camera-5590723-4652414.png",
+        width: 150,
+        height: 150,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.camera_alt_outlined,
+              size: 80,
+              color: const Color(0xFF8B5CF6).withOpacity(0.5),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "Tap to Capture Photo",
+              style: TextStyle(
+                color: Colors.grey.shade500,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
-        child: const Center(
-          child: Text(
-            "Take Photo",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
       ),
     );
   }
 
-  Widget _buildApproveButton(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // Handle approve logic
-      },
-      child: Container(
+  Widget _buildActionButtons() {
+    if (_isApproved) {
+      return SizedBox(
         width: double.infinity,
-        height: 50,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF10B981), Color(0xFF34D399)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF10B981).withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+        height: 52,
+        child: ElevatedButton(
+          onPressed: () {
+            // Report In logic
+            Get.offAll(() => const OutingPendingListPage());
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFB57BF2),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
             ),
-          ],
-        ),
-        child: const Center(
-          child: Text(
-            "Approve",
+            elevation: 0,
+          ),
+          child: const Text(
+            "Report In",
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
-      ),
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 52,
+            child: ElevatedButton(
+              onPressed: () => _showCaptureDialog(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFB57BF2), // Light purple
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                "Take Photo",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 15),
+        Expanded(
+          child: SizedBox(
+            height: 52,
+            child: ElevatedButton(
+              onPressed: _capturedImage == null
+                  ? null
+                  : () {
+                      setState(() {
+                        _isApproved = true;
+                      });
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFB57BF2),
+                disabledBackgroundColor: const Color(0xFFC4C4C4), // Grey out
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                elevation: 0,
+              ),
+              child: Text(
+                "Approve",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  // ================= PHOTO LOGIC =================
   void _showCaptureDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,

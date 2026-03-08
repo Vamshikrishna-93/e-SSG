@@ -79,7 +79,7 @@ class _HostelAttendanceResultPageState
             child: Row(
               children: [
                 GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: () => Get.back(),
                   child: Container(
                     width: 38,
                     height: 38,

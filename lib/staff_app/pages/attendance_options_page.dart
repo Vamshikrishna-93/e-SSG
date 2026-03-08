@@ -15,7 +15,11 @@ class _AttendanceOptionsPageState extends State<AttendanceOptionsPage> {
   void initState() {
     super.initState();
     // Ensure the bottom nav is synced
-    Get.put(StaffMainController(), permanent: true).changeIndex(1);
+    if (Get.isRegistered<StaffMainController>()) {
+      Get.find<StaffMainController>().changeIndex(1);
+    } else {
+      Get.put(StaffMainController(), permanent: true).changeIndex(1);
+    }
   }
 
   @override
@@ -42,14 +46,14 @@ class _AttendanceOptionsPageState extends State<AttendanceOptionsPage> {
               ),
             ),
             child: Row(
-              children: [
-                const Icon(
-                  Icons.calendar_month_rounded,
+              children: const [
+                Icon(
+                  Icons.event_available_rounded,
                   color: Colors.white,
-                  size: 28,
+                  size: 26,
                 ),
-                const SizedBox(width: 12),
-                const Text(
+                SizedBox(width: 15),
+                Text(
                   "Students Attendance",
                   style: TextStyle(
                     color: Colors.white,
@@ -61,42 +65,58 @@ class _AttendanceOptionsPageState extends State<AttendanceOptionsPage> {
             ),
           ),
 
-          const SizedBox(height: 30),
-
-          // ================= OPTIONS GRID =================
+          // ================= GRID MENU =================
           Expanded(
-            child: GridView.count(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.35, // Ultra-minimal/shorter cards for mobile
-              children: [
-                _buildOptionCard(
-                  title: "Student\nAttendance",
-                  icon: Icons.how_to_reg_rounded,
-                  colors: [const Color(0xFF2DD4BF), const Color(0xFF10B981)],
-                  onTap: () => Get.toNamed('/studentAttendance'),
-                ),
-                _buildOptionCard(
-                  title: "Verify\nAttendance",
-                  icon: Icons.verified_user_rounded,
-                  colors: [const Color(0xFFFB7185), const Color(0xFFE11D48)],
-                  onTap: () => Get.toNamed('/verifyAttendance'),
-                ),
-                _buildOptionCard(
-                  title: "Issue\nOuting",
-                  icon: Icons.route_rounded,
-                  colors: [const Color(0xFF60A5FA), const Color(0xFF2563EB)],
-                  onTap: () => Get.toNamed('/outingList'),
-                ),
-                _buildOptionCard(
-                  title: "Outings\nPending",
-                  icon: Icons.pending_actions_rounded,
-                  colors: [const Color(0xFFFB923C), const Color(0xFFEA580C)],
-                  onTap: () => Get.toNamed('/outingPending'),
-                ),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 25),
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 15,
+                mainAxisSpacing: 15,
+                childAspectRatio: 0.95, // Balances width/height nicely
+                children: [
+                  _buildGridCard(
+                    title: "Student\nAttendance",
+                    icon: Icons.how_to_reg_rounded,
+                    color1: const Color(0xFF2BDB9A), // Light green
+                    color2: const Color(0xFF07BE81), // Dark green
+                    iconColor: const Color(0xFF07BE81),
+                    onTap: () => Get.toNamed('/studentAttendance'),
+                  ),
+                  _buildGridCard(
+                    title: "Verify\nAttendance",
+                    icon: Icons.verified_user_rounded, // Shield check
+                    color1: const Color(0xFFF17C99), // Pink
+                    color2: const Color(0xFFD5295B), // Deep Pink
+                    iconColor: const Color(0xFFD5295B),
+                    onTap: () => Get.toNamed('/verifyAttendance'),
+                  ),
+                  _buildGridCard(
+                    title: "Hostel\nAttendance",
+                    icon: Icons.domain_rounded, // Building
+                    color1: const Color(0xFFD572FE), // Light Purple
+                    color2: const Color(0xFF9F1BD8), // Dark Purple
+                    iconColor: const Color(0xFF9F1BD8),
+                    onTap: () => Get.toNamed('/hostelAttendanceFilter'),
+                  ),
+                  _buildGridCard(
+                    title: "Outings",
+                    icon: Icons.route_rounded, // Path map trace
+                    color1: const Color(0xFF5AB1FF), // Light Blue
+                    color2: const Color(0xFF2386F9), // Deep Blue
+                    iconColor: const Color(0xFF2386F9),
+                    onTap: () => Get.toNamed('/outingList'),
+                  ),
+                  _buildGridCard(
+                    title: "Outings\nPending",
+                    icon: Icons.pending_actions_rounded, // Clipboard with clock
+                    color1: const Color(0xFFFFC061), // Light Orange
+                    color2: const Color(0xFFF9942A), // Deep Orange
+                    iconColor: const Color(0xFFF9942A),
+                    onTap: () => Get.toNamed('/outingPending'),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -105,27 +125,27 @@ class _AttendanceOptionsPageState extends State<AttendanceOptionsPage> {
     );
   }
 
-  Widget _buildOptionCard({
+  Widget _buildGridCard({
     required String title,
     required IconData icon,
-    required List<Color> colors,
+    required Color color1,
+    required Color color2,
+    required Color iconColor,
     required VoidCallback onTap,
   }) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(15),
       child: Container(
-        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
           gradient: LinearGradient(
-            colors: colors,
+            colors: [color1, color2],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
-              color: colors[1].withOpacity(0.25),
+              color: color2.withOpacity(0.3),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -133,61 +153,59 @@ class _AttendanceOptionsPageState extends State<AttendanceOptionsPage> {
         ),
         child: Stack(
           children: [
-            // Smaller Decorative Background Circles
+            // Background overlapping circles for glass texture visual
             Positioned(
-              top: -15,
-              right: -15,
+              top: -20,
+              left: 20,
               child: Container(
-                width: 70,
-                height: 70,
+                width: 90,
+                height: 90,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.12),
                   shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.12),
                 ),
               ),
             ),
             Positioned(
-              bottom: -8,
-              left: -8,
+              bottom: -30,
+              right: -10,
               child: Container(
-                width: 45,
-                height: 45,
+                width: 110,
+                height: 110,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.08),
                   shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.12),
                 ),
               ),
             ),
 
-            // Main Content
+            // Foreground content
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
+                    width: 65,
+                    height: 65,
+                    decoration: const BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
                     ),
-                    child: Icon(icon, color: colors[1], size: 26),
+                    child: Icon(
+                      icon,
+                      color: iconColor,
+                      size: 30,
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
                     title,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      height: 1.1,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      height: 1.2,
                     ),
                   ),
                 ],

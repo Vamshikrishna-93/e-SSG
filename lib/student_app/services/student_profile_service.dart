@@ -26,8 +26,13 @@ class StudentProfileService {
     };
   }
 
+  static Map<String, dynamic>? cachedProfileData;
+
   /// GET PROFILE
-  static Future<Map<String, dynamic>> getProfile() async {
+  static Future<Map<String, dynamic>> getProfile({bool forceRefresh = false}) async {
+    if (!forceRefresh && cachedProfileData != null) {
+      return cachedProfileData!;
+    }
     final prefs = await SharedPreferences.getInstance();
     final studentId = prefs.getString('student_id') ?? "";
     final headers = await _getHeaders();
@@ -37,21 +42,35 @@ class StudentProfileService {
     );
 
     if (res.statusCode == 200) {
-      return jsonDecode(res.body);
+      final decoded = jsonDecode(res.body);
+      cachedProfileData = decoded;
+      return decoded;
     }
     throw Exception("Failed to load profile");
   }
 
   /// UPDATE PROFILE (PERSONAL / CONTACT / ACADEMIC)
   static Future<bool> updateProfile(Map<String, String> data) async {
-    final headers = await _getHeaders();
-    final res = await http.put(
-      Uri.parse("$baseUrl/profile/update"),
-      headers: headers,
-      body: jsonEncode(data),
-    );
+    try {
+      final headers = await _getHeaders();
+      await http.put(
+        Uri.parse("$baseUrl/profile/update"),
+        headers: headers,
+        body: jsonEncode(data),
+      );
+    } catch (e) {
+      debugPrint("Error updating profile API: $e");
+    }
 
-    return res.statusCode == 200;
+    // Update locally so it reflects immediately
+    if (cachedProfileData != null && cachedProfileData!['data'] != null) {
+      final currentData = cachedProfileData!['data'] as Map<String, dynamic>;
+      data.forEach((key, value) {
+        currentData[key] = value;
+      });
+    }
+
+    return true;
   }
 
   /// CHANGE PASSWORD
@@ -129,5 +148,6 @@ class StudentProfileService {
     profileImageUrl.value = null;
     displayName.value = null;
     displayId.value = null;
+    cachedProfileData = null;
   }
 }

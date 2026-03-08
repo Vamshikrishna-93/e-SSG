@@ -19,7 +19,7 @@ class AttendanceService {
       final String? studentId = prefs.getString('student_id');
 
       if (token == null || studentId == null) {
-        throw Exception('User or Student ID not found. Please log in again.');
+        return ClassAttendance(success: false, attendance: []);
       }
 
       final String cacheKey = year != null && year.isNotEmpty
@@ -68,7 +68,7 @@ class AttendanceService {
         throw Exception('Failed to load attendance: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error fetching attendance: $e');
+      return ClassAttendance(success: false, attendance: []);
     }
   }
 

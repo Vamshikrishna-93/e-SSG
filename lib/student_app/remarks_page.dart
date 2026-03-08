@@ -28,20 +28,35 @@ class _RemarksPageState extends State<RemarksPage> {
     _fetchData();
   }
 
-  Future<void> _fetchData() async {
+  Future<void> _fetchData({bool forceRefresh = true}) async {
     setState(() => _isLoading = true);
     try {
-      final response = await RemarksService.getRemarks();
+      final response = await RemarksService.getRemarks(forceRefresh: forceRefresh);
       if (mounted) {
         setState(() {
           _remarks = response;
           _calculateStats();
           _isLoading = false;
         });
+        if (forceRefresh) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Remarks refreshed"),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to refresh: ${e.toString()}"),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -222,7 +237,7 @@ class _RemarksPageState extends State<RemarksPage> {
 
   Widget _buildRefreshButton() {
     return GestureDetector(
-      onTap: _fetchData,
+      onTap: () => _fetchData(forceRefresh: true),
       child: Container(
         width: 160,
         padding: const EdgeInsets.symmetric(vertical: 10),

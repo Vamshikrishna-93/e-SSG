@@ -450,8 +450,13 @@ class AttendanceChart extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            "Academic Year",
+          Text(
+            switch (selectedRange) {
+              TimeRange.lastMonth => "This Month",
+              TimeRange.last3Months => "Last 3 Months",
+              TimeRange.last6Months => "Last 6 Months",
+              TimeRange.academicYear => "Academic Year",
+            },
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,

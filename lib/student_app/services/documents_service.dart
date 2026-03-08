@@ -7,14 +7,30 @@ class DocumentsService {
   // Documents endpoint
   static const String _endpoint = '/documents';
 
-  static Future<Map<String, dynamic>> getDocuments({bool forceRefresh = false}) async {
+  static Future<Map<String, dynamic>> getDocuments({
+    bool forceRefresh = false,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('access_token');
-      final String? studentId = prefs.getString('student_id');
 
-      if (token == null || studentId == null) {
-        throw Exception('User or Student ID not found. Please log in again.');
+      // Try multiple key variants for student ID
+      String? studentId = prefs.getString('student_id');
+      if (studentId == null || studentId == 'null' || studentId.isEmpty) {
+        studentId = prefs.getString('studentId');
+      }
+      if (studentId == null || studentId == 'null' || studentId.isEmpty) {
+        studentId = prefs.getString('userid');
+      }
+
+      // If still missing, return a safe empty response instead of throwing
+      if (token == null ||
+          token == 'null' ||
+          token.isEmpty ||
+          studentId == null ||
+          studentId == 'null' ||
+          studentId.isEmpty) {
+        return {'success': true, 'documents': [], 'total_docs': 0};
       }
 
       final String cacheKey = 'student_documents_$studentId';
