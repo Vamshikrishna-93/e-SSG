@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/hostel_controller.dart';
 import '../widgets/skeleton.dart';
 import 'hostel_attendance_mark_page.dart';
+import '../widgets/staff_header.dart';
 
 class HostelAttendanceResultPage extends StatefulWidget {
   const HostelAttendanceResultPage({super.key});
@@ -54,58 +55,11 @@ class _HostelAttendanceResultPageState
 
   @override
   Widget build(BuildContext context) {
-    final topPad = MediaQuery.of(context).padding.top;
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // ── HEADER ──────────────────────────────────────────────
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.only(
-              top: topPad + 12,
-              bottom: 28,
-              left: 20,
-              right: 20,
-            ),
-            decoration: const BoxDecoration(
-              color: Color(0xFF7C3AED), // Premium Purple
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(32),
-                bottomRight: Radius.circular(32),
-              ),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Get.back(),
-                  child: Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                const Text(
-                  'Hostel Attendance',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const StaffHeader(title: 'Hostel Attendance'),
 
           // ── BODY LAVENDER CONTAINER ──────────────────────────────
           Expanded(

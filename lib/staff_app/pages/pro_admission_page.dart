@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../widgets/staff_header.dart';
 
 class ProAdmissionPage extends StatelessWidget {
   const ProAdmissionPage({super.key});
@@ -39,7 +39,7 @@ class ProAdmissionPage extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          _buildHeader(context),
+          const StaffHeader(title: "Pro Admission"),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
@@ -477,52 +477,6 @@ class ProAdmissionPage extends StatelessWidget {
             );
           }),
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 25,
-        left: 16,
-        right: 16,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF8147E7),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(35),
-          bottomRight: Radius.circular(35),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Get.back(),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          const Text(
-            "Pro Admission",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
       ),
     );
   }

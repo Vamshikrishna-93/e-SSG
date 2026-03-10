@@ -21,13 +21,16 @@ class DocumentsController extends GetxController {
 
   Future<void> _refreshFlow() async {
     // 1. Load from cache instantly
-    await fetchDocuments(forceRefresh: false);
+    await fetchDocuments(forceRefresh: false, showSnackbar: false);
 
     // 2. Refresh from server in background
-    await fetchDocuments(forceRefresh: true);
+    await fetchDocuments(forceRefresh: true, showSnackbar: false);
   }
 
-  Future<void> fetchDocuments({bool forceRefresh = false}) async {
+  Future<void> fetchDocuments({
+    bool forceRefresh = false,
+    bool showSnackbar = false,
+  }) async {
     // Only fetch if forced or if we haven't successfully loaded this session
     if (!forceRefresh && isInitialLoadDone.value) return;
 
@@ -71,7 +74,7 @@ class DocumentsController extends GetxController {
 
       if (forceRefresh) {
         isInitialLoadDone.value = true;
-        if (Get.isSnackbarOpen != true) {
+        if (showSnackbar && Get.isSnackbarOpen != true) {
           Get.snackbar(
             'Success',
             'Documents refreshed',
@@ -86,13 +89,15 @@ class DocumentsController extends GetxController {
     } catch (e) {
       errorMessage.value = e.toString();
       isLoading.value = false;
-      Get.snackbar(
-        'Error',
-        'Failed to refresh: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFFEF4444),
-        colorText: const Color(0xFFFFFFFF),
-      );
+      if (showSnackbar) {
+        Get.snackbar(
+          'Error',
+          'Failed to refresh: ${e.toString()}',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFFEF4444),
+          colorText: const Color(0xFFFFFFFF),
+        );
+      }
     }
   }
 

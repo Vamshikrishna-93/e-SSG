@@ -5,6 +5,7 @@ import '../model/student_details_model.dart';
 import '../api/api_service.dart';
 import '../controllers/hostel_controller.dart';
 import '../widgets/skeleton.dart';
+import '../widgets/staff_header.dart';
 
 class StudentDetailsPage extends StatefulWidget {
   final StudentModel? student;
@@ -106,7 +107,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
   Widget _buildMainBody() {
     return Column(
       children: [
-        _buildHeader(),
+        const StaffHeader(title: "Student Details"),
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -133,52 +134,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 25,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF8147E7),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Get.back(),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(width: 15),
-          const Text(
-            "Student Details",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Header UI is now managed by imported StaffHeader widget.
 
   Widget _buildProfileCard() {
     if (studentDetails == null) return const SizedBox.shrink();

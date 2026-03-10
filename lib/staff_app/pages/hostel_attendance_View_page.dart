@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/branch_controller.dart';
+import '../widgets/staff_header.dart';
 
 class HostelAttendanceFilterPage extends StatefulWidget {
   const HostelAttendanceFilterPage({super.key});
@@ -65,7 +66,7 @@ class _HostelAttendanceFilterPageState
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          _buildHeader(context),
+          const StaffHeader(title: "Hostel Attendance"),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
@@ -78,59 +79,7 @@ class _HostelAttendanceFilterPageState
     );
   }
 
-  // ================= HEADER =================
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 30,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF8B5CF6), Color(0xFF6B21A8)],
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(35),
-          bottomRight: Radius.circular(35),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Get.back(),
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-            ),
-          ),
-          const SizedBox(width: 20),
-          const Text(
-            "Hotel Attendance",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.8,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Standard header widget used instead of local _buildHeader
 
   // ================= FILTER CONTAINER =================
   Widget _buildFilterContainer(BuildContext context) {
@@ -273,10 +222,8 @@ class _HostelAttendanceFilterPageState
       height: 55,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            const Color(0xFF7B4DFF).withOpacity(0.7),
-            const Color(0xFFC486FF),
-          ],
+          colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
+
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
@@ -340,7 +287,7 @@ class _HostelAttendanceFilterPageState
               height: 55,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF7B4DFF), Color(0xFFC486FF)],
+                  colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
                 ),
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -377,7 +324,7 @@ class _HostelAttendanceFilterPageState
               height: 55,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF4DB6AC), Color(0xFFAED581)],
+                  colors: [Color(0xFF3FAFB9), Color(0xFFAED160)],
                 ),
                 borderRadius: BorderRadius.circular(12),
               ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String label;
@@ -26,7 +25,7 @@ class PrimaryButton extends StatelessWidget {
             : const SizedBox(width: 0, height: 0),
         label: Text(label),
         style: ElevatedButton.styleFrom(
-          backgroundColor: color ?? AppTheme.primary,
+          backgroundColor: color,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

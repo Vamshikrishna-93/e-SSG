@@ -9,6 +9,7 @@ import 'package:student_app/student_app/widgets/loading_animation.dart';
 import 'package:student_app/student_app/services/dashboard_controller.dart';
 import 'package:student_app/staff_app/controllers/auth_controller.dart';
 import 'package:student_app/student_app/widgets/student_bottom_nav.dart';
+import 'package:student_app/student_app/services/documents_controller.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -50,6 +51,17 @@ class _DashboardPageState extends State<DashboardPage> {
       Get.put(DashboardController(), permanent: true);
     }
     _controller = Get.find<DashboardController>();
+
+    // 🏆 ONLY show the success snackbar when explicitly logging in
+    final isLogin = Get.arguments?['isLogin'] ?? false;
+    if (isLogin) {
+      if (Get.isRegistered<DocumentsController>()) {
+        Get.find<DocumentsController>().fetchDocuments(
+          forceRefresh: true,
+          showSnackbar: true,
+        );
+      }
+    }
   }
 
   @override
@@ -65,17 +77,17 @@ class _DashboardPageState extends State<DashboardPage> {
         body: Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xFF8B5CF6), // Deep vibrant purple
-                Color(0xFFA78BFA), // Mid transition purple
+                Color(0xFF7C3FE3), // Primary color from XML
+                Color(0xFF7C3FE3).withOpacity(0.8), // Smooth transition
                 Color(0xFFF3F4FB), // Lightest lavender/white
                 Color(0xFFF5F5FA), // Soft background tint
               ],
-              stops: [0.0, 0.25, 0.45, 1.0],
+              stops: [0.0, 0.28, 0.45, 1.0],
             ),
           ),
           child: SingleChildScrollView(
@@ -152,27 +164,32 @@ class _DashboardPageState extends State<DashboardPage> {
                 children: [
                   const Icon(Icons.search, color: Colors.white, size: 28),
                   const SizedBox(width: 16),
-                  Stack(
-                    children: [
-                      const Icon(
-                        Icons.notifications_none,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                      Positioned(
-                        right: 4,
-                        top: 4,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
+                  Obx(() {
+                    final hasAnnouncements =
+                        _controller.announcements.isNotEmpty;
+                    return Stack(
+                      children: [
+                        const Icon(
+                          Icons.notifications_none,
+                          color: Colors.white,
+                          size: 28,
                         ),
-                      ),
-                    ],
-                  ),
+                        if (hasAnnouncements)
+                          Positioned(
+                            right: 4,
+                            top: 4,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  }),
                   const SizedBox(width: 16),
                   PopupMenuButton<String>(
                     offset: const Offset(0, 50),
@@ -350,39 +367,48 @@ class _DashboardPageState extends State<DashboardPage> {
     final stats = _controller.examStats;
     return DashboardSection(
       title: "Exam Stats",
-      child: Column(
-        children: [
-          StatListItem(
-            icon: Icons.assignment,
-            iconColor: const Color(0xFF3B82F6),
-            title: "Total Exam Questions",
-            value: stats['totalQuestions']?.toString() ?? "200",
-          ),
-          StatListItem(
-            icon: Icons.check_circle,
-            iconColor: const Color(0xFF10B981),
-            title: "Attempted Questions",
-            value: stats['attempted']?.toString() ?? "150",
-          ),
-          StatListItem(
-            icon: Icons.cancel,
-            iconColor: const Color(0xFFF59E0B),
-            title: "Not Attempted Questions",
-            value: stats['notAttempted']?.toString() ?? "50",
-          ),
-          StatListItem(
-            icon: Icons.add_circle,
-            iconColor: const Color(0xFF06B6D4),
-            title: "+ve Questions",
-            value: stats['positive']?.toString() ?? "120",
-          ),
-          StatListItem(
-            icon: Icons.remove_circle,
-            iconColor: const Color(0xFFEF4444),
-            title: "-ve Questions",
-            value: stats['negative']?.toString() ?? "30",
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1.6,
+          children: [
+            ModernStatCard(
+              title: "Total Questions",
+              value: stats['totalQuestions']?.toString() ?? "200",
+              icon: Icons.assignment,
+              gradientColors: const [Color(0xFF6366F1), Color(0xFF4338CA)],
+            ),
+            ModernStatCard(
+              title: "Attempted",
+              value: stats['attempted']?.toString() ?? "150",
+              icon: Icons.check_circle,
+              gradientColors: const [Color(0xFF10B981), Color(0xFF059669)],
+            ),
+            ModernStatCard(
+              title: "Not Attempted",
+              value: stats['notAttempted']?.toString() ?? "50",
+              icon: Icons.cancel,
+              gradientColors: const [Color(0xFFF59E0B), Color(0xFFD97706)],
+            ),
+            ModernStatCard(
+              title: "+ve Questions",
+              value: stats['positive']?.toString() ?? "120",
+              icon: Icons.add_circle,
+              gradientColors: const [Color(0xFF06B6D4), Color(0xFF0891B2)],
+            ),
+            ModernStatCard(
+              title: "-ve Questions",
+              value: stats['negative']?.toString() ?? "30",
+              icon: Icons.remove_circle,
+              gradientColors: const [Color(0xFFEF4444), Color(0xFFDC2626)],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -391,40 +417,48 @@ class _DashboardPageState extends State<DashboardPage> {
     final stats = _controller.examStats;
     return DashboardSection(
       title: "Rank State",
-      child: Column(
-        children: [
-          StatListItem(
-            icon: Icons.emoji_events,
-            iconColor: const Color(0xFF3B82F6),
-            title: "Overall Rank",
-            value: stats['overallRank']?.toString() ?? "12",
-          ),
-          StatListItem(
-            icon: Icons.account_tree,
-            iconColor: const Color(0xFF10B981),
-            title: "Branch Wise Rank",
-            value: stats['branchRank']?.toString() ?? "3",
-          ),
-          StatListItem(
-            icon: Icons.groups,
-            iconColor: const Color(0xFFF59E0B),
-            title: "Group Wise Rank",
-            value: stats['groupRank']?.toString() ?? "5",
-          ),
-          StatListItem(
-            icon: Icons.school,
-            iconColor: const Color(0xFF06B6D4),
-            title: "Course Wise Rank",
-            value: stats['courseRank']?.toString() ?? "8",
-          ),
-          StatListItem(
-            icon: Icons.layers,
-            iconColor: const Color(0xFFEF4444),
-            title: "Batch Wise Rank",
-            value: stats['batchRank']?.toString() ?? "2",
-            valueColor: const Color(0xFFEF4444),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1.6,
+          children: [
+            ModernStatCard(
+              title: "Overall Rank",
+              value: stats['overallRank']?.toString() ?? "12",
+              icon: Icons.emoji_events,
+              gradientColors: const [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+            ),
+            ModernStatCard(
+              title: "Branch Rank",
+              value: stats['branchRank']?.toString() ?? "3",
+              icon: Icons.account_tree,
+              gradientColors: const [Color(0xFFEC4899), Color(0xFFDB2777)],
+            ),
+            ModernStatCard(
+              title: "Group Rank",
+              value: stats['groupRank']?.toString() ?? "5",
+              icon: Icons.groups,
+              gradientColors: const [Color(0xFFF97316), Color(0xFFEA580C)],
+            ),
+            ModernStatCard(
+              title: "Course Rank",
+              value: stats['courseRank']?.toString() ?? "8",
+              icon: Icons.school,
+              gradientColors: const [Color(0xFF06B6D4), Color(0xFF0891B2)],
+            ),
+            ModernStatCard(
+              title: "Batch Rank",
+              value: stats['batchRank']?.toString() ?? "2",
+              icon: Icons.layers,
+              gradientColors: const [Color(0xFF6366F1), Color(0xFF4F46E5)],
+            ),
+          ],
+        ),
       ),
     );
   }

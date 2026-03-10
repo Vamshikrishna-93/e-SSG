@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/floor_student_controller.dart';
 import '../model/floor_student_model.dart';
+import '../widgets/staff_header.dart';
 
 class FloorStudentsPage extends StatefulWidget {
   final int floorId;
@@ -33,59 +34,8 @@ class _FloorStudentsPageState extends State<FloorStudentsPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          _buildHeader(context),
+          StaffHeader(title: "${widget.floorName} - Floor Students"),
           Expanded(child: _buildMainContent()),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 25,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF8147E7),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Get.back(),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Text(
-              "${widget.floorName} - Floor Students",
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
         ],
       ),
     );

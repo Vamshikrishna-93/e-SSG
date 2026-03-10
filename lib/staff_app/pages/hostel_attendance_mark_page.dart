@@ -4,6 +4,7 @@ import 'package:student_app/staff_app/pages/hostel_attendance_grid_page.dart';
 import 'package:student_app/staff_app/widgets/skeleton.dart';
 import 'package:student_app/staff_app/controllers/hostel_controller.dart';
 import 'package:student_app/staff_app/model/hostel_student_model.dart';
+import 'package:student_app/staff_app/widgets/staff_header.dart';
 
 class HostelAttendanceMarkPage extends StatefulWidget {
   const HostelAttendanceMarkPage({super.key});
@@ -61,7 +62,7 @@ class _HostelAttendanceMarkPageState extends State<HostelAttendanceMarkPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          _buildHeader(context, roomName),
+          StaffHeader(title: "Mark Attendance - $roomName"),
           _buildAllPresentRow(),
           Expanded(
             child: Container(
@@ -121,53 +122,6 @@ class _HostelAttendanceMarkPageState extends State<HostelAttendanceMarkPage> {
             ),
           ),
           _buildBottomSubmitButton(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, String roomName) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 30,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF7C3AED), // Deeper vibrant purple
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(40),
-          bottomRight: Radius.circular(40),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Get.back(),
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(width: 15),
-          Text(
-            "Mark Attendance - $roomName",
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
         ],
       ),
     );
@@ -388,8 +342,8 @@ class _HostelAttendanceMarkPageState extends State<HostelAttendanceMarkPage> {
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [
-                  Color(0xFF818CF8),
-                  Color(0xFFC084FC),
+                  Color(0xFF7D74FC),
+                  Color(0xFFD08EF7),
                 ], // More like image
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/profile_controller.dart';
+import 'package:iconify_flutter/iconify_flutter.dart';
+import '../utils/iconify_icons.dart';
 
 class StaffBottomNavBar extends StatelessWidget {
   const StaffBottomNavBar({super.key});
@@ -14,10 +16,10 @@ class StaffBottomNavBar extends StatelessWidget {
 
     return Obx(() {
       return Container(
-        height: 90,
+        height: 80,
         padding: const EdgeInsets.only(bottom: 10),
         decoration: const BoxDecoration(
-          color: Color(0xFF7E49FF), // Persistent Purple
+          color: Color(0xFF7C3FE3), // Persistent Purple
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(35),
             topRight: Radius.circular(35),
@@ -33,15 +35,15 @@ class StaffBottomNavBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildNavItem(0, Icons.home_rounded, "Home", controller),
+            _buildNavItem(0, IconifyIcons.clarityBuildingLine, "Home", controller),
             _buildNavItem(
               1,
-              Icons.auto_graph_rounded,
+              IconifyIcons.clarityFormLine,
               "Attendance",
               controller,
             ),
-            _buildNavItem(2, Icons.description_rounded, "Fees", controller),
-            _buildNavItem(3, Icons.person_rounded, "Profile", controller),
+            _buildNavItem(2, IconifyIcons.phStudent, "Fees", controller),
+            _buildNavItem(3, IconifyIcons.fluentPeopleSettings20Regular, "Profile", controller),
           ],
         ),
       );
@@ -50,7 +52,7 @@ class StaffBottomNavBar extends StatelessWidget {
 
   Widget _buildNavItem(
     int index,
-    IconData icon,
+    String icon,
     String label,
     ProfileController controller,
   ) {
@@ -87,10 +89,10 @@ class StaffBottomNavBar extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            Iconify(
               icon,
               color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
-              size: 28,
+              size: 26,
             ),
             const SizedBox(height: 4),
             Text(

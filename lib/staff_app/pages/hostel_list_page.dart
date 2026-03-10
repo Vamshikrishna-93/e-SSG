@@ -6,6 +6,7 @@ import '../controllers/staff_controller.dart';
 import '../model/hostel_model.dart';
 import 'add_hostel_page.dart';
 import '../widgets/skeleton.dart';
+import '../widgets/staff_header.dart';
 
 /// ================= HOSTEL LIST PAGE =================
 class HostelListPage extends StatefulWidget {
@@ -60,50 +61,7 @@ class _HostelListPageState extends State<HostelListPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // ================= CUSTOM HEADER =================
-          Container(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 10,
-              bottom: 25,
-              left: 20,
-              right: 20,
-            ),
-            decoration: const BoxDecoration(
-              color: primaryPurple,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(35),
-                bottomRight: Radius.circular(35),
-              ),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Get.back(),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                const Text(
-                  "Hostel List",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const StaffHeader(title: "Hostel List"),
 
           Expanded(
             child: Obx(() {
@@ -139,7 +97,7 @@ class _HostelListPageState extends State<HostelListPage> {
               height: 55,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF7C69FF), Color(0xFFD38DFA)],
+                  colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),
@@ -282,10 +240,7 @@ class _HostelListPageState extends State<HostelListPage> {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(10),
-        decoration: const BoxDecoration(
-          color: primaryPurple,
-          shape: BoxShape.circle,
-        ),
+        decoration: BoxDecoration(color: primaryPurple, shape: BoxShape.circle),
         child: Icon(icon, color: Colors.white, size: 20),
       ),
     );
@@ -395,12 +350,22 @@ class _HostelListPageState extends State<HostelListPage> {
                 ),
               ),
               const SizedBox(height: 32),
-              SizedBox(
+              Container(
                 width: double.infinity,
+                height: 50,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryPurple,
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -455,17 +420,29 @@ class _HostelListPageState extends State<HostelListPage> {
               Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryPurple,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      height: 46,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
                         ),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text("Yes"),
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text("Yes"),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),

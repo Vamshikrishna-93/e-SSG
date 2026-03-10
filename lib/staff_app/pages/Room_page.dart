@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'assign_incharge_page.dart';
 import 'add_room_page.dart';
+import '../widgets/staff_header.dart';
 
 class RoomsPage extends StatefulWidget {
   const RoomsPage({super.key});
@@ -68,50 +69,7 @@ class _RoomsPageState extends State<RoomsPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // ================= CUSTOM HEADER =================
-          Container(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 10,
-              bottom: 25,
-              left: 20,
-              right: 20,
-            ),
-            decoration: const BoxDecoration(
-              color: primaryPurple,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(35),
-                bottomRight: Radius.circular(35),
-              ),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Get.back(),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                const Text(
-                  "Rooms List",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const StaffHeader(title: "Rooms List"),
 
           // ================= SEARCH BAR =================
           Padding(
@@ -172,7 +130,7 @@ class _RoomsPageState extends State<RoomsPage> {
                 Expanded(
                   child: _gradientButton(
                     onTap: () => Get.to(() => const AssignInchargePage()),
-                    colors: [const Color(0xFFA590FF), const Color(0xFFD3A4FF)],
+                    colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
                     icon: Icons.check_circle_outline,
                     label: "Assign Incharge",
                   ),
@@ -181,7 +139,7 @@ class _RoomsPageState extends State<RoomsPage> {
                 Expanded(
                   child: _gradientButton(
                     onTap: () => Get.to(() => const AddRoomPage()),
-                    colors: [const Color(0xFF46B7B9), const Color(0xFF9BD471)],
+                    colors: [Color(0xFF3FAFB9), Color(0xFFAED160)],
                     icon: Icons.add,
                     label: "Add New Room",
                   ),

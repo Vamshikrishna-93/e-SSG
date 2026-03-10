@@ -20,122 +20,161 @@ class SuccessDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       elevation: 0,
       backgroundColor: Colors.transparent,
       child: Container(
-        padding: const EdgeInsets.all(24),
+        width: MediaQuery.of(context).size.width * 0.85,
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A1C1E) : Colors.white,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Stack(
           children: [
-            // ── Header Icon with Animation Look ──
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.12),
-                shape: BoxShape.circle,
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 50,
+                bottom: 24,
+                left: 20,
+                right: 20,
               ),
-              child: const Icon(
-                Icons.check_circle_rounded,
-                color: Colors.green,
-                size: 48,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // ── Green Check Icon ──
+                  Container(
+                    width: 75,
+                    height: 75,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF0A7B20), // Dark green matching image
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check_rounded,
+                      color: Colors.white,
+                      size: 50,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // ── Title ──
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // ── Message ──
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: Colors.black54,
+                      height: 1.4,
+                    ),
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  // ── Stats Grid ──
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _statCard(
+                          context,
+                          "Total",
+                          total.toString(),
+                          const Color(0xFF8B5CF6), // Purple
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _statCard(
+                          context,
+                          "Total", // Image shows 'Total' for present column too
+                          present.toString(),
+                          const Color(0xFF10B981), // Green
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _statCard(
+                          context,
+                          "Absent",
+                          absent.toString(),
+                          const Color(0xFFEF4444), // Red
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // ── OK Action Button ──
+                  InkWell(
+                    onTap: onConfirm,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: double.infinity,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF7D74FC).withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Text(
+                          "OK",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
-            const SizedBox(height: 20),
-
-            // ── Title ──
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // ── Message ──
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark ? Colors.white60 : Colors.black54,
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // ── Stats Grid ──
-            Row(
-              children: [
-                Expanded(
-                  child: _statCard(
-                    context,
-                    "Total",
-                    total.toString(),
-                    Colors.blue,
-                    isDark,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _statCard(
-                    context,
-                    "Present",
-                    present.toString(),
-                    Colors.green,
-                    isDark,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _statCard(
-                    context,
-                    "Absent",
-                    absent.toString(),
-                    Colors.red,
-                    isDark,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 32),
-
-            // ── Confirmation Button ──
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: onConfirm,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3A506B),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  "OK",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            // ── Close 'X' Button ──
+            Positioned(
+              top: 15,
+              right: 15,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Icon(
+                  Icons.close_rounded,
+                  color: Colors.black87,
+                  size: 24,
                 ),
               ),
             ),
@@ -150,14 +189,21 @@ class SuccessDialog extends StatelessWidget {
     String label,
     String value,
     Color color,
-    bool isDark,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: BoxDecoration(
-        color: color.withOpacity(isDark ? 0.12 : 0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.2), width: 1),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.2), width: 1.5),
+        boxShadow: [
+          // Creates the soft "glow" effect around the container borders
+          BoxShadow(
+            color: color.withOpacity(0.15),
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -173,9 +219,9 @@ class SuccessDialog extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white38 : Colors.black38,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
             ),
           ),
         ],

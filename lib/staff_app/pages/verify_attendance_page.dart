@@ -4,6 +4,7 @@ import 'package:student_app/staff_app/api/api_service.dart';
 import 'package:student_app/staff_app/controllers/shift_controller.dart';
 import 'package:student_app/staff_app/model/attendance_record_model.dart';
 import '../controllers/branch_controller.dart';
+import '../widgets/staff_header.dart';
 
 class VerifyAttendancePage extends StatefulWidget {
   const VerifyAttendancePage({super.key});
@@ -147,7 +148,7 @@ class _VerifyAttendancePageState extends State<VerifyAttendancePage>
 
   // ================= UI Constants =================
   static const Color primaryPurple = Color(0xFF7E49FF);
-  static const Color lavenderBg = Color(0xFFE8EEFF);
+  static const Color lavenderBg = Color(0xFFEAE6F9);
 
   @override
   Widget build(BuildContext context) {
@@ -155,50 +156,7 @@ class _VerifyAttendancePageState extends State<VerifyAttendancePage>
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // ================= CUSTOM HEADER =================
-          Container(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 10,
-              bottom: 25,
-              left: 20,
-              right: 20,
-            ),
-            decoration: const BoxDecoration(
-              color: primaryPurple,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(35),
-                bottomRight: Radius.circular(35),
-              ),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Get.back(),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                const Text(
-                  "Verify Attendance",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const StaffHeader(title: "Verify Attendance"),
 
           Expanded(
             child: SingleChildScrollView(
@@ -206,62 +164,65 @@ class _VerifyAttendancePageState extends State<VerifyAttendancePage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Select filters to verify attendance",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
+                  if (attendanceData.isEmpty) ...[
+                    const Text(
+                      "Select filters to verify attendance",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 15),
+                    const SizedBox(height: 15),
 
-                  // ================= FILTER CARD =================
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: lavenderBg,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildDropdownField(
-                          label: "Branch",
-                          hint: "Select Branch",
-                          value: selectedBranch,
-                          items: branches,
-                          onChanged: (v) {
-                            setState(() {
-                              selectedBranch = v;
-                              selectedShift = null;
-                            });
-                            final branchObj = branchCtrl.branches.firstWhere(
-                              (b) => b.branchName == v,
-                            );
-                            shiftCtrl.loadShifts(branchObj.id);
-                          },
-                        ),
-                        const SizedBox(height: 15),
-                        Obx(
-                          () => _buildDropdownField(
-                            label: "Shift",
-                            hint: "Select Shift",
-                            value: selectedShift,
-                            items: shiftCtrl.shifts
-                                .map((e) => e.shiftName)
-                                .toList(),
-                            onChanged: (v) => setState(() => selectedShift = v),
+                    // ================= FILTER CARD =================
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: lavenderBg,
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildDropdownField(
+                            label: "Branch",
+                            hint: "Select Branch",
+                            value: selectedBranch,
+                            items: branches,
+                            onChanged: (v) {
+                              setState(() {
+                                selectedBranch = v;
+                                selectedShift = null;
+                              });
+                              final branchObj = branchCtrl.branches.firstWhere(
+                                (b) => b.branchName == v,
+                              );
+                              shiftCtrl.loadShifts(branchObj.id);
+                            },
                           ),
-                        ),
-                        const SizedBox(height: 25),
+                          const SizedBox(height: 15),
+                          Obx(
+                            () => _buildDropdownField(
+                              label: "Shift",
+                              hint: "Select Shift",
+                              value: selectedShift,
+                              items: shiftCtrl.shifts
+                                  .map((e) => e.shiftName)
+                                  .toList(),
+                              onChanged: (v) =>
+                                  setState(() => selectedShift = v),
+                            ),
+                          ),
+                          const SizedBox(height: 25),
 
-                        // VERIFY BUTTON
-                        _buildGradientButton(),
-                      ],
+                          // VERIFY BUTTON
+                          _buildGradientButton(),
+                        ],
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 40),
+                    const SizedBox(height: 40),
+                  ],
 
                   // ================= CONTENT =================
                   if (isLoading)
@@ -291,21 +252,24 @@ class _VerifyAttendancePageState extends State<VerifyAttendancePage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
         ),
-        const SizedBox(height: 8),
         Container(
+          height: 48,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.grey.shade200, width: 1),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
@@ -315,7 +279,12 @@ class _VerifyAttendancePageState extends State<VerifyAttendancePage>
                 style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
               ),
               isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down, color: primaryPurple),
+              icon: const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: Colors.black87,
+                size: 20,
+              ),
+              dropdownColor: Colors.white,
               items: items.map((String text) {
                 return DropdownMenuItem<String>(
                   value: text,
@@ -341,18 +310,11 @@ class _VerifyAttendancePageState extends State<VerifyAttendancePage>
         height: 50,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
+            colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF8B5CF6).withOpacity(0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -361,16 +323,17 @@ class _VerifyAttendancePageState extends State<VerifyAttendancePage>
               isLoading ? "Loading..." : "Verify Attendance",
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(width: 10),
-            const Icon(
-              Icons.arrow_forward_rounded,
-              color: Colors.white,
-              size: 20,
-            ),
+            const SizedBox(width: 8),
+            if (!isLoading)
+              const Icon(
+                Icons.arrow_forward_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
           ],
         ),
       ),
@@ -405,28 +368,37 @@ class _VerifyAttendancePageState extends State<VerifyAttendancePage>
   }
 
   Widget _buildAttendanceList() {
-    return Column(
-      children: attendanceData
-          .map((record) => _buildRecordCard(record))
-          .toList(),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: lavenderBg,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: attendanceData
+            .map((record) => _buildRecordCard(record))
+            .toList(),
+      ),
     );
   }
 
   Widget _buildRecordCard(AttendanceRecord record) {
+    int totalMarked =
+        record.present +
+        record.absent +
+        record.totalOuting +
+        record.totalHomePass +
+        record.totalSelfOuting +
+        record.totalSelfHome +
+        record.totalMissing;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: lavenderBg),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade300, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -439,38 +411,127 @@ class _VerifyAttendancePageState extends State<VerifyAttendancePage>
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
+                  color: Colors.black87,
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: primaryPurple.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: primaryPurple,
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Text(
                   "Shift Wise",
                   style: TextStyle(
-                    color: primaryPurple,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 15),
-          Wrap(
-            spacing: 15,
-            runSpacing: 10,
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 14),
+            child: Divider(height: 1, color: Color(0xFFEEEEEE)),
+          ),
+          Row(
             children: [
-              _statMiniItem("TOTAL", record.total, Colors.blue),
-              _statMiniItem("PRESENT", record.present, Colors.green),
-              _statMiniItem("ABSENT", record.absent, Colors.red),
-              _statMiniItem("OUTING", record.totalOuting, Colors.orange),
-              _statMiniItem("HOME PASS", record.totalHomePass, Colors.purple),
-              _statMiniItem("S.OUTING", record.totalSelfOuting, Colors.teal),
-              _statMiniItem("S.HOME", record.totalSelfHome, Colors.indigo),
-              _statMiniItem("MISSING", record.totalMissing, Colors.redAccent),
+              Expanded(
+                child: _statMiniItem(
+                  "Total",
+                  record.total,
+                  const Color(0xFF3B82F6),
+                ),
+              ), // Blue
+              const SizedBox(width: 8),
+              Expanded(
+                child: _statMiniItem(
+                  "Present",
+                  record.present,
+                  const Color(0xFF22C55E),
+                ),
+              ), // Green
+              const SizedBox(width: 8),
+              Expanded(
+                child: _statMiniItem(
+                  "Absent",
+                  record.absent,
+                  const Color(0xFFEF4444),
+                ),
+              ), // Red
+              const SizedBox(width: 8),
+              Expanded(
+                child: _statMiniItem(
+                  "Outing",
+                  record.totalOuting,
+                  const Color(0xFFF59E0B),
+                ),
+              ), // Orange
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _statMiniItem(
+                  "Home Pass",
+                  record.totalHomePass,
+                  const Color(0xFF8B5CF6),
+                ),
+              ), // Purple
+              const SizedBox(width: 8),
+              Expanded(
+                child: _statMiniItem(
+                  "Self Outing",
+                  record.totalSelfOuting,
+                  const Color(0xFF06B6D4),
+                ),
+              ), // Cyan
+              const SizedBox(width: 8),
+              Expanded(
+                child: _statMiniItem(
+                  "Self Home",
+                  record.totalSelfHome,
+                  const Color(0xFF0EA5E9),
+                ),
+              ), // Light Blue
+              const SizedBox(width: 8),
+              Expanded(
+                child: _statMiniItem(
+                  "Missing",
+                  record.totalMissing,
+                  const Color(0xFFEAB308),
+                ),
+              ), // Yellow
+            ],
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 14),
+            child: Divider(height: 1, color: Color(0xFFEEEEEE)),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Total Marked",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+              ),
+              Text(
+                totalMarked.toString(),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.black,
+                ),
+              ),
             ],
           ),
         ],
@@ -479,25 +540,33 @@ class _VerifyAttendancePageState extends State<VerifyAttendancePage>
   }
 
   Widget _statMiniItem(String label, int value, Color color) {
-    return SizedBox(
-      width: 55,
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.6), width: 1),
+      ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 7,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
-            ),
-          ),
           Text(
             value.toString(),
             style: TextStyle(
-              fontSize: 15,
+              fontSize: 13,
               fontWeight: FontWeight.bold,
               color: color,
             ),
+          ),
+          const SizedBox(height: 1),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

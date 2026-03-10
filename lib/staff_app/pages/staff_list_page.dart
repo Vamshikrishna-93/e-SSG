@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../controllers/staff_controller.dart';
 import '../model/staff_model.dart';
+import '../widgets/staff_header.dart';
 
 class StaffListPage extends StatefulWidget {
   const StaffListPage({super.key});
@@ -36,50 +37,7 @@ class _StaffListPageState extends State<StaffListPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ================= CUSTOM HEADER =================
-              Container(
-                padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top + 10,
-                  bottom: 25,
-                  left: 20,
-                  right: 20,
-                ),
-                decoration: const BoxDecoration(
-                  color: primaryPurple,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(35),
-                    bottomRight: Radius.circular(35),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => Get.back(),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    const Text(
-                      "Staff List",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              const StaffHeader(title: "Staff List"),
 
               // ================= CATEGORY FILTER =================
               Padding(
@@ -246,7 +204,7 @@ class _StaffListPageState extends State<StaffListPage> {
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF7C69FF), Color(0xFFD38DFA)],
+                    colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
                   ),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [

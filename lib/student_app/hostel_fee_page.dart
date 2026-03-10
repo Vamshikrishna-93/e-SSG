@@ -3,6 +3,7 @@ import 'package:student_app/student_app/hostel_payment_page.dart';
 import 'package:student_app/student_app/receipt_page.dart';
 import 'package:student_app/student_app/services/fee_services_page.dart';
 import 'package:student_app/student_app/studentdrawer.dart';
+import 'package:student_app/student_app/widgets/student_app_header.dart';
 import 'dart:async';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -154,55 +155,7 @@ class _HostelFeesPageState extends State<HostelFeesPage>
       drawer: const StudentDrawerPage(),
       body: Column(
         children: [
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 10,
-              left: 25,
-              right: 20,
-              bottom: 20,
-            ),
-            decoration: const BoxDecoration(
-              color: Color(0xFF8B5CF6),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: Row(
-              children: [
-                InkWell(
-                  onTap: () {
-                    // Check if drawer is open, if not pop context or open drawer depending on needs,
-                    // image shows back arrow, but drawer was previous behavior. I will match image (back arrow to pop, or open drawer).
-                    // Given we have a StudentDrawerPage, a back button might pop or open it. Image shows back arrow.
-                    Navigator.of(context).pop();
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                const Text(
-                  "Hostel Fees",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const StudentAppHeader(title: "Hostel Fees"),
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())

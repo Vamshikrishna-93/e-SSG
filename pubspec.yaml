@@ -48,6 +48,7 @@ dependencies:
   path_provider: ^2.1.5
   open_filex: ^4.7.0
   shimmer: ^3.0.0
+  iconify_flutter: ^0.0.7
 
 
 dev_dependencies:
@@ -82,10 +83,10 @@ flutter:
     - assets/ssjc.jpg
     - assets/girl.jpg
     - assets/QRcode.svg
-flutter_icons:
+flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/ssjc.jpg"
+  image_path: "assets/logo.png"
   min_sdk_android: 21
 
   

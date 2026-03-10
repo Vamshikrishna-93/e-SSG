@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:student_app/student_app/widgets/student_app_header.dart';
 
 class HostelAttendancePage extends StatefulWidget {
   const HostelAttendancePage({super.key});
@@ -171,136 +172,97 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        top: false,
-        child: _isLoading 
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildPurpleHeader(),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20.0,
-                  vertical: 20.0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Hostel Attendance',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E1E1E),
+      body: Column(
+        children: [
+          const StudentAppHeader(title: "Hostel Attendance"),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0,
+                        vertical: 20.0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Hostel Attendance',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E1E1E),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Track and analyze your hostel attendance',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF666666),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          _buildActionButtons(),
+                          const SizedBox(height: 20),
+                          _buildHostelInfoCard(),
+                          const SizedBox(height: 16),
+                          _buildStatCard(
+                            title: 'Overall Attendance',
+                            value: '${overallAttendance.toStringAsFixed(1)}%',
+                            pillText: 'Based on 365 recorded days',
+                            pillColor: const Color(0xFFE8F5E9),
+                            pillTextColor: const Color(0xFF43A047),
+                            valueColor: const Color(0xFF43A047),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildStatCard(
+                            title: 'Night in Hostel',
+                            value: '$nightsInHostel/365',
+                            pillText: '$nightsAbsent nights absent',
+                            pillColor: const Color(0xFFE3F2FD),
+                            pillTextColor: const Color(0xFF2196F3),
+                            valueColor: const Color(0xFF2196F3),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildStatCard(
+                            title: 'Current Stay Streak',
+                            value: '$currentStreak nights',
+                            pillText: 'Best streak: $bestStreak days',
+                            pillColor: const Color(0xFFF3E5F5),
+                            pillTextColor: const Color(0xFF9C27B0),
+                            valueColor: const Color(0xFF9C27B0),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildStatCard(
+                            title: 'Leaves Taken',
+                            value: '$leavesTaken nights',
+                            pillText: '$nightOuts night outs recorded',
+                            pillColor: const Color(0xFFFFF3E0),
+                            pillTextColor: const Color(0xFFF57C00),
+                            valueColor: const Color(0xFFF57C00),
+                          ),
+                          const SizedBox(height: 20),
+                          _buildAttendanceTrendCard(context),
+                          const SizedBox(height: 20),
+                          _buildMonthlyOverviewCard(),
+                          const SizedBox(height: 20),
+                          _buildPerformanceSummaryCard(),
+                          const SizedBox(height: 20),
+                          _buildRecentActivityCard(),
+                          const SizedBox(height: 30),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Track and analyze your hostel attendance',
-                      style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
-                    ),
-                    const SizedBox(height: 20),
-                    _buildActionButtons(),
-                    const SizedBox(height: 20),
-                    _buildHostelInfoCard(),
-                    const SizedBox(height: 16),
-                    _buildStatCard(
-                      title: 'Overall Attendance',
-                      value: '${overallAttendance.toStringAsFixed(1)}%',
-                      pillText: 'Based on 365 recorded days',
-                      pillColor: const Color(0xFFE8F5E9),
-                      pillTextColor: const Color(0xFF43A047),
-                      valueColor: const Color(0xFF43A047),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildStatCard(
-                      title: 'Night in Hostel',
-                      value: '$nightsInHostel/365',
-                      pillText: '$nightsAbsent nights absent',
-                      pillColor: const Color(0xFFE3F2FD),
-                      pillTextColor: const Color(0xFF2196F3),
-                      valueColor: const Color(0xFF2196F3),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildStatCard(
-                      title: 'Current Stay Streak',
-                      value: '$currentStreak nights',
-                      pillText: 'Best streak: $bestStreak days',
-                      pillColor: const Color(0xFFF3E5F5),
-                      pillTextColor: const Color(0xFF9C27B0),
-                      valueColor: const Color(0xFF9C27B0),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildStatCard(
-                      title: 'Leaves Taken',
-                      value: '$leavesTaken nights',
-                      pillText: '$nightOuts night outs recorded',
-                      pillColor: const Color(0xFFFFF3E0),
-                      pillTextColor: const Color(0xFFF57C00),
-                      valueColor: const Color(0xFFF57C00),
-                    ),
-                    const SizedBox(height: 20),
-                    _buildAttendanceTrendCard(context),
-                    const SizedBox(height: 20),
-                    _buildMonthlyOverviewCard(),
-                    const SizedBox(height: 20),
-                    _buildPerformanceSummaryCard(),
-                    const SizedBox(height: 20),
-                    _buildRecentActivityCard(),
-                    const SizedBox(height: 30),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPurpleHeader() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 25,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF7E49FF),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Text(
-            'Hostel Attendance',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
+                  ),
           ),
         ],
       ),
     );
   }
+
+
 
   Widget _buildActionButtons() {
     return Padding(

@@ -5,6 +5,7 @@ import 'package:student_app/staff_app/controllers/fee_controller.dart';
 import 'package:student_app/staff_app/controllers/main_controller.dart';
 import 'package:student_app/staff_app/widgets/skeleton.dart';
 import 'package:student_app/staff_app/widgets/staff_bottom_nav_bar.dart';
+import '../widgets/staff_header.dart';
 
 final TextEditingController searchCtrl = TextEditingController();
 
@@ -38,43 +39,7 @@ class _FeeHeadPageState extends State<FeeHeadPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // ================= CUSTOM HEADER =================
-          Container(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 10,
-              bottom: 25,
-              left: 20,
-              right: 20,
-            ),
-            decoration: const BoxDecoration(
-              color: primaryPurple,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => Get.back(),
-                  icon: const Icon(
-                    Icons.description_rounded,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  "Fee Heads",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const StaffHeader(title: "Fee Heads"),
 
           Expanded(
             child: SingleChildScrollView(
@@ -275,7 +240,7 @@ class _FeeHeadPageState extends State<FeeHeadPage> {
           Container(
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF8E7CFF), Color(0xFFD3ADFF)],
+                colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
               ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:student_app/student_app/outing_details_page.dart';
 import 'package:student_app/student_app/services/outing_service.dart';
 import 'package:student_app/student_app/widgets/loading_animation.dart';
+import 'package:student_app/student_app/widgets/student_app_header.dart';
 
 class OutingsPermissionsPage extends StatefulWidget {
   const OutingsPermissionsPage({super.key});
@@ -18,7 +19,7 @@ class _OutingsPermissionsPageState extends State<OutingsPermissionsPage> {
   String _lastOutingDate = "29 Jan 2026";
   int _selectedTabIndex = 0;
 
-  static const Color primaryPurple = Color(0xFF7E3FF2);
+
 
   @override
   void initState() {
@@ -119,7 +120,7 @@ class _OutingsPermissionsPageState extends State<OutingsPermissionsPage> {
           ? const Center(child: StudentLoadingAnimation())
           : Column(
               children: [
-                _buildHeader(context),
+                const StudentAppHeader(title: "Outings"),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(20),
@@ -193,52 +194,7 @@ class _OutingsPermissionsPageState extends State<OutingsPermissionsPage> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 25,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: primaryPurple,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(35),
-          bottomRight: Radius.circular(35),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          const Text(
-            "Outings",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildRefreshButton() {
     return GestureDetector(

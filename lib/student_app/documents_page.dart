@@ -4,6 +4,7 @@ import 'package:student_app/student_app/services/documents_controller.dart';
 import 'package:student_app/student_app/upload_document_dialog.dart';
 import 'package:intl/intl.dart';
 import 'package:student_app/student_app/widgets/loading_animation.dart';
+import 'package:student_app/student_app/widgets/student_app_header.dart';
 
 class DocumentsPage extends StatefulWidget {
   const DocumentsPage({super.key});
@@ -17,7 +18,7 @@ class _DocumentsPageState extends State<DocumentsPage>
   late TabController _tabController;
   late final DocumentsController _controller;
 
-  static const Color primaryPurple = Color(0xFF7E3FF2);
+
 
   String selectedCategory = "Financial";
 
@@ -57,7 +58,7 @@ class _DocumentsPageState extends State<DocumentsPage>
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          _buildHeader(context),
+          const StudentAppHeader(title: "Documents"),
           Expanded(
             child: Obx(() {
               if (_controller.isLoading.value) {
@@ -215,52 +216,7 @@ class _DocumentsPageState extends State<DocumentsPage>
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 25,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: primaryPurple,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(35),
-          bottomRight: Radius.circular(35),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          const Text(
-            "Documents",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _actionButton({
     required String label,

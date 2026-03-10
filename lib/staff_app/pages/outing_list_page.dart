@@ -4,6 +4,7 @@ import '../controllers/branch_controller.dart';
 import '../controllers/outing_controller.dart';
 import '../widgets/skeleton.dart';
 import 'issue_outing.dart';
+import '../widgets/staff_header.dart';
 
 class OutingListPage extends StatefulWidget {
   const OutingListPage({super.key});
@@ -36,7 +37,7 @@ class _OutingListPageState extends State<OutingListPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          _buildHeader(context),
+          const StaffHeader(title: "Outing List"),
           Expanded(
             child: Stack(
               children: [
@@ -68,53 +69,7 @@ class _OutingListPageState extends State<OutingListPage> {
     );
   }
 
-  // ================= HEADER =================
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 25,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF8B5CF6),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(35),
-          bottomRight: Radius.circular(35),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Get.back(),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-          const SizedBox(width: 15),
-          const Text(
-            "Outing List",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Header section is now handled by the imported StaffHeader widget
 
   // ================= STATS GRID =================
   Widget _buildStatsGrid() {
@@ -162,9 +117,8 @@ class _OutingListPageState extends State<OutingListPage> {
       child: Obx(() {
         final info = infoRx.value;
         return Container(
-          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(12),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -172,8 +126,8 @@ class _OutingListPageState extends State<OutingListPage> {
             ),
             boxShadow: [
               BoxShadow(
-                color: colors[0].withOpacity(0.2),
-                blurRadius: 10,
+                color: colors[0].withOpacity(0.3),
+                blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
             ],
@@ -181,51 +135,91 @@ class _OutingListPageState extends State<OutingListPage> {
           child: Stack(
             children: [
               Positioned(
-                right: -15,
-                bottom: -15,
+                right: -35,
+                bottom: -35,
                 child: Opacity(
-                  opacity: 0.15,
-                  child: Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
+                  opacity: 0.25,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
+                        ),
+                      ),
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      Icon(icon, color: Colors.white, size: 22),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    info?.total.toString() ?? "0",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  info?.total.toString() ?? "0",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 34,
+                                    fontWeight: FontWeight.bold,
+                                    height: 1.1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Icon(icon, color: Colors.white, size: 32),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildSubStatRow("Pending", info?.pending ?? 0),
-                  _buildSubStatRow("Approved", info?.approved ?? 0),
-                  _buildSubStatRow("Not Reported", info?.notReported ?? 0),
-                ],
+                    const SizedBox(height: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSubStatRow("Pending", info?.pending ?? 0),
+                        _buildSubStatRow("Approved", info?.approved ?? 0),
+                        _buildSubStatRow(
+                          "Not Reported",
+                          info?.notReported ?? 0,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -236,13 +230,14 @@ class _OutingListPageState extends State<OutingListPage> {
 
   Widget _buildSubStatRow(String label, int value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 3),
+      padding: const EdgeInsets.only(bottom: 4),
       child: Text(
         "$label : $value",
-        style: TextStyle(
-          color: Colors.white.withOpacity(0.95),
-          fontSize: 12,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16,
           fontWeight: FontWeight.w400,
+          letterSpacing: 0.3,
         ),
       ),
     );
@@ -401,7 +396,7 @@ class _OutingListPageState extends State<OutingListPage> {
               height: 52,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFFC084FC), Color(0xFFA855F7)],
+                  colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
                 ),
                 borderRadius: BorderRadius.circular(15),
               ),
@@ -531,17 +526,17 @@ class _OutingListPageState extends State<OutingListPage> {
                             Text(
                               o.studentName,
                               style: const TextStyle(
-                                fontSize: 16,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1F2937),
+                                color: Colors.black,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
                             Text(
                               o.admno,
                               style: const TextStyle(
-                                fontSize: 13,
-                                color: Color(0xFF6B7280),
+                                fontSize: 15,
+                                color: Colors.black,
                               ),
                             ),
                           ],
@@ -565,18 +560,17 @@ class _OutingListPageState extends State<OutingListPage> {
                               o.status,
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
                           Text(
                             o.outingType,
                             style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF374151),
-                              fontWeight: FontWeight.w500,
+                              fontSize: 15,
+                              color: Colors.black,
                             ),
                           ),
                         ],
@@ -584,25 +578,35 @@ class _OutingListPageState extends State<OutingListPage> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  const Divider(color: Color(0xFFF3F4F6), height: 1),
-                  const SizedBox(height: 12),
 
-                  _buildDetailRow(Icons.info_outline, "Purpose : ${o.purpose}"),
+                  _buildDetailRow(
+                    Icons.info_outline,
+                    "Purpose : ",
+                    value: o.purpose,
+                  ),
                   _buildDetailRow(
                     Icons.person_outline,
-                    "Permission By : ${o.permission}",
+                    "Permission By : ",
+                    value: o.permission,
                   ),
                   _buildDetailRow(
                     Icons.access_time,
                     "${o.outDate}  •  ${o.outingTime}",
                   ),
 
+                  const SizedBox(height: 6),
+                  const Divider(
+                    color: Color(0xFFE5E7EB),
+                    height: 1.5,
+                    thickness: 1.5,
+                  ),
                   const SizedBox(height: 12),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       _buildActionButton(
-                        icon: Icons.flag_outlined,
+                        icon: Icons.flag,
                         color: const Color(0xFFF97316),
                         bgColor: const Color(0xFFFFF7ED),
                         onTap: () => _showRemarksDialog(o),
@@ -634,18 +638,38 @@ class _OutingListPageState extends State<OutingListPage> {
     );
   }
 
-  Widget _buildDetailRow(IconData icon, String text) {
+  Widget _buildDetailRow(IconData icon, String label, {String? value}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(icon, size: 16, color: const Color(0xFF6B7280)),
+          Icon(icon, size: 16, color: Colors.black),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 13, color: Color(0xFF4B5563)),
-            ),
+            child: value == null
+                ? Text(
+                    label,
+                    style: const TextStyle(fontSize: 15, color: Colors.black),
+                  )
+                : RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Color(0xFF4B5563),
+                      ),
+                      children: [
+                        TextSpan(
+                          text: label,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
+                        TextSpan(text: value),
+                      ],
+                    ),
+                  ),
           ),
         ],
       ),
@@ -731,7 +755,7 @@ class _OutingListPageState extends State<OutingListPage> {
                       height: 55,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFFA78BFA), Color(0xFFC4B5FD)],
+                          colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
                         ),
                         borderRadius: BorderRadius.circular(15),
                         boxShadow: [
@@ -845,7 +869,7 @@ class _OutingListPageState extends State<OutingListPage> {
                             height: 50,
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [Color(0xFFA78BFA), Color(0xFFC4B5FD)],
+                                colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
                               ),
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -870,7 +894,7 @@ class _OutingListPageState extends State<OutingListPage> {
                           child: Container(
                             height: 50,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFB7185), // Pinkish red
+                              color: const Color(0xFFFF6B6B), // Pinkish red
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Center(
@@ -935,7 +959,7 @@ class _OutingListPageState extends State<OutingListPage> {
             height: 55,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF34D399), Color(0xFF84CC16)],
+                colors: [Color(0xFF3FAFB9), Color(0xFFAED160)],
               ),
               borderRadius: BorderRadius.circular(15),
             ),

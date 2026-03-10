@@ -17,7 +17,6 @@ import 'package:student_app/staff_app/controllers/main_controller.dart';
 import 'package:student_app/staff_app/controllers/hostel_controller.dart';
 
 // Staff Theme
-import 'package:student_app/staff_app/theme/app_theme.dart';
 
 // Staff Pages
 import 'package:student_app/staff_app/pages/profile_page.dart';
@@ -86,19 +85,11 @@ class SsJcApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeController = Get.find<staff.ThemeController>();
-    final initialTheme = themeController.isDark.value
-        ? ThemeMode.dark
-        : ThemeMode.light;
+    Get.find<staff.ThemeController>();
 
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'SSJC',
-
-      // 🌗 THEME (Staff App Theme)
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: initialTheme,
 
       // 🚀 ALWAYS start with SplashPage.
       // SplashPage → StaffAuthWrapper → Dashboard (if logged in) or LoginPage (if not).

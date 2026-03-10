@@ -6,6 +6,7 @@ import '../controllers/group_controller.dart';
 import '../controllers/course_controller.dart';
 import '../controllers/batch_controller.dart';
 import '../controllers/shift_controller.dart';
+import '../widgets/staff_header.dart';
 
 class ClassAttendancePage extends StatefulWidget {
   const ClassAttendancePage({super.key});
@@ -45,7 +46,7 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
 
         return Column(
           children: [
-            _buildHeader(context),
+            const StaffHeader(title: "Class Attendance"),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -84,6 +85,13 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
   // ================= ATTENDANCE LIST =================
 
   Widget _buildAttendanceList(BuildContext context) {
+    final bool isAllPresent =
+        controller.attendanceList.isNotEmpty &&
+        controller.presentCount == controller.attendanceList.length;
+    final bool isAllAbsent =
+        controller.attendanceList.isNotEmpty &&
+        controller.absentCount == controller.attendanceList.length;
+
     return Column(
       children: [
         // ================= TOP ACTION BUTTONS =================
@@ -97,22 +105,31 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
                   child: Container(
                     height: 50,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF036423), // Darker Green from image
+                      color: isAllPresent
+                          ? const Color(0xFF036423) // Darker Green from image
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(12),
+                      border: isAllPresent
+                          ? null
+                          : Border.all(color: const Color(0xFF036423)),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
                           Icons.check_circle_outline,
-                          color: Colors.white,
+                          color: isAllPresent
+                              ? Colors.white
+                              : const Color(0xFF036423),
                           size: 18,
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
                           "All Present",
                           style: TextStyle(
-                            color: Colors.white,
+                            color: isAllPresent
+                                ? Colors.white
+                                : const Color(0xFF036423),
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
@@ -129,23 +146,31 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
                   child: Container(
                     height: 50,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isAllAbsent
+                          ? const Color(0xFFEF4444)
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFEF4444)),
+                      border: isAllAbsent
+                          ? null
+                          : Border.all(color: const Color(0xFFEF4444)),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
                           Icons.cancel_outlined,
-                          color: Color(0xFFEF4444),
+                          color: isAllAbsent
+                              ? Colors.white
+                              : const Color(0xFFEF4444),
                           size: 18,
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
                           "All Absent",
                           style: TextStyle(
-                            color: Color(0xFFEF4444),
+                            color: isAllAbsent
+                                ? Colors.white
+                                : const Color(0xFFEF4444),
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
@@ -374,7 +399,7 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
           height: 56,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF818CFF), Color(0xFFCE93F9)],
+              colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
             ),
@@ -416,52 +441,7 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
 
   // ================= HEADER =================
 
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 25,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF7E49FF), // Accurate purple from image
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Get.back(),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.25),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-          const SizedBox(width: 15),
-          const Text(
-            "Class Attendance",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Removed local _buildHeader as it is replaced by StaffHeader widget
 
   // ================= FILTER CONTAINER =================
 
@@ -681,7 +661,7 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
         height: 56,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
+            colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),

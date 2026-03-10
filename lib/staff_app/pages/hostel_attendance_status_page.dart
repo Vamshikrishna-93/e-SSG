@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/hostel_controller.dart';
 import '../widgets/skeleton.dart';
+import '../widgets/staff_header.dart';
 
 class HostelAttendanceStatusPage extends StatelessWidget {
   const HostelAttendanceStatusPage({super.key});
@@ -9,59 +10,12 @@ class HostelAttendanceStatusPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final HostelController hostelCtrl = Get.find<HostelController>();
-    final topPad = MediaQuery.of(context).padding.top;
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // ── HEADER ──────────────────────────────────────────────
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.only(
-              top: topPad + 12,
-              bottom: 32,
-              left: 20,
-              right: 20,
-            ),
-            decoration: const BoxDecoration(
-              color: Color(0xFF7C3AED), // Brand Purple
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Get.back(),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                const Text(
-                  'Hostel Attendance Status',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const StaffHeader(title: 'Hostel Attendance Status'),
 
           // ── BODY LAVENDER CONTAINER ──────────────────────────────
           Expanded(

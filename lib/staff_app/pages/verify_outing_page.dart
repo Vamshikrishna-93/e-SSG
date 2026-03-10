@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:student_app/staff_app/pages/outing_pending_listPage.dart';
 import 'package:get/get.dart';
+import '../widgets/staff_header.dart';
 
 class VerifyOutingPage extends StatefulWidget {
   final String? name;
@@ -63,7 +64,7 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          _buildHeader(context),
+          const StaffHeader(title: "Verify Outing"),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -76,53 +77,6 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
                   _buildActionButtons(),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 25,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF8147E7),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Get.back(),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(width: 15),
-          const Text(
-            "Verify Outing",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
             ),
           ),
         ],
@@ -273,16 +227,23 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
 
   Widget _buildActionButtons() {
     if (_isApproved) {
-      return SizedBox(
+      return Container(
         width: double.infinity,
         height: 52,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
+          ),
+          borderRadius: BorderRadius.circular(10),
+        ),
         child: ElevatedButton(
           onPressed: () {
             // Report In logic
             Get.offAll(() => const OutingPendingListPage());
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFB57BF2),
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
@@ -303,12 +264,19 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
     return Row(
       children: [
         Expanded(
-          child: SizedBox(
+          child: Container(
             height: 52,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: ElevatedButton(
               onPressed: () => _showCaptureDialog(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFB57BF2), // Light purple
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -327,8 +295,17 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
         ),
         const SizedBox(width: 15),
         Expanded(
-          child: SizedBox(
+          child: Container(
             height: 52,
+            decoration: BoxDecoration(
+              gradient: _capturedImage == null
+                  ? null // Use disabled color instead of gradient if disabled
+                  : const LinearGradient(
+                      colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
+                    ),
+              color: _capturedImage == null ? const Color(0xFFC4C4C4) : null,
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: ElevatedButton(
               onPressed: _capturedImage == null
                   ? null
@@ -338,14 +315,14 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
                       });
                     },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFB57BF2),
-                disabledBackgroundColor: const Color(0xFFC4C4C4), // Grey out
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
                 elevation: 0,
               ),
-              child: Text(
+              child: const Text(
                 "Approve",
                 style: TextStyle(
                   color: Colors.white,

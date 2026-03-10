@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../widgets/staff_header.dart';
 
 class StaffAttendancePage extends StatefulWidget {
   const StaffAttendancePage({super.key});
@@ -57,50 +58,7 @@ class _StaffAttendancePageState extends State<StaffAttendancePage> {
         children: [
           Column(
             children: [
-              // ================= CUSTOM HEADER =================
-              Container(
-                padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top + 10,
-                  bottom: 25,
-                  left: 20,
-                  right: 20,
-                ),
-                decoration: const BoxDecoration(
-                  color: primaryPurple,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(35),
-                    bottomRight: Radius.circular(35),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => Get.back(),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    const Text(
-                      "Staff Attendance",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              const StaffHeader(title: "Staff Attendance"),
 
               // ================= TITLE & MONTH SELECTOR =================
               Padding(
@@ -227,10 +185,7 @@ class _StaffAttendancePageState extends State<StaffAttendancePage> {
                 Expanded(
                   child: _buildGradientButton(
                     "Staff Biometric Logs",
-                    [
-                      const Color(0xFF7C69FF).withOpacity(0.7),
-                      const Color(0xFFD38DFA).withOpacity(0.8),
-                    ],
+                    [Color(0xFF7D74FC), Color(0xFFD08EF7)],
                     () => Get.toNamed('/staffBiometricLogs'),
                   ),
                 ),
@@ -238,7 +193,7 @@ class _StaffAttendancePageState extends State<StaffAttendancePage> {
                 Expanded(
                   child: _buildGradientButton(
                     "Take Staff Attendance",
-                    [const Color(0xFF4DB6AC), const Color(0xFF9CCC65)],
+                    [Color(0xFF3FAFB9), Color(0xFFAED160)],
                     () => Get.toNamed('/takeStaffAttendance'),
                   ),
                 ),

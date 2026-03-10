@@ -8,6 +8,7 @@ import 'package:student_app/student_app/model/class_attendance.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:student_app/student_app/widgets/student_app_header.dart';
 import 'package:student_app/student_app/attendence_month_details_page.dart';
 
 class AttendancePage extends StatefulWidget {
@@ -211,105 +212,63 @@ class _AttendancePageState extends State<AttendancePage> {
       backgroundColor: const Color(0xFFF8FAFC),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : LayoutBuilder(
-              builder: (context, constraints) {
-                final isMobile = constraints.maxWidth < 600;
+          : Column(
+              children: [
+                const StudentAppHeader(title: "Class Attendance"),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isMobile = constraints.maxWidth < 600;
 
-                return SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Custom Header
-                      Container(
-                        padding: EdgeInsets.only(
-                          top: MediaQuery.of(context).padding.top + 10,
-                          bottom: 25,
-                          left: 20,
-                          right: 20,
-                        ),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF7E49FF),
-                          borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(30),
-                            bottomRight: Radius.circular(30),
+                      return SingleChildScrollView(
+                        child: Padding(
+                          padding: EdgeInsets.all(isMobile ? 16.0 : 20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Attendance Dashboard Header Card
+                              _buildDashboardHeader(isMobile),
+                              const SizedBox(height: 20),
+
+                              // Overall Attendance Card
+                              _buildOverallAttendanceCard(isMobile),
+                              const SizedBox(height: 16),
+
+                              // Days Attended Card
+                              _buildDaysAttendedCard(isMobile),
+                              const SizedBox(height: 16),
+
+                              // Current Streak Card
+                              _buildCurrentStreakCard(isMobile),
+                              const SizedBox(height: 16),
+
+                              // Leaves Taken Card
+                              _buildLeavesTakenCard(isMobile),
+                              const SizedBox(height: 20),
+
+                              // Attendance Trend Card
+                              _buildAttendanceTrendCard(isMobile),
+                              const SizedBox(height: 20),
+
+                              // Monthly Attendance Overview Card
+                              _buildMonthlyOverviewCard(isMobile),
+                              const SizedBox(height: 20),
+
+                              // Performance Summary Card
+                              _buildPerformanceSummaryCard(isMobile),
+                              const SizedBox(height: 20),
+
+                              // Recent Activity Card
+                              _buildRecentActivityCard(isMobile),
+                              const SizedBox(height: 20),
+                            ],
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () => Navigator.pop(context),
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: const BoxDecoration(
-                                  color: Colors.white24,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.arrow_back,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            const Text(
-                              "Class Attendance",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(isMobile ? 16.0 : 20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Attendance Dashboard Header Card
-                            _buildDashboardHeader(isMobile),
-                            const SizedBox(height: 20),
-
-                            // Overall Attendance Card
-                            _buildOverallAttendanceCard(isMobile),
-                            const SizedBox(height: 16),
-
-                            // Days Attended Card
-                            _buildDaysAttendedCard(isMobile),
-                            const SizedBox(height: 16),
-
-                            // Current Streak Card
-                            _buildCurrentStreakCard(isMobile),
-                            const SizedBox(height: 16),
-
-                            // Leaves Taken Card
-                            _buildLeavesTakenCard(isMobile),
-                            const SizedBox(height: 20),
-
-                            // Attendance Trend Card
-                            _buildAttendanceTrendCard(isMobile),
-                            const SizedBox(height: 20),
-
-                            // Monthly Attendance Overview Card
-                            _buildMonthlyOverviewCard(isMobile),
-                            const SizedBox(height: 20),
-
-                            // Performance Summary Card
-                            _buildPerformanceSummaryCard(isMobile),
-                            const SizedBox(height: 20),
-
-                            // Recent Activity Card
-                            _buildRecentActivityCard(isMobile),
-                            const SizedBox(height: 20),
-                          ],
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+              ],
             ),
     );
   }

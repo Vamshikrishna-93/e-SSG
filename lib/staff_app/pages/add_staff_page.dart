@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../widgets/staff_header.dart';
 
 class AddStaffPage extends StatefulWidget {
   const AddStaffPage({super.key});
@@ -10,7 +11,6 @@ class AddStaffPage extends StatefulWidget {
 
 class _AddStaffPageState extends State<AddStaffPage> {
   // ================= UI Constants =================
-  static const Color primaryPurple = Color(0xFF7E49FF);
   static const Color lavenderBg = Color(0xFFF1F4FF);
 
   String? selectedBranch;
@@ -22,50 +22,7 @@ class _AddStaffPageState extends State<AddStaffPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // ================= CUSTOM HEADER =================
-          Container(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 10,
-              bottom: 25,
-              left: 20,
-              right: 20,
-            ),
-            decoration: const BoxDecoration(
-              color: primaryPurple,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(35),
-                bottomRight: Radius.circular(35),
-              ),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Get.back(),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                const Text(
-                  "Add Staff",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const StaffHeader(title: "Add Staff"),
 
           // ================= FORM CONTAINER =================
           Expanded(
@@ -113,7 +70,7 @@ class _AddStaffPageState extends State<AddStaffPage> {
                         padding: const EdgeInsets.symmetric(vertical: 15),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF7C69FF), Color(0xFFD38DFA)],
+                            colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
                           ),
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [

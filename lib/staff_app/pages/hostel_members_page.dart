@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/branch_controller.dart';
 import 'assign_students_page.dart';
+import '../widgets/staff_header.dart';
 
 class HostelMembersPage extends StatefulWidget {
   const HostelMembersPage({super.key});
@@ -64,50 +65,7 @@ class _HostelMembersPageState extends State<HostelMembersPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // ================= CUSTOM HEADER =================
-          Container(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 10,
-              bottom: 25,
-              left: 20,
-              right: 20,
-            ),
-            decoration: const BoxDecoration(
-              color: primaryPurple,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(35),
-                bottomRight: Radius.circular(35),
-              ),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Get.back(),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                const Text(
-                  "Hostel Members",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const StaffHeader(title: "Hostel Members"),
 
           // ================= FILTERS & CONTENT =================
           if (!_showData) ...[
@@ -273,7 +231,7 @@ class _HostelMembersPageState extends State<HostelMembersPage> {
               height: 50,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF856CFB), Color(0xFFCD96FB)],
+                  colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),
@@ -404,50 +362,9 @@ class _HostelMembersPageState extends State<HostelMembersPage> {
             backgroundColor: Colors.white,
             body: Column(
               children: [
-                // Header
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.only(
-                    top: MediaQuery.of(dialogContext).padding.top + 10,
-                    bottom: 25,
-                    left: 20,
-                    right: 20,
-                  ),
-                  decoration: const BoxDecoration(
-                    color: primaryPurple,
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(35),
-                      bottomRight: Radius.circular(35),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () => Navigator.of(dialogContext).pop(),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
-                            size: 22,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      const Text(
-                        "Edit Hostel Member",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+                StaffHeader(
+                  title: "Edit Hostel Member",
+                  onBack: () => Navigator.of(dialogContext).pop(),
                 ),
 
                 // Content
@@ -639,7 +556,7 @@ class _HostelMembersPageState extends State<HostelMembersPage> {
                       height: 52,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF7C69FF), Color(0xFFD38DFA)],
+                          colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                         ),
@@ -784,11 +701,20 @@ class _HostelMembersPageState extends State<HostelMembersPage> {
               Row(
                 children: [
                   Expanded(
-                    child: SizedBox(
+                    child: Container(
                       height: 48,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFB57BF2),
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -812,7 +738,7 @@ class _HostelMembersPageState extends State<HostelMembersPage> {
                       height: 48,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF7062),
+                          backgroundColor: const Color(0xFFFF6B6B),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),

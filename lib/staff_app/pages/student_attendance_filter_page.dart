@@ -6,6 +6,7 @@ import '../controllers/group_controller.dart';
 import '../controllers/course_controller.dart';
 import '../controllers/batch_controller.dart';
 import '../controllers/shift_controller.dart';
+import '../widgets/staff_header.dart';
 
 class StudentAttendanceFilterPage extends StatefulWidget {
   const StudentAttendanceFilterPage({super.key});
@@ -43,7 +44,7 @@ class _StudentAttendanceFilterPageState
 
         return Column(
           children: [
-            _buildHeader(context),
+            const StaffHeader(title: "Class Attendance"),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -79,53 +80,6 @@ class _StudentAttendanceFilterPageState
     );
   }
 
-  // ================= HEADER =================
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 25,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF7E49FF),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Get.back(),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(width: 20),
-          const Text(
-            "Class Attendance",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   // ================= FILTER CONTAINER =================
 

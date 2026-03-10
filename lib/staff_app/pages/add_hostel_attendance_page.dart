@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../widgets/skeleton.dart';
 import '../controllers/hostel_controller.dart';
 import '../controllers/branch_controller.dart';
+import '../widgets/staff_header.dart';
 
 class AddHostelAttendancePage extends StatefulWidget {
   final String? branch;
@@ -159,7 +160,7 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          _buildHeader(context),
+          const StaffHeader(title: "Add Hostel Attendance"),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(vertical: 20),
@@ -213,55 +214,6 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
             ),
           ),
           _buildBottomSubmitButton(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 32,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF7C3AED), // Brand Purple
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Get.back(),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          const Text(
-            "Add Hostel Attendance",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
-          ),
         ],
       ),
     );
@@ -352,8 +304,8 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [
-              Color(0xFF8B5CF6),
-              Color(0xFFC084FC),
+              Color(0xFF7D74FC),
+              Color(0xFFD08EF7),
             ], // Refined Purple Gradient
           ),
           borderRadius: BorderRadius.circular(12),
@@ -545,7 +497,7 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
         height: 52,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF4DB6AC), Color(0xFFAED581)],
+            colors: [Color(0xFF3FAFB9), Color(0xFFAED581)],
           ),
           borderRadius: BorderRadius.circular(12),
         ),

@@ -86,7 +86,7 @@ class AuthController extends GetxController {
 
         // 🚀 GO TO THE CORRECT DASHBOARD
         if (role == 'student') {
-          Get.offAllNamed('/studentDashboard');
+          Get.offAllNamed('/studentDashboard', arguments: {'isLogin': true});
         } else {
           Get.offAllNamed('/dashboard');
         }

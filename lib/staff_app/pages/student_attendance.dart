@@ -9,6 +9,7 @@ import '../controllers/branch_controller.dart';
 import '../controllers/group_controller.dart';
 import '../controllers/course_controller.dart';
 import '../controllers/batch_controller.dart';
+import '../widgets/staff_header.dart';
 
 class StudentAttendancePage extends StatefulWidget {
   const StudentAttendancePage({super.key});
@@ -83,62 +84,17 @@ class _StudentAttendancePageState extends State<StudentAttendancePage> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryPurple = Color(0xFF7E49FF);
     const lavenderBg = Color(0xFFF3EBFF);
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // ================= CUSTOM HEADER =================
-          Container(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 10,
-              bottom: 25,
-              left: 20,
-              right: 20,
-            ),
-            decoration: const BoxDecoration(
-              color: primaryPurple,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (_showStudents) {
-                      setState(() => _showStudents = false);
-                    } else {
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 15),
-                const Text(
-                  "Students Attendance",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+          StaffHeader(
+            title: "Students Attendance",
+            onBack: _showStudents
+                ? () => setState(() => _showStudents = false)
+                : null,
           ),
 
           Expanded(
@@ -265,8 +221,8 @@ class _StudentAttendancePageState extends State<StudentAttendancePage> {
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
                                   colors: [
-                                    Color(0xFF818CFF),
-                                    Color(0xFFCE93F9),
+                                    Color(0xFF7D74FC),
+                                    Color(0xFFD08EF7),
                                   ],
                                   begin: Alignment.centerLeft,
                                   end: Alignment.centerRight,

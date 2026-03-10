@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/main_controller.dart';
 import '../widgets/staff_bottom_nav_bar.dart';
+import '../widgets/staff_header.dart';
 
 class AttendanceOptionsPage extends StatefulWidget {
   const AttendanceOptionsPage({super.key});
@@ -24,45 +25,14 @@ class _AttendanceOptionsPageState extends State<AttendanceOptionsPage> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryPurple = Color(0xFF7E49FF);
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // ================= CUSTOM HEADER =================
-          Container(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 10,
-              bottom: 25,
-              left: 20,
-              right: 20,
-            ),
-            decoration: const BoxDecoration(
-              color: primaryPurple,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: Row(
-              children: const [
-                Icon(
-                  Icons.event_available_rounded,
-                  color: Colors.white,
-                  size: 26,
-                ),
-                SizedBox(width: 15),
-                Text(
-                  "Students Attendance",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+          const StaffHeader(
+            title: "Students Attendance",
+            showBack: false,
           ),
 
           // ================= GRID MENU =================
@@ -73,7 +43,7 @@ class _AttendanceOptionsPageState extends State<AttendanceOptionsPage> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 15,
                 mainAxisSpacing: 15,
-                childAspectRatio: 0.95, // Balances width/height nicely
+                childAspectRatio: 173 / 146, // Exact Figma specs
                 children: [
                   _buildGridCard(
                     title: "Student\nAttendance",
@@ -136,8 +106,9 @@ class _AttendanceOptionsPageState extends State<AttendanceOptionsPage> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(12), // Exact Figma: 12px
           gradient: LinearGradient(
             colors: [color1, color2],
             begin: Alignment.topLeft,
@@ -145,71 +116,73 @@ class _AttendanceOptionsPageState extends State<AttendanceOptionsPage> {
           ),
           boxShadow: [
             BoxShadow(
-              color: color2.withOpacity(0.3),
-              blurRadius: 8,
+              color: color2.withOpacity(0.35),
+              blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Stack(
           children: [
-            // Background overlapping circles for glass texture visual
+            // ── Bubble 1: Large top-left (overflowing corner) ──
             Positioned(
-              top: -20,
-              left: 20,
+              top: -40,
+              left: -40,
+              child: Container(
+                width: 130,
+                height: 130,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.20),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            // ── Bubble 2: Smaller, bottom-left ──
+            Positioned(
+              bottom: -30,
+              left: -20,
               child: Container(
                 width: 90,
                 height: 90,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
                   color: Colors.white.withOpacity(0.12),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: -30,
-              right: -10,
-              child: Container(
-                width: 110,
-                height: 110,
-                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.12),
                 ),
               ),
             ),
 
-            // Foreground content
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 65,
-                    height: 65,
+            // ── Centered content: white circle icon + text ──
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 12), // Figma gap: 12px
+                // Solid white circle with colored icon
+                Center(
+                  child: Container(
+                    width: 76,
+                    height: 76,
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      icon,
-                      color: iconColor,
-                      size: 30,
-                    ),
+                    child: Icon(icon, color: iconColor, size: 36),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
+                ),
+                const SizedBox(height: 12), // Figma gap: 12px
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12), // Figma padding: 12px
+                  child: Text(
                     title,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      height: 1.2,
+                      fontWeight: FontWeight.bold,
+                      height: 1.25,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),
@@ -217,3 +190,4 @@ class _AttendanceOptionsPageState extends State<AttendanceOptionsPage> {
     );
   }
 }
+

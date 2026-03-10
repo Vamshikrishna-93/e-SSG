@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../api/api_service.dart';
 import 'outing_pending_listPage.dart';
+import '../widgets/staff_header.dart';
 
 class IssueOutingPage extends StatefulWidget {
   final String studentName;
@@ -336,7 +337,7 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          _buildHeader(context),
+          const StaffHeader(title: "Issue Outing"),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -474,54 +475,6 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
             child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
           ),
       ],
-    );
-  }
-
-  // ================= HEADER =================
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 25,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF8147E7),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Get.back(),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(width: 15),
-          const Text(
-            "Issue Outing",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -728,7 +681,7 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
         height: 55,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF34D399), Color(0xFF84CC16)],
+            colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
           ),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [

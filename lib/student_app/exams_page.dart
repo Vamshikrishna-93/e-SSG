@@ -13,6 +13,7 @@ import 'package:student_app/student_app/widgets/standard_exam_card.dart';
 import 'package:student_app/student_app/widgets/completed_exam_card.dart';
 import 'package:student_app/student_app/widgets/exam_headers.dart';
 import 'package:student_app/student_app/widgets/loading_animation.dart';
+import 'package:student_app/student_app/widgets/student_app_header.dart';
 import 'package:student_app/student_app/widgets/online_exam_card.dart';
 import 'package:student_app/student_app/exam_details_dialog_page.dart';
 
@@ -320,65 +321,37 @@ class _ExamsPageState extends State<ExamsPage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(80),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: primaryColor,
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(24),
-              bottomRight: Radius.circular(24),
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Row(
-                children: [
-                  InkWell(
-                    onTap: () => Scaffold.of(context).openDrawer(),
-                    child: const Icon(
-                      Icons.assignment_outlined,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    "Exams",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
       drawer: const StudentDrawerPage(),
       bottomNavigationBar: const StudentBottomNav(currentIndex: 2),
-      body: _isLoading
-          ? const Center(child: StudentLoadingAnimation())
-          : RefreshIndicator(
-              onRefresh: _fetchExams,
-              color: primaryColor,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title Header
-                    const Text(
-                      "Exam",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
-                      ),
-                    ),
+      body: Column(
+        children: [
+          Builder(builder: (context) {
+            return StudentAppHeader(
+              title: "Exams",
+              leadIcon: Icons.assignment_outlined,
+              onLeadTap: () => Scaffold.of(context).openDrawer(),
+            );
+          }),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: StudentLoadingAnimation())
+                : RefreshIndicator(
+                    onRefresh: _fetchExams,
+                    color: primaryColor,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Title Header
+                          const Text(
+                            "Exam",
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                          ),
                     const SizedBox(height: 4),
                     const Text(
                       "Manage your exams and view results",
@@ -774,10 +747,13 @@ class _ExamsPageState extends State<ExamsPage> {
                         }),
                       ),
                     const SizedBox(height: 40),
-                  ],
-                ),
-              ),
-            ),
+                        ],
+                      ),
+                    ),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 

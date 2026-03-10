@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:student_app/student_app/widgets/student_app_header.dart';
 import 'package:student_app/student_app/services/calendar_service.dart';
 
 class StudentCalendar extends StatefulWidget {
@@ -113,50 +114,7 @@ class _StudentCalendarState extends State<StudentCalendar> {
       body: Column(
         children: [
           // 1. Purple Header
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 10,
-              bottom: 25,
-              left: 20,
-              right: 20,
-            ),
-            decoration: const BoxDecoration(
-              color: Color(0xFF7C3AED),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                const Text(
-                  "Open Calendar",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const StudentAppHeader(title: "Calendar"),
 
           Expanded(
             child: SingleChildScrollView(
@@ -182,8 +140,9 @@ class _StudentCalendarState extends State<StudentCalendar> {
       _currentMonth.month + 1,
       0,
     ).day;
-    final firstWeekday =
-        firstDayOfMonth.weekday == 7 ? 0 : firstDayOfMonth.weekday;
+    final firstWeekday = firstDayOfMonth.weekday == 7
+        ? 0
+        : firstDayOfMonth.weekday;
     final totalSlots = firstWeekday + daysInMonth;
     final events = _getEventsForMonth();
 
@@ -291,7 +250,8 @@ class _StudentCalendarState extends State<StudentCalendar> {
                     _currentMonth.month,
                     day,
                   );
-                  final isToday = date.year == DateTime.now().year &&
+                  final isToday =
+                      date.year == DateTime.now().year &&
                       date.month == DateTime.now().month &&
                       date.day == DateTime.now().day;
 
@@ -307,10 +267,12 @@ class _StudentCalendarState extends State<StudentCalendar> {
                       child: Text(
                         "$day",
                         style: TextStyle(
-                          color:
-                              isToday ? Colors.white : const Color(0xFF1E293B),
-                          fontWeight:
-                              isToday ? FontWeight.bold : FontWeight.w500,
+                          color: isToday
+                              ? Colors.white
+                              : const Color(0xFF1E293B),
+                          fontWeight: isToday
+                              ? FontWeight.bold
+                              : FontWeight.w500,
                           fontSize: 14,
                         ),
                       ),
@@ -374,18 +336,19 @@ class _StudentCalendarState extends State<StudentCalendar> {
                   child: Center(
                     child: Column(
                       children: [
-                        // Note: Using a fallback if file doesn't exist might be safer, 
+                        // Note: Using a fallback if file doesn't exist might be safer,
                         // but keeping it as is since it was in the source.
                         Image.file(
                           File(
                             'C:/Users/Vamsikrishna/.gemini/antigravity/brain/89927662-878a-4dec-9931-3702b27753b3/no_events_illustration_1772960651369.png',
                           ),
                           height: 120,
-                          errorBuilder: (context, error, stackTrace) => const Icon(
-                            Icons.event_busy,
-                            size: 80,
-                            color: Colors.grey,
-                          ),
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                                Icons.event_busy,
+                                size: 80,
+                                color: Colors.grey,
+                              ),
                         ),
                         const SizedBox(height: 16),
                         const Text(
@@ -405,20 +368,15 @@ class _StudentCalendarState extends State<StudentCalendar> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: events.length,
-                  separatorBuilder: (context, index) => const Divider(
-                    height: 1,
-                    indent: 16,
-                    endIndent: 16,
-                  ),
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 1, indent: 16, endIndent: 16),
                   itemBuilder: (context, index) {
                     final entry = events[index];
                     final e = entry.event;
                     return ListTile(
                       leading: Container(
                         width: 40,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 4,
-                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 4),
                         decoration: BoxDecoration(
                           color: e.color.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
@@ -448,9 +406,7 @@ class _StudentCalendarState extends State<StudentCalendar> {
                       ),
                       title: Text(
                         e.title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                       subtitle: e.startTime != null ? Text(e.startTime!) : null,
                       trailing: Icon(
@@ -468,7 +424,6 @@ class _StudentCalendarState extends State<StudentCalendar> {
       ],
     );
   }
-
 
   List<EventEntry> _getEventsForMonth() {
     final List<EventEntry> list = [];

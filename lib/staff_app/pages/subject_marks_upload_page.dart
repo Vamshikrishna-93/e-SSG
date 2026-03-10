@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../controllers/branch_controller.dart';
 import '../controllers/group_controller.dart';
 import '../controllers/course_controller.dart';
+import '../widgets/staff_header.dart';
 
 class SubjectMarksUploadPage extends StatefulWidget {
   const SubjectMarksUploadPage({super.key});
@@ -14,7 +15,6 @@ class SubjectMarksUploadPage extends StatefulWidget {
 
 class _SubjectMarksUploadPageState extends State<SubjectMarksUploadPage> {
   // ================= UI Constants =================
-  static const Color primaryPurple = Color(0xFF7E49FF);
   static const Color lavenderBg = Color(0xFFF1F4FF);
 
   // ---------------- CONTROLLERS ----------------
@@ -86,55 +86,11 @@ class _SubjectMarksUploadPageState extends State<SubjectMarksUploadPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // ================= CUSTOM HEADER =================
-          Container(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 10,
-              bottom: 25,
-              left: 20,
-              right: 20,
-            ),
-            decoration: const BoxDecoration(
-              color: primaryPurple,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(35),
-                bottomRight: Radius.circular(35),
-              ),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (_showStudents) {
-                      setState(() => _showStudents = false);
-                    } else {
-                      Get.back();
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                const Text(
-                  "Subject Marks",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+          StaffHeader(
+            title: "Subject Marks",
+            onBack: _showStudents
+                ? () => setState(() => _showStudents = false)
+                : null,
           ),
 
           Expanded(
@@ -348,7 +304,7 @@ class _SubjectMarksUploadPageState extends State<SubjectMarksUploadPage> {
                       height: 50,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF7E49FF), Color(0xFFD199FF)],
+                          colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -380,7 +336,7 @@ class _SubjectMarksUploadPageState extends State<SubjectMarksUploadPage> {
                       height: 50,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF4ACBC9), Color(0xFFA5E68C)],
+                          colors: [Color(0xFF3FAFB9), Color(0xFFAED160)],
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:student_app/student_app/studentdrawer.dart';
 import 'package:student_app/student_app/widgets/marks_widgets.dart';
+import 'package:student_app/student_app/widgets/student_app_header.dart';
 import 'package:student_app/student_app/widgets/student_bottom_nav.dart';
 
 class MarksPage extends StatefulWidget {
@@ -16,8 +16,6 @@ class _MarksPageState extends State<MarksPage> {
   String selectedSemester = "All Semesters";
   String selectedPeriod = "Monthly";
 
-  static const Color primaryPurple = Color(0xFF7E3FF2);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,7 +24,13 @@ class _MarksPageState extends State<MarksPage> {
       drawer: const StudentDrawerPage(),
       body: Column(
         children: [
-          _buildHeader(),
+          Builder(builder: (context) {
+            return StudentAppHeader(
+              title: "Marks",
+              leadIcon: Icons.menu,
+              onLeadTap: () => Scaffold.of(context).openDrawer(),
+            );
+          }),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
@@ -56,54 +60,6 @@ class _MarksPageState extends State<MarksPage> {
         ],
       ),
       bottomNavigationBar: const StudentBottomNav(currentIndex: 1),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 25,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: primaryPurple,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(35),
-          bottomRight: Radius.circular(35),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Get.offNamed('/studentDashboard'),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-          const SizedBox(width: 15),
-          const SizedBox(width: 8),
-          const Text(
-            "Marks",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
     );
   }
 

@@ -6,6 +6,7 @@ import '../controllers/hostel_controller.dart';
 import '../model/floor_model.dart';
 import 'add_floor_page.dart';
 import 'floor_students_page.dart';
+import '../widgets/staff_header.dart';
 
 class FloorsPage extends StatefulWidget {
   const FloorsPage({super.key});
@@ -37,7 +38,7 @@ class _FloorsPageState extends State<FloorsPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          _buildHeader(context),
+          const StaffHeader(title: "Floor Management"),
           Expanded(
             child: _showResults ? _buildResultsView() : _buildFilterView(),
           ),
@@ -117,54 +118,6 @@ class _FloorsPageState extends State<FloorsPage> {
                 itemBuilder: (context, i) => _floorCard(filteredFloors[i], i),
               );
             }),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ================= HEADER =================
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 25,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF8147E7),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Get.back(),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(width: 15),
-          const Text(
-            "Floor Management",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
           ),
         ],
       ),
@@ -297,7 +250,7 @@ class _FloorsPageState extends State<FloorsPage> {
         height: 52,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
+            colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
@@ -391,7 +344,7 @@ class _FloorsPageState extends State<FloorsPage> {
                 icon: Icons.delete_outline,
                 color: const Color(0xFFDC2626),
                 bgColor: const Color(0xFFFEE2E2),
-                onTap: () {},
+                onTap: () => _showDeleteFloorDialog(floor),
               ),
               const SizedBox(width: 10),
               _actionIcon(
@@ -467,6 +420,132 @@ class _FloorsPageState extends State<FloorsPage> {
               TextSpan(
                 text: " *",
                 style: TextStyle(color: Colors.red),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteFloorDialog(FloorModel floor) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // X Close button
+              Align(
+                alignment: Alignment.topRight,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(dialogContext).pop(),
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.black54,
+                    size: 20,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Warning Icon
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFCC4A6),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.priority_high_rounded,
+                  color: Colors.white,
+                  size: 40,
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Title
+              const Text(
+                "Are you sure? You want\nto delete this floor",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Subtitle
+              const Text(
+                "This is soft delete, This will hide data.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: Colors.black54),
+              ),
+              const SizedBox(height: 24),
+              // Buttons Row
+              Row(
+                children: [
+                  // Yes Delete It button
+                  Expanded(
+                    child: Container(
+                      height: 46,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          "Yes delete it!",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Cancel button
+                  Expanded(
+                    child: SizedBox(
+                      height: 46,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFF6B6B),
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          "Cancel",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

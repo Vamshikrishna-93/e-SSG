@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:student_app/student_app/change_password_page.dart';
 import 'package:student_app/student_app/edit_profile_page.dart';
 import 'package:student_app/student_app/widgets/loading_animation.dart';
+import 'package:student_app/student_app/widgets/student_app_header.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -275,62 +276,40 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeader(context),
-            const SizedBox(height: 65),
-            Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.topCenter,
-              children: [
-                _buildNameCard(),
-                Positioned(top: -60, child: _buildOverlappingAvatar()),
-              ],
+      body: Column(
+        children: [
+          const StudentAppHeader(
+            title: "Profile",
+            leadIcon: Icons.person,
+            onLeadTap: null, // Default or custom
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 65),
+                  Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.topCenter,
+                    children: [
+                      _buildNameCard(),
+                      Positioned(top: -60, child: _buildOverlappingAvatar()),
+                    ],
+                  ),
+                  const SizedBox(height: 25),
+                  _buildMenuCard(),
+                  const SizedBox(height: 30),
+                ],
+              ),
             ),
-            const SizedBox(height: 25),
-            _buildMenuCard(),
-            const SizedBox(height: 30),
-          ],
-        ),
+          ),
+        ],
       ),
       bottomNavigationBar: const StudentBottomNav(currentIndex: 3),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 25,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF7E49FF),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: const Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(Icons.person, color: Colors.white, size: 28),
-          SizedBox(width: 10),
-          Text(
-            "Profile",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   // ── OVERLAPPING AVATAR ──────────────────────
   Widget _buildOverlappingAvatar() {
@@ -608,50 +587,7 @@ class ProfileDetailPage extends StatelessWidget {
       body: Column(
         children: [
           // ── Purple header identical to the image ──────────────────
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 10,
-              bottom: 25,
-              left: 20,
-              right: 20,
-            ),
-            decoration: const BoxDecoration(
-              color: primaryPurple,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(35),
-                bottomRight: Radius.circular(35),
-              ),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          StudentAppHeader(title: title),
           // ── Fields list ───────────────────────────────────────────
           Expanded(
             child: ListView.builder(

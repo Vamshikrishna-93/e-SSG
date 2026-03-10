@@ -9,6 +9,8 @@ import 'package:student_app/staff_app/pages/profile_page.dart';
 import '../api/api_service.dart';
 import './student_details_page.dart';
 import './add_hostel_members_page.dart';
+import 'package:iconify_flutter/iconify_flutter.dart';
+import '../utils/iconify_icons.dart';
 
 class HomeDashboardPage extends StatefulWidget {
   const HomeDashboardPage({super.key});
@@ -311,7 +313,7 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                     "Dashboard",
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 32,
+                      fontSize: 25,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 1,
                     ),
@@ -324,8 +326,8 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                       .toList(),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                      horizontal: 10,
+                      vertical: 6,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.15),
@@ -355,7 +357,6 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 25),
 
             if (_isSearching)
               const Center(
@@ -446,47 +447,51 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                   const SizedBox(height: 10),
                 ],
               ),
-            const SizedBox(height: 25),
+            const SizedBox(height: 5),
 
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 2,
-              childAspectRatio: 1.7,
+              childAspectRatio: 1.9, // Slightly taller to prevent overflow
               mainAxisSpacing: 14,
               crossAxisSpacing: 14,
               children: [
-                _buildStatCard("Total Students", "6902", Icons.groups_rounded, [
-                  const Color(0xFF26C6DA),
-                  const Color(0xFF00ACC1),
-                ]),
+                _buildStatCard(
+                  "Total Students",
+                  "6902",
+                  IconifyIcons.humbleIconsUsers,
+                  [const Color(0xFF28CDC0), const Color(0xFF2EC0CD)],
+                ),
                 _buildStatCard(
                   "Day Scholars",
                   "2,047",
-                  Icons.directions_bus_rounded,
-                  [const Color(0xFFF06292), const Color(0xFFD81B60)],
+                  IconifyIcons.hugeIconsBus,
+                  [const Color(0xFFF26FA3), const Color(0xFFCB365B)],
                 ),
-                _buildStatCard("Hostel", "4,854", Icons.business_rounded, [
-                  const Color(0xFFFFB74D),
-                  const Color(0xFFF57C00),
-                ]),
+                _buildStatCard(
+                  "Hostel",
+                  "4,854",
+                  IconifyIcons.clarityBuildingLine,
+                  [const Color(0xFFF6AE39), const Color(0xFFF58F36)],
+                ),
                 _buildStatCard(
                   "Today's Outing",
                   "14",
-                  Icons.person_pin_rounded,
-                  [const Color(0xFF38BDF8), const Color(0xFF0284C7)],
+                  IconifyIcons.tablerUserMinus,
+                  [const Color(0xFF29A7ED), const Color(0xFF2986E9)],
                 ),
                 _buildStatCard(
                   "Today Present",
                   "4,130",
-                  Icons.how_to_reg_rounded,
-                  [const Color(0xFF66BB6A), const Color(0xFF388E3C)],
+                  IconifyIcons.tablerUserCheck,
+                  [const Color(0xFF24BF7A), const Color(0xFF2BB78B)],
                 ),
                 _buildStatCard(
                   "Today Absent",
                   "772",
-                  Icons.person_remove_rounded,
-                  [const Color(0xFFEC4899), const Color(0xFFD81B60)],
+                  IconifyIcons.tablerUserX,
+                  [const Color(0xFFE23555), const Color(0xFFDD357B)],
                 ),
               ],
             ),
@@ -500,43 +505,43 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                 color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 10),
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 2,
-              childAspectRatio: 1.45,
-              mainAxisSpacing: 14,
-              crossAxisSpacing: 14,
+              childAspectRatio: 173 / 105,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
               children: [
                 _buildQuickAction(
                   "Class Attendance",
-                  Icons.people_alt_rounded,
-                  const Color(0xFF26C6DA),
+                  IconifyIcons.tablerUserCheck,
+                  const Color(0xFF43A089), // Exact teal from mockup
                   () => Get.toNamed('/classAttendance'),
                 ),
                 _buildQuickAction(
                   "Hostel Attendance",
-                  Icons.calendar_month_rounded,
-                  const Color(0xFFFFA726),
+                  IconifyIcons.tablerCalendarCheck,
+                  const Color(0xFFF39C12), // Exact orange from mockup
                   () => Get.toNamed('/hostelAttendanceFilter'),
                 ),
                 _buildQuickAction(
                   "Issue Outing",
-                  Icons.backpack_rounded,
-                  const Color(0xFF42A5F5),
+                  IconifyIcons.tablerBackpack,
+                  const Color(0xFF26C6DA), // Exact cyan from mockup
                   () => Get.toNamed('/outingList'),
                 ),
                 _buildQuickAction(
                   "Verify Outing",
-                  Icons.verified_rounded,
-                  const Color(0xFFEC4899),
+                  IconifyIcons.tablerShieldCheck,
+                  const Color(0xFFF06292), // Exact pink from mockup
                   () => Get.toNamed('/outingPending'),
                 ),
               ],
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 25),
             const Text(
               "Students Attendance",
               style: TextStyle(
@@ -545,7 +550,7 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                 color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               decoration: BoxDecoration(
@@ -576,55 +581,94 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
   Widget _buildStatCard(
     String title,
     String value,
-    IconData icon,
+    String iconData,
     List<Color> colors,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: colors,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12), // Exact 12px radius
+        boxShadow: [
+          BoxShadow(
+            color: colors.last.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Stack(
         children: [
+          // Decorative Bubble
           Positioned(
-            right: -10,
-            bottom: -10,
+            top: -15,
+            left: -15,
             child: Container(
-              padding: const EdgeInsets.all(12),
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withOpacity(0.15),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: Colors.white, size: 38),
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(12), // Exact 12px padding
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14, // Adjusted for consistency
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        value,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22, // Reduced from 24 to prevent overflow
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                const SizedBox(width: 8),
+                // Icon Container
+                Container(
+                  width: 44, // Exact 44px width
+                  height: 44, // Exact 44px height
+                  padding: const EdgeInsets.all(6), // Exact 6px padding
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(
+                      12,
+                    ), // Matching icon radius
+                  ),
+                  child: Iconify(
+                    iconData,
+                    color: Colors.white,
+                    size: 32, // Consistent with quick actions
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -633,40 +677,48 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
 
   Widget _buildQuickAction(
     String title,
-    IconData icon,
+    String iconData,
     Color iconColor,
     VoidCallback onTap,
   ) {
-    return InkWell(
-      onTap: onTap,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+        decoration: const BoxDecoration(
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
-            ),
+            BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.25)),
+            BoxShadow(color: Colors.white, spreadRadius: 0.0, blurRadius: 8.0),
           ],
-          border: Border.all(color: Colors.grey.withOpacity(0.1)),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: iconColor, size: 36),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: Colors.black87,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Iconify(iconData, color: iconColor, size: 38),
+                    const SizedBox(height: 4),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
-              textAlign: TextAlign.center,
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -731,7 +783,8 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                 ),
                 children: [
                   _buildExpandableDrawerItem(
-                    icon: Icons.fact_check_rounded, // Exam Icon from image
+                    icon: IconifyIcons
+                        .clarityFormLine, // Form/Exams Icon from Image 1
                     title: "Exams",
                     children: [
                       _buildDrawerSubItem(
@@ -749,12 +802,14 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                     ],
                   ),
                   _buildDrawerPillItem(
-                    icon: Icons.chat_bubble_rounded, // Chat Icon from image
+                    icon:
+                        IconifyIcons.phStudent, // Student Cap Icon from Image 3
                     title: "Pro Admission",
                     onTap: () => Get.toNamed('/proAdmission'),
                   ),
                   _buildExpandableDrawerItem(
-                    icon: Icons.apartment_rounded, // Hostel Icon from image
+                    icon: IconifyIcons
+                        .clarityBuildingLine, // Building Icon from Image 2
                     title: "Hostels",
                     children: [
                       _buildDrawerSubItem(
@@ -785,7 +840,8 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                     ],
                   ),
                   _buildExpandableDrawerItem(
-                    icon: Icons.manage_accounts_rounded, // Hr Icon from image
+                    icon: IconifyIcons
+                        .fluentPeopleSettings20Regular, // HR Gear Icon from Image 4
                     title: "Hr Management",
                     children: [
                       _buildDrawerSubItem(
@@ -799,12 +855,14 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                     ],
                   ),
                   _buildDrawerPillItem(
-                    icon: Icons.chat_bubble_rounded, // Chat Icon from image
+                    icon:
+                        IconifyIcons.phChatDots, // Chat Dots Icon from Image 5
                     title: "Chat",
                     onTap: () => Get.toNamed('/chat'),
                   ),
                   _buildDrawerPillItem(
-                    icon: Icons.forum_rounded, // Communication Icon from image
+                    icon: IconifyIcons
+                        .phChatDots, // Using chat bubble for communication
                     title: "Communication",
                     onTap: () => Get.toNamed('/communication'),
                   ),
@@ -830,15 +888,14 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
+          colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
         ),
       ),
       child: Obx(() {
         final p = profileCtrl.profile.value;
         final name = p?.name ?? "";
         final avatar = p?.avatar ?? "";
-        final bool hasValidAvatar =
-            avatar.isNotEmpty && avatar != "avatar.png";
+        final bool hasValidAvatar = avatar.isNotEmpty && avatar != "avatar.png";
         final userId = AppStorage.getUserId();
         final userLogin = p?.userLogin ?? "";
 
@@ -914,9 +971,8 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
     );
   }
 
-
   Widget _buildDrawerPillItem({
-    required IconData icon,
+    required String icon,
     required String title,
     required VoidCallback onTap,
   }) {
@@ -929,7 +985,7 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
       child: ListTile(
         onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-        leading: Icon(icon, color: Colors.black, size: 22),
+        leading: Iconify(icon, color: Colors.black, size: 22),
         title: Text(
           title,
           style: const TextStyle(
@@ -943,7 +999,7 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
   }
 
   Widget _buildExpandableDrawerItem({
-    required IconData icon,
+    required String icon,
     required String title,
     required List<Widget> children,
   }) {
@@ -957,7 +1013,7 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           tilePadding: const EdgeInsets.symmetric(horizontal: 20),
-          leading: Icon(icon, color: Colors.black, size: 22),
+          leading: Iconify(icon, color: Colors.black, size: 22),
           title: Text(
             title,
             style: const TextStyle(
