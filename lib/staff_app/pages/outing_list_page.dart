@@ -3,8 +3,10 @@ import 'package:get/get.dart';
 import '../controllers/branch_controller.dart';
 import '../controllers/outing_controller.dart';
 import '../widgets/skeleton.dart';
-import 'issue_outing.dart';
 import '../widgets/staff_header.dart';
+import 'package:iconify_flutter/iconify_flutter.dart';
+import '../utils/iconify_icons.dart';
+import 'issue_outing.dart';
 
 class OutingListPage extends StatefulWidget {
   const OutingListPage({super.key});
@@ -25,6 +27,9 @@ class _OutingListPageState extends State<OutingListPage> {
   DateTime? fromDate;
   DateTime? toDate;
 
+  // ─── color palette ─────────────────────────────────────────────
+  static const Color _purple = Color(0xFF7C3FE3);
+
   @override
   void initState() {
     super.initState();
@@ -37,23 +42,53 @@ class _OutingListPageState extends State<OutingListPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          const StaffHeader(title: "Outing List"),
+          // Custom Header to match the image precisely
+          StaffHeader(title: "Outing List", onBack: () => Get.back()),
           Expanded(
             child: Stack(
               children: [
                 SingleChildScrollView(
                   padding: const EdgeInsets.only(bottom: 100),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 18,
+                    ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildStatsGrid(),
-                        const SizedBox(height: 25),
-                        _buildSearchBar(),
-                        const SizedBox(height: 15),
-                        _buildFilterSection(),
+                        const SizedBox(height: 5),
+
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F3FF),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSearchBar(),
+                              const SizedBox(height: 18),
+                              const Text(
+                                "Filter Options",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              _buildFilterSectionContent(),
+                              const SizedBox(height: 18),
+                              _buildApplyButton(),
+                            ],
+                          ),
+                        ),
+
                         if (showStudents) ...[
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 25),
                           _buildStudentList(),
                         ],
                       ],
@@ -69,194 +104,210 @@ class _OutingListPageState extends State<OutingListPage> {
     );
   }
 
-  // Header section is now handled by the imported StaffHeader widget
-
-  // ================= STATS GRID =================
+  //  SECTION LABEL
+  // ─────────────────────────────────────────────────────────────────
   Widget _buildStatsGrid() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        double itemWidth = (constraints.maxWidth - 16) / 2;
-        return Wrap(
-          spacing: 16,
-          runSpacing: 16,
-          children: [
-            _buildStatCard("Out Pass", controller.outPassInfo, itemWidth, [
-              const Color(0xFF10B981),
-              const Color(0xFF34D399),
-            ], Icons.logout_rounded),
-            _buildStatCard(
-              "Self Outing",
-              controller.selfOutingInfo,
-              itemWidth,
-              [const Color(0xFFF43F5E), const Color(0xFFFB7185)],
-              Icons.logout_rounded,
-            ),
-            _buildStatCard("Home Pass", controller.homePassInfo, itemWidth, [
-              const Color(0xFF3B82F6),
-              const Color(0xFF60A5FA),
-            ], Icons.home_outlined),
-            _buildStatCard("Self Home", controller.selfHomeInfo, itemWidth, [
-              const Color(0xFFF59E0B),
-              const Color(0xFFFBBF24),
-            ], Icons.home_outlined),
-          ],
-        );
-      },
+    return GridView.count(
+      crossAxisCount: 2,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      childAspectRatio: 0.9,
+      children: [
+        _buildStatCard("Out Pass", controller.outPassInfo, [
+          const Color(0xFF11DA81),
+          const Color(0xFF2BB78B),
+        ], IconifyIcons.logout),
+        _buildStatCard("Self Outing", controller.selfOutingInfo, [
+          const Color(0xFFEE6B9D),
+          const Color(0xFFCC385D),
+        ], IconifyIcons.logout),
+        _buildStatCard("Home Pass", controller.homePassInfo, [
+          const Color(0xFF29A5ED),
+          const Color(0xFF2987E9),
+        ], IconifyIcons.home),
+        _buildStatCard("Self Home", controller.selfHomeInfo, [
+          const Color(0xFFF6AD39),
+          const Color(0xFFF69137),
+        ], IconifyIcons.home),
+      ],
     );
   }
 
   Widget _buildStatCard(
     String title,
     Rx infoRx,
-    double width,
     List<Color> colors,
-    IconData icon,
+    String icon,
   ) {
-    return SizedBox(
-      width: width,
-      child: Obx(() {
-        final info = infoRx.value;
-        return Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: colors,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: colors[0].withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
+    return Obx(() {
+      final info = infoRx.value;
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: colors,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: colors[0].withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
           child: Stack(
             children: [
+              // Bottom decorative arcs (slightly smaller for compact look)
               Positioned(
-                right: -35,
-                bottom: -35,
-                child: Opacity(
-                  opacity: 0.25,
-                  child: Stack(
-                    alignment: Alignment.center,
+                bottom: -30,
+                right: -30,
+                child: Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.25),
+                      width: 1.2,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: -45,
+                right: -45,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.25),
+                      width: 1.2,
+                    ),
+                  ),
+                ),
+              ),
+              // Main Content
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        width: 100,
-                        height: 100,
+                        height: 65,
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1.5),
+                          color: Colors.white.withOpacity(0.18),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Stack(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            title,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          Text(
+                                            info?.total.toString() ?? "0",
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 30,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Iconify(
+                                      icon,
+                                      color: Colors.white.withOpacity(0.95),
+                                      size: 32,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1.5),
+                      const SizedBox(height: 4),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _statLine("Pending", info?.pending ?? 0),
+                            const SizedBox(height: 0.5),
+                            _statLine("Approved", info?.approved ?? 0),
+                            const SizedBox(height: 0.5),
+                            _statLine("Not Reported", info?.notReported ?? 0),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  title,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  info?.total.toString() ?? "0",
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 34,
-                                    fontWeight: FontWeight.bold,
-                                    height: 1.1,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Icon(icon, color: Colors.white, size: 32),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSubStatRow("Pending", info?.pending ?? 0),
-                        _buildSubStatRow("Approved", info?.approved ?? 0),
-                        _buildSubStatRow(
-                          "Not Reported",
-                          info?.notReported ?? 0,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
-        );
-      }),
-    );
+        ),
+      );
+    });
   }
 
-  Widget _buildSubStatRow(String label, int value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Text(
-        "$label : $value",
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-          letterSpacing: 0.3,
-        ),
+  Widget _statLine(String label, int value) {
+    return Text(
+      "$label : $value",
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
       ),
     );
   }
 
-  // ================= SEARCH BAR =================
+  // ─────────────────────────────────────────────────────────────────
+  //  SEARCH BAR
+  // ─────────────────────────────────────────────────────────────────
   Widget _buildSearchBar() {
     return Container(
-      height: 54,
+      height: 48,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFD8B4FE), width: 1.5),
+        border: Border.all(color: const Color(0xFFD8B4FE), width: 1),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
-          const Icon(Icons.search, color: Colors.grey, size: 22),
-          const SizedBox(width: 10),
+          const Icon(Icons.search, color: Color(0xFF9CA3AF), size: 20),
+          const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: searchController,
@@ -264,7 +315,7 @@ class _OutingListPageState extends State<OutingListPage> {
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 hintText: "Search Student or ID",
-                hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                hintStyle: TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
               ),
             ),
           ),
@@ -273,442 +324,435 @@ class _OutingListPageState extends State<OutingListPage> {
     );
   }
 
-  // ================= FILTER SECTION =================
-  Widget _buildFilterSection() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F3FF),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Filter Options",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 20),
-          _buildDropdownField(
-            value: selectedBranchName,
-            hint: "All",
-            onChanged: (v) {
-              setState(() => selectedBranchName = v!);
-              // Find ID for the branch name to call controller
-              if (v == "All") {
-                controller.filterByBranch("All");
-              } else {
-                final b = branchController.branches.firstWhere(
-                  (element) => element.branchName == v,
-                );
-                controller.filterByBranch(b.id.toString());
-              }
-            },
-            items: [
-              "All",
-              ...branchController.branches.map((b) => b.branchName),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _buildDropdownField(
-            value: selectedStatus,
-            hint: "All",
-            onChanged: (v) {
-              setState(() => selectedStatus = v!);
-              controller.filterByStatus(v!);
-            },
-            items: ["All", "Pending", "Approved", "Not Reported"],
-          ),
-          const SizedBox(height: 12),
-          _buildDropdownField(
-            value: selectedDuration,
-            hint: "All",
-            onChanged: (v) {
-              setState(() => selectedDuration = v!);
-              if (v != "Custom") {
-                controller.filterByDate(v!.replaceAll(" ", ""));
-              }
-            },
-            items: [
-              "All",
-              "Today",
-              "Yesterday",
-              "Last 7 Days",
-              "This Month",
-              "Custom",
-            ],
-          ),
-
-          if (selectedDuration == "Custom") ...[
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildDateChip(
-                    fromDate?.toString().substring(0, 10) ?? 'Select From',
-                    onTap: () async {
-                      fromDate = await showDatePicker(
-                        context: context,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime.now(),
-                        initialDate: DateTime.now(),
-                      );
-                      setState(() {});
-                    },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildDateChip(
-                    toDate?.toString().substring(0, 10) ?? 'Select To',
-                    onTap: () async {
-                      toDate = await showDatePicker(
-                        context: context,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime.now(),
-                        initialDate: DateTime.now(),
-                      );
-                      setState(() {});
-                    },
-                  ),
-                ),
-              ],
-            ),
+  Widget _buildFilterSectionContent() {
+    return Column(
+      children: [
+        _buildSimpleDropdown(
+          value: selectedBranchName,
+          items: ["All", ...branchController.branches.map((b) => b.branchName)],
+          onChanged: (v) {
+            setState(() => selectedBranchName = v!);
+            if (v == "All") {
+              controller.filterByBranch("All");
+            } else {
+              final b = branchController.branches.firstWhere(
+                (e) => e.branchName == v,
+              );
+              controller.filterByBranch(b.id.toString());
+            }
+          },
+        ),
+        const SizedBox(height: 12),
+        _buildSimpleDropdown(
+          value: selectedStatus,
+          items: ["All", "Pending", "Approved", "Not Reported"],
+          onChanged: (v) {
+            setState(() => selectedStatus = v!);
+            controller.filterByStatus(v!);
+          },
+        ),
+        const SizedBox(height: 12),
+        _buildSimpleDropdown(
+          value: selectedDuration,
+          items: [
+            "All",
+            "Today",
+            "Yesterday",
+            "Last 7 Days",
+            "This Month",
+            "Custom",
           ],
-
-          const SizedBox(height: 25),
-          GestureDetector(
-            onTap: () {
-              if (selectedDuration == "Custom" &&
-                  fromDate != null &&
-                  toDate != null) {
-                controller.filterByCustomDate(fromDate!, toDate!);
-              }
-              setState(() => showStudents = true);
-            },
-            child: Container(
-              width: double.infinity,
-              height: 52,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
-                ),
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: const Center(
-                child: Text(
-                  "Apply Filters",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+          onChanged: (v) {
+            setState(() => selectedDuration = v!);
+            if (v != "Custom") {
+              controller.filterByDate(v!.replaceAll(" ", ""));
+            }
+          },
+        ),
+        if (selectedDuration == "Custom") ...[
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildDateChip(
+                  fromDate?.toString().substring(0, 10) ?? 'From date',
+                  icon: Icons.calendar_today,
+                  onTap: () async {
+                    fromDate = await showDatePicker(
+                      context: context,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                      initialDate: DateTime.now(),
+                    );
+                    setState(() {});
+                  },
                 ),
               ),
-            ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildDateChip(
+                  toDate?.toString().substring(0, 10) ?? 'To date',
+                  icon: Icons.calendar_today,
+                  onTap: () async {
+                    toDate = await showDatePicker(
+                      context: context,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                      initialDate: DateTime.now(),
+                    );
+                    setState(() {});
+                  },
+                ),
+              ),
+            ],
           ),
         ],
-      ),
+      ],
     );
   }
 
-  Widget _buildDropdownField({
+  Widget _buildSimpleDropdown({
     required String value,
-    required String hint,
-    required void Function(String?) onChanged,
     required List<String> items,
+    required void Function(String?) onChanged,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: items.contains(value) ? value : items[0],
           isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black),
           items: items
               .map((s) => DropdownMenuItem(value: s, child: Text(s)))
               .toList(),
           onChanged: onChanged,
-          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black54),
-          style: const TextStyle(color: Colors.black87, fontSize: 14),
         ),
       ),
     );
   }
 
-  Widget _buildDateChip(String text, {required VoidCallback onTap}) {
+  Widget _buildDateChip(
+    String text, {
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    final bool isSelected = !text.contains('date');
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.withOpacity(0.1)),
+          color: isSelected ? const Color(0xFFF5F3FF) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFFD8B4FE)
+                : const Color(0xFFE5E7EB),
+          ),
         ),
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 13, color: Colors.black54),
-          textAlign: TextAlign.center,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 14,
+              color: isSelected ? const Color(0xFF7C3FE3) : Colors.grey,
+            ),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isSelected ? const Color(0xFF7C3FE3) : Colors.grey,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // ================= STUDENT LIST =================
+  Widget _buildApplyButton() {
+    return GestureDetector(
+      onTap: () {
+        if (selectedDuration == "Custom" &&
+            fromDate != null &&
+            toDate != null) {
+          controller.filterByCustomDate(fromDate!, toDate!);
+        }
+        setState(() => showStudents = true);
+      },
+      child: Container(
+        width: double.infinity,
+        height: 50,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF7C3FE3), Color(0xFFB06EF3)],
+          ),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: _purple.withOpacity(0.35),
+              blurRadius: 12,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.filter_alt_rounded, color: Colors.white, size: 18),
+            SizedBox(width: 8),
+            Text(
+              "Apply Filters",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  //  STUDENT LIST
+  // ─────────────────────────────────────────────────────────────────
   Widget _buildStudentList() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFFF5F3FF),
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Obx(() {
         if (controller.isLoading.value) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 40),
-            child: Center(child: StaffLoadingAnimation()),
-          );
+          return const Center(child: StaffLoadingAnimation());
         }
+
         if (controller.filteredList.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 40),
-            child: Center(
-              child: Text(
-                "No records found",
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
-          );
+          return const Center(child: Text("No records found"));
         }
+
         return ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: controller.filteredList.length,
           itemBuilder: (context, index) {
-            final o = controller.filteredList[index];
-            bool isApproved = o.status == "Approved";
-
-            return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              o.studentName,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              o.admno,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isApproved
-                                  ? const Color(0xFF22C55E)
-                                  : const Color(0xFFF59E0B),
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            child: Text(
-                              o.status,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            o.outingType,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  _buildDetailRow(
-                    Icons.info_outline,
-                    "Purpose : ",
-                    value: o.purpose,
-                  ),
-                  _buildDetailRow(
-                    Icons.person_outline,
-                    "Permission By : ",
-                    value: o.permission,
-                  ),
-                  _buildDetailRow(
-                    Icons.access_time,
-                    "${o.outDate}  •  ${o.outingTime}",
-                  ),
-
-                  const SizedBox(height: 6),
-                  const Divider(
-                    color: Color(0xFFE5E7EB),
-                    height: 1.5,
-                    thickness: 1.5,
-                  ),
-                  const SizedBox(height: 12),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      _buildActionButton(
-                        icon: Icons.flag,
-                        color: const Color(0xFFF97316),
-                        bgColor: const Color(0xFFFFF7ED),
-                        onTap: () => _showRemarksDialog(o),
-                      ),
-                      const SizedBox(width: 10),
-                      _buildActionButton(
-                        icon: Icons.edit_outlined,
-                        color: const Color(0xFFEAB308),
-                        bgColor: const Color(0xFFFEF9C3),
-                        onTap: () => _showRemarksDialog(
-                          o,
-                        ), // Map edit to the same remarks dialog as requested
-                      ),
-                      const SizedBox(width: 10),
-                      _buildActionButton(
-                        icon: Icons.delete_outline,
-                        color: const Color(0xFFEF4444),
-                        bgColor: const Color(0xFFFEE2E2),
-                        onTap: () => _showDeleteConfirmation(o),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
+            return _buildStudentCard(controller.filteredList[index]);
           },
         );
       }),
     );
   }
 
-  Widget _buildDetailRow(IconData icon, String label, {String? value}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+  Widget _buildStudentCard(dynamic o) {
+    final bool isApproved = o.status == "Approved";
+    final Color statusBg = isApproved
+        ? const Color(0xFF4CAF50)
+        : const Color(0xFFF39C12);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFEDE9FE)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: Colors.black),
-          const SizedBox(width: 8),
-          Expanded(
-            child: value == null
-                ? Text(
-                    label,
-                    style: const TextStyle(fontSize: 15, color: Colors.black),
-                  )
-                : RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: Color(0xFF4B5563),
-                      ),
-                      children: [
-                        TextSpan(
-                          text: label,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
-                          ),
-                        ),
-                        TextSpan(text: value),
-                      ],
-                    ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  o.studentName,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: statusBg,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  o.status,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                o.admno,
+                style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+              ),
+              Text(
+                o.outingType,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _studentInfoRow(Icons.access_time, "Purpose : ", o.purpose),
+          const SizedBox(height: 8),
+          _studentInfoRow(
+            Icons.person_outline,
+            "Permission By : ",
+            o.permission,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _studentInfoIconRow(Icons.calendar_today, o.outDate),
+              const SizedBox(width: 16),
+              _studentInfoIconRow(Icons.access_time, o.outingTime),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              _actionIconButton(
+                Icons.flag,
+                const Color(0xFFF39C12),
+                () => _showRemarksDialog(o),
+              ),
+              const SizedBox(width: 8),
+              _actionIconButton(
+                Icons.edit,
+                const Color(0xFFFFE082),
+                () => _showRemarksDialog(o),
+              ),
+              const SizedBox(width: 8),
+              _actionIconButton(
+                Icons.delete,
+                const Color(0xFFEF4444),
+                () => _showDeleteConfirmation(o),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildActionButton({
-    required IconData icon,
-    required Color color,
-    required Color bgColor,
-    required VoidCallback onTap,
-  }) {
+  Widget _studentInfoRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: Colors.black),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _studentInfoIconRow(IconData icon, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: Colors.black),
+        const SizedBox(width: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 13,
+            color: Color(0xFF6B7280),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _actionIconButton(IconData icon, Color bgColor, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: bgColor,
+          color: bgColor.withOpacity(0.3),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, size: 20, color: color),
+        child: Icon(icon, size: 18, color: bgColor),
       ),
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────
+  //  REMARKS DIALOG
+  // ─────────────────────────────────────────────────────────────────
   void _showRemarksDialog(dynamic o) {
     final TextEditingController remarksController = TextEditingController();
     Get.dialog(
       Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         backgroundColor: Colors.white,
-        elevation: 0,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(25),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
-          ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
           child: Stack(
             children: [
               Column(
@@ -719,32 +763,27 @@ class _OutingListPageState extends State<OutingListPage> {
                   const Text(
                     "Remarks *",
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 15),
                   Container(
-                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(15),
-                      border: Border.all(
-                        color: Colors.grey.shade300,
-                        width: 1.2,
-                      ),
+                      border: Border.all(color: Colors.grey.shade300),
                     ),
                     child: TextField(
                       controller: remarksController,
                       maxLines: 5,
-                      style: const TextStyle(fontSize: 15),
                       decoration: const InputDecoration(
-                        hintText: "",
                         border: InputBorder.none,
+                        contentPadding: EdgeInsets.all(15),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 20),
                   GestureDetector(
                     onTap: () {
                       controller.addOutingRemarks(o.id, remarksController.text);
@@ -752,19 +791,12 @@ class _OutingListPageState extends State<OutingListPage> {
                     },
                     child: Container(
                       width: double.infinity,
-                      height: 55,
+                      height: 50,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
+                          colors: [Color(0xFF9070FF), Color(0xFFC0A0FF)],
                         ),
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFFA78BFA).withOpacity(0.3),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Center(
                         child: Text(
@@ -781,54 +813,50 @@ class _OutingListPageState extends State<OutingListPage> {
                 ],
               ),
               Positioned(
-                right: 0,
                 top: 0,
-                child: IconButton(
-                  onPressed: () => Get.back(),
-                  icon: const Icon(Icons.close, color: Colors.black, size: 24),
+                right: 0,
+                child: GestureDetector(
+                  onTap: () => Get.back(),
+                  child: const Icon(Icons.close, color: Colors.black, size: 24),
                 ),
               ),
             ],
           ),
         ),
       ),
-      barrierColor: Colors.black.withOpacity(0.6),
+      barrierColor: Colors.black.withOpacity(0.5),
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────
+  //  DELETE CONFIRMATION DIALOG
+  // ─────────────────────────────────────────────────────────────────
   void _showDeleteConfirmation(dynamic o) {
     Get.dialog(
       Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         backgroundColor: Colors.white,
-        elevation: 0,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(25),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
-          ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
           child: Stack(
             children: [
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const SizedBox(height: 10),
-                  // Orange exclamation icon
                   Container(
-                    width: 80,
-                    height: 80,
+                    width: 70,
+                    height: 70,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFD8BE), // Light orange background
+                      color: const Color(0xFFFFEAD1),
                       shape: BoxShape.circle,
                     ),
                     child: const Center(
                       child: Text(
                         "!",
                         style: TextStyle(
-                          color: Color(0xFFFB923C), // Darker orange
-                          fontSize: 50,
+                          color: Color(0xFFF9A825),
+                          fontSize: 40,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -839,7 +867,7 @@ class _OutingListPageState extends State<OutingListPage> {
                     "Are you sure? You want to delete this Outing",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
@@ -848,12 +876,11 @@ class _OutingListPageState extends State<OutingListPage> {
                   const Text(
                     "you won't be able to revert this !",
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 15, color: Colors.black54),
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 25),
                   Row(
                     children: [
-                      // Yes delete it! button
                       Expanded(
                         child: GestureDetector(
                           onTap: () {
@@ -861,17 +888,15 @@ class _OutingListPageState extends State<OutingListPage> {
                             Get.snackbar(
                               "Deleted",
                               "Outing record deleted successfully",
-                              backgroundColor: Colors.red,
+                              backgroundColor: Colors.green,
                               colorText: Colors.white,
                             );
                           },
                           child: Container(
-                            height: 50,
+                            height: 48,
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
-                              ),
-                              borderRadius: BorderRadius.circular(12),
+                              color: const Color(0xFFA685F9),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Center(
                               child: Text(
@@ -879,23 +904,21 @@ class _OutingListPageState extends State<OutingListPage> {
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
                                 ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      // Cancel button
+                      const SizedBox(width: 10),
                       Expanded(
                         child: GestureDetector(
                           onTap: () => Get.back(),
                           child: Container(
-                            height: 50,
+                            height: 48,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFF6B6B), // Pinkish red
-                              borderRadius: BorderRadius.circular(12),
+                              color: const Color(0xFFFF7070),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Center(
                               child: Text(
@@ -903,7 +926,6 @@ class _OutingListPageState extends State<OutingListPage> {
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
                                 ),
                               ),
                             ),
@@ -914,40 +936,35 @@ class _OutingListPageState extends State<OutingListPage> {
                   ),
                 ],
               ),
-              // Close icon at top-right
               Positioned(
-                right: 0,
                 top: 0,
-                child: IconButton(
-                  onPressed: () => Get.back(),
-                  icon: const Icon(Icons.close, color: Colors.black, size: 24),
+                right: 0,
+                child: GestureDetector(
+                  onTap: () => Get.back(),
+                  child: const Icon(Icons.close, color: Colors.black, size: 24),
                 ),
               ),
             ],
           ),
         ),
       ),
-      barrierColor: Colors.black.withOpacity(0.6),
+      barrierColor: Colors.black.withOpacity(0.5),
     );
   }
 
-  // ================= STICKY BOTTOM BUTTON =================
+  // ─────────────────────────────────────────────────────────────────
+  //  STICKY BOTTOM BUTTON
+  // ─────────────────────────────────────────────────────────────────
   Widget _buildStickyBottomButton() {
     return Positioned(
       bottom: 0,
       left: 0,
       right: 0,
       child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+        decoration: const BoxDecoration(
           color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
+          border: Border(top: BorderSide(color: Color(0xFFE5E7EB), width: 1.5)),
         ),
         child: GestureDetector(
           onTap: () {
@@ -956,29 +973,36 @@ class _OutingListPageState extends State<OutingListPage> {
             );
           },
           child: Container(
-            height: 55,
+            height: 54,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF3FAFB9), Color(0xFFAED160)],
+                colors: [Color(0xFF4DA1A9), Color(0xFFA1D071)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
               ),
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF4DA1A9).withOpacity(0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: const Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add, color: Colors.white),
-                  SizedBox(width: 8),
-                  Text(
-                    "Issue Outing",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add, color: Colors.white, size: 24),
+                SizedBox(width: 8),
+                Text(
+                  "Issue Outing",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

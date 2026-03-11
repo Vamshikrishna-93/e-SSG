@@ -92,6 +92,13 @@ class _CommunicationPageState extends State<CommunicationPage> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(color: primaryPurple.withOpacity(0.4)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: const TextField(
                 decoration: InputDecoration(
@@ -129,6 +136,13 @@ class _CommunicationPageState extends State<CommunicationPage> {
                   topLeft: Radius.circular(30),
                   topRight: Radius.circular(30),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: ListView.builder(
                 itemCount: _announcements.length,
@@ -175,9 +189,9 @@ class _CommunicationPageState extends State<CommunicationPage> {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),

@@ -169,6 +169,13 @@ class _HostelMembersPageState extends State<HostelMembersPage> {
                           border: Border.all(
                             color: primaryPurple.withOpacity(0.3),
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.25),
+                              blurRadius: 4,
+                              offset: const Offset(0, 0),
+                            ),
+                          ],
                         ),
                         child: TextField(
                           onChanged: (v) => setState(() => _query = v),
@@ -275,9 +282,9 @@ class _HostelMembersPageState extends State<HostelMembersPage> {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),
@@ -393,9 +400,9 @@ class _HostelMembersPageState extends State<HostelMembersPage> {
                             border: Border.all(color: Colors.grey.shade200),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
+                                color: Colors.black.withOpacity(0.25),
+                                blurRadius: 4,
+                                offset: const Offset(0, 0),
                               ),
                             ],
                           ),

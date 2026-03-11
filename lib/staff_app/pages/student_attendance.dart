@@ -309,6 +309,13 @@ class _StudentAttendancePageState extends State<StudentAttendancePage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.shade200, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -351,7 +358,7 @@ class _StudentAttendancePageState extends State<StudentAttendancePage> {
               ),
               GestureDetector(
                 onTap: () {
-                  Get.to(() => const StudentAttendanceViewPage());
+                  Get.dialog(const StudentAttendanceViewPage());
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -444,6 +451,13 @@ class _StudentAttendancePageState extends State<StudentAttendancePage> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 4,
+                  offset: const Offset(0, 0),
+                ),
+              ],
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(

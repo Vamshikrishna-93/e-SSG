@@ -4,12 +4,14 @@ import 'package:get/get.dart';
 class StaffHeader extends StatelessWidget {
   final String title;
   final VoidCallback? onBack;
+  final Gradient? gradient;
   final bool showBack;
 
   const StaffHeader({
     super.key,
     required this.title,
     this.onBack,
+    this.gradient,
     this.showBack = true,
   });
 
@@ -25,9 +27,10 @@ class StaffHeader extends StatelessWidget {
         left: 20,
         right: 20,
       ),
-      decoration: const BoxDecoration(
-        color: primaryPurple,
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: gradient == null ? primaryPurple : null,
+        gradient: gradient,
+        borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
         ),

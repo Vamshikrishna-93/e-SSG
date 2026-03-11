@@ -35,15 +35,20 @@ class StaffBottomNavBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildNavItem(0, IconifyIcons.clarityBuildingLine, "Home", controller),
+            _buildNavItem(0, IconifyIcons.baselineHouse, "Home", controller),
             _buildNavItem(
               1,
-              IconifyIcons.clarityFormLine,
+              IconifyIcons.graphBarIncrease,
               "Attendance",
               controller,
             ),
-            _buildNavItem(2, IconifyIcons.phStudent, "Fees", controller),
-            _buildNavItem(3, IconifyIcons.fluentPeopleSettings20Regular, "Profile", controller),
+            _buildNavItem(
+              2,
+              IconifyIcons.feed32Filled,
+              "Fees",
+              controller,
+            ),
+            _buildNavItem(3, IconifyIcons.account, "Profile", controller),
           ],
         ),
       );

@@ -43,6 +43,13 @@ class _AssignInchargePageState extends State<AssignInchargePage> {
                       decoration: BoxDecoration(
                         color: lavenderBg.withOpacity(0.7),
                         borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 4,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,6 +108,13 @@ class _AssignInchargePageState extends State<AssignInchargePage> {
                                 end: Alignment.centerRight,
                               ),
                               borderRadius: BorderRadius.circular(15),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.25),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 0),
+                                ),
+                              ],
                             ),
                             child: ElevatedButton(
                               onPressed: () {
@@ -182,6 +196,13 @@ class _AssignInchargePageState extends State<AssignInchargePage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.black.withOpacity(0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -218,6 +239,13 @@ class _AssignInchargePageState extends State<AssignInchargePage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.black.withOpacity(0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: TextField(
         onChanged: onChanged,

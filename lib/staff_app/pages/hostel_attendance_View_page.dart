@@ -173,9 +173,9 @@ class _HostelAttendanceFilterPageState
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 4,
+                offset: const Offset(0, 0),
               ),
             ],
           ),
@@ -290,6 +290,13 @@ class _HostelAttendanceFilterPageState
                   colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
                 ),
                 borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: Material(
                 color: Colors.transparent,
@@ -327,6 +334,13 @@ class _HostelAttendanceFilterPageState
                   colors: [Color(0xFF3FAFB9), Color(0xFFAED160)],
                 ),
                 borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: Material(
                 color: Colors.transparent,

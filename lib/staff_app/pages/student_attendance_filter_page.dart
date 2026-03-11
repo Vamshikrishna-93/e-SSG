@@ -80,7 +80,6 @@ class _StudentAttendanceFilterPageState
     );
   }
 
-
   // ================= FILTER CONTAINER =================
 
   Widget _buildFilterContainer(BuildContext context) {
@@ -91,9 +90,9 @@ class _StudentAttendanceFilterPageState
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),
@@ -219,6 +218,13 @@ class _StudentAttendanceFilterPageState
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 4,
+                  offset: const Offset(0, 0),
+                ),
+              ],
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
@@ -285,9 +291,9 @@ class _StudentAttendanceFilterPageState
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF8B5CF6).withOpacity(0.35),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
             ),
           ],
         ),
@@ -557,7 +563,7 @@ class _StudentAttendanceFilterPageState
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black12,
+            color: Colors.black12, // Keeping color for top shadow distinction
             blurRadius: 10,
             offset: Offset(0, -5),
           ),

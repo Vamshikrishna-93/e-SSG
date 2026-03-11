@@ -23,9 +23,10 @@ class IssueOutingPage extends StatefulWidget {
 class _IssueOutingPageState extends State<IssueOutingPage> {
   String passType = "Home Pass";
   String selectedStudent = "Select Student";
-  String selectedOutTime = "Select Student"; // As per image placeholder
   String selectedPurpose = "Select Purpose";
   File? _letterPhoto;
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
 
   final TextEditingController _searchController = TextEditingController();
   List<dynamic> _searchResults = [];
@@ -278,9 +279,9 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
                                 borderRadius: BorderRadius.circular(15),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 5,
-                                    offset: const Offset(0, 2),
+                                    color: Colors.black.withOpacity(0.25),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 0),
                                   ),
                                 ],
                               ),
@@ -331,6 +332,71 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
     );
   }
 
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF8147E7),
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.light(
+                primary: Color(0xFF8147E7),
+                onPrimary: Colors.white,
+                onSurface: Colors.black,
+              ),
+            ),
+            child: child!,
+          ),
+        );
+      },
+    );
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
+  }
+
+  String get formattedDate {
+    return "${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}";
+  }
+
+  String get formattedTime {
+    final int hour = _selectedTime.hourOfPeriod;
+    final int displayHour = hour == 0 ? 12 : hour;
+    final String minute = _selectedTime.minute.toString().padLeft(2, '0');
+    final String period = _selectedTime.period == DayPeriod.am ? 'AM' : 'PM';
+    return "${displayHour.toString().padLeft(2, '0')}:$minute $period";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -352,7 +418,7 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
                   children: [
                     // Date
                     _buildLabel("Date"),
-                    _buildTextField("20/11/2025"),
+                    _buildDatePicker(),
                     const SizedBox(height: 12),
 
                     // Pass Type
@@ -372,13 +438,7 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
 
                     // Out Time
                     _buildLabel("Out Time"),
-                    _buildDropdown(
-                      selectedOutTime,
-                      (v) {
-                        setState(() => selectedOutTime = v!);
-                      },
-                      ["Select Student", "09:00 AM", "12:00 PM", "06:00 PM"],
-                    ),
+                    _buildTimePicker(),
                     const SizedBox(height: 12),
 
                     // Purpose
@@ -411,9 +471,16 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
           height: 48,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: const Color(0xFFEFEFEF),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.grey.shade300),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 4,
+                offset: const Offset(0, 0),
+              ),
+            ],
           ),
           child: TextField(
             controller: _searchController,
@@ -421,7 +488,7 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
             decoration: const InputDecoration(
               border: InputBorder.none,
               hintText: "Enter Admission Number",
-              hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
+              hintStyle: TextStyle(color: Colors.black, fontSize: 13),
             ),
           ),
         ),
@@ -433,9 +500,9 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 4,
+                  offset: const Offset(0, 0),
                 ),
               ],
             ),
@@ -492,20 +559,65 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
     );
   }
 
-  Widget _buildTextField(String hint) {
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEFEFEF),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+  Widget _buildDatePicker() {
+    return GestureDetector(
+      onTap: () => _selectDate(context),
+      child: Container(
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              formattedDate,
+              style: const TextStyle(color: Colors.black87, fontSize: 14),
+            ),
+            const Icon(Icons.calendar_today, color: Colors.grey, size: 20),
+          ],
+        ),
       ),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          hint,
-          style: const TextStyle(color: Colors.black87, fontSize: 14),
+    );
+  }
+
+  Widget _buildTimePicker() {
+    return GestureDetector(
+      onTap: () => _selectTime(context),
+      child: Container(
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              formattedTime,
+              style: const TextStyle(color: Colors.black87, fontSize: 14),
+            ),
+            const Icon(Icons.access_time, color: Colors.grey, size: 20),
+          ],
         ),
       ),
     );
@@ -520,9 +632,16 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
       height: 48,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFEFEF),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -554,9 +673,9 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),
@@ -686,9 +805,9 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF34D399).withOpacity(0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
             ),
           ],
         ),

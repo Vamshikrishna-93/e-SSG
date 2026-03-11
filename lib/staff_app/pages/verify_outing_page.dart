@@ -92,6 +92,13 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
         color: const Color(0xFFF5F3FF),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -171,6 +178,13 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.grey.shade200, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
@@ -235,6 +249,13 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
             colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
           ),
           borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
+            ),
+          ],
         ),
         child: ElevatedButton(
           onPressed: () {
@@ -271,6 +292,13 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
                 colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
               ),
               borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 4,
+                  offset: const Offset(0, 0),
+                ),
+              ],
             ),
             child: ElevatedButton(
               onPressed: () => _showCaptureDialog(context),
@@ -305,6 +333,13 @@ class _VerifyOutingPageState extends State<VerifyOutingPage> {
                     ),
               color: _capturedImage == null ? const Color(0xFFC4C4C4) : null,
               borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 4,
+                  offset: const Offset(0, 0),
+                ),
+              ],
             ),
             child: ElevatedButton(
               onPressed: _capturedImage == null

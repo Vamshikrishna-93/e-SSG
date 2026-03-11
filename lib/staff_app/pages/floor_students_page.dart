@@ -47,6 +47,13 @@ class _FloorStudentsPageState extends State<FloorStudentsPage> {
       decoration: BoxDecoration(
         color: const Color(0xFFF9F5FF),
         borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -61,6 +68,13 @@ class _FloorStudentsPageState extends State<FloorStudentsPage> {
                 border: Border.all(
                   color: const Color(0xFF7C3AED).withOpacity(0.5),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: TextField(
                 onChanged: (v) => setState(() => _query = v),
@@ -125,9 +139,9 @@ class _FloorStudentsPageState extends State<FloorStudentsPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),

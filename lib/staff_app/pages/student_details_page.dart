@@ -158,9 +158,9 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
             border: Border.all(color: Colors.black.withOpacity(0.05)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 4,
+                offset: const Offset(0, 0),
               ),
             ],
           ),
@@ -216,14 +216,14 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
           top: 0,
           child: Container(
             padding: const EdgeInsets.all(5),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 4,
+                  offset: const Offset(0, 0),
                 ),
               ],
             ),
@@ -247,6 +247,13 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
       decoration: BoxDecoration(
         color: const Color(0xFFF3F0FF),
         borderRadius: BorderRadius.circular(35),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         children: [

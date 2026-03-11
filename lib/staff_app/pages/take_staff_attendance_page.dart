@@ -206,6 +206,13 @@ class _TakeStaffAttendancePageState extends State<TakeStaffAttendancePage> {
                         border: Border.all(
                           color: primaryPurple.withOpacity(0.4),
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 4,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
                       ),
                       child: TextField(
                         onChanged: (v) => setState(() => query = v),
@@ -273,6 +280,13 @@ class _TakeStaffAttendancePageState extends State<TakeStaffAttendancePage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.black12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -300,6 +314,13 @@ class _TakeStaffAttendancePageState extends State<TakeStaffAttendancePage> {
           decoration: BoxDecoration(
             color: isActive ? const Color(0xFF7E49FF) : const Color(0xFFF1F4FF),
             borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 4,
+                offset: const Offset(0, 0),
+              ),
+            ],
           ),
           child: Center(
             child: Text(
@@ -325,9 +346,9 @@ class _TakeStaffAttendancePageState extends State<TakeStaffAttendancePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),

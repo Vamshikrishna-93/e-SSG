@@ -49,4 +49,37 @@ class IconifyIcons {
 
   static const String phChatDots =
       '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 256 256"><path fill="currentColor" d="M116 128a12 12 0 1 1 12 12a12 12 0 0 1-12-12m-32 12a12 12 0 1 0-12-12a12 12 0 0 0 12 12m88 0a12 12 0 1 0-12-12a12 12 0 0 0 12 12m60-76v128a16 16 0 0 1-16 16H83l-32.6 28.16l-.09.07A15.9 15.9 0 0 1 40 240a16.1 16.1 0 0 1-6.8-1.52A15.85 15.85 0 0 1 24 224V64a16 16 0 0 1 16-16h176a16 16 0 0 1 16 16m-16 0H40v160l34.77-30a8 8 0 0 1 5.23-2h136Z"/></svg>';
+
+  static const String baselineHouse =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3L4 9v12h5v-7h6v7h5V9z"/></svg>';
+
+  static const String graphBarIncrease =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M22 21H2V3h2v16h2v-9h4v9h2V6h4v13h2v-5h4v7M14 10l2 2l3.5-3.5L21 10V7h-3l.5.5L15 11l-2-2l-3 3l1.4 1.4z"/></svg>';
+
+  static const String feed32Filled =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M4 3h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2m2 4v2h12V7zm0 4v2h12v-2zm0 4v2h8v-2z"/></svg>';
+
+  static const String account =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M12 4a4 4 0 0 1 4 4a4 4 0 0 1-4 4a4 4 0 0 1-4-4a4 4 0 0 1 4-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4"/></svg>';
+
+  static const String hugeIconsBus03 =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 13.5h18m-16.5 4h1.5a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-1.5a1 1 0 0 1 1-1h.5m14.5 0h.5a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1.5a1 1 0 0 1 1-1h.5M5.5 17.5H4c-1.105 0-2-.895-2-2v-9a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-1.5"/></svg>';
+
+  static const String usersCheck =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M16.5 13c-1.2 0-3.07.34-4.5 1c-1.43-.67-3.3-1-4.5-1C5.33 13 1 14.34 1 17v3h13v-1.16c.33.1.66.16 1 .16s.67-.06 1-.16V20h7v-3c0-2.66-4.33-4-7.5-4ZM7.5 15c1.64 0 3.23.41 4.54 1.13c-.37.33-.68.74-.91 1.2c-.89-.21-1.85-.33-2.63-.33s-1.74.12-2.63.33c-.09-.15-.17-.32-.24-.5c1.31-.72 2.9-1.13 4.54-1.13ZM2.83 18.06c.64-.32 1.9-.76 3.84-.96c.21.36.48.69.79.97c-.85.1-1.76.24-2.61.66c-.32.16-.65.34-.84.47l-.18-.17v-.97Zm11.17 0v.97l-.18.17c-.19-.13-.52-.31-.84-.47c-.85-.42-1.76-.56-2.61-.66c.31-.28.58-.61.79-.97c1.94.2 3.2.64 3.84.96ZM16.5 15c2.31 0 4.19.46 5.67 1.13c-.07.18-.15.35-.24.5c-1.31-.72-2.9-1.13-4.54-1.13c-1.64 0-3.23.41-4.54 1.13c-.09-.15-.17-.32-.24-.5C12.31 15.46 14.19 15 16.5 15Zm4.34 3.06l-.18.17v-.97c.64.32 1.9.76 3.84.96c-.21.36-.48.69-.79.97c-.85-.1-1.76-.24-2.61-.66c-.09-.04-.17-.09-.26-.14ZM7.5 12A3.5 3.5 0 1 0 7.5 5A3.5 3.5 0 0 0 7.5 12Zm0-5A1.5 1.5 0 1 1 7.5 10A1.5 1.5 0 0 1 7.5 7Zm9 5a3.5 3.5 0 1 0 0-7a3.5 3.5 0 0 0 0 7Zm0-5a1.5 1.5 0 1 1 0 3a1.5 1.5 0 0 1 0-3ZM12 21.03l-4-4l1.41-1.41L12 18.21l5.59-5.59L19 14.03l-7 7Z"/></svg>';
+
+  static const String verifiedUser =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5l-9-4Zm-2 16l-4-4l1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8Z"/></svg>';
+
+  static const String route =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M19 15c-1.37 0-2.52.92-2.88 2.16l-4.12-1.5c.34-.49.52-1.09.43-1.71c-.16-1.12-1.07-1.95-2.2-1.95c-1.24 0-2.25 1.01-2.25 2.25c0 1.24 1.01 2.25 2.25 2.25c.37 0 .72-.09 1.03-.25l4.13 1.5c.37 1.23 1.51 2.16 2.87 2.16c1.66 0 3-1.34 3-3s-1.34-3-3-3M8 16c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25s1.25.56 1.25 1.25s-.56 1.25-1.25 1.25m11 5c-.55 0-1-.45-1-1s.45-1 1-1s1 .45 1 1s-.45 1-1 1m-1-16L12.5 3h-1l-5.5 2V3H4v6h6V7H7.7l3.8-1.4l3.8 1.4H14v2h2V5.1l3 1.1L20 4.1L18 3.4V5Zm-1 5a3 3 0 0 0-3 3c0 .55.15 1.07.41 1.51l-4.13 1.5C9.92 16.03 8.98 15.5 8 15.5s-1.92.53-2.28 1.26L1.59 15.25L1 16.7l4.13 1.51c.07.64.42 1.19.95 1.51c.3.18.64.28.92.28c.4 0 .78-.13 1.09-.37l4.13-1.5c.36.73 1.11 1.26 1.98 1.26c.46 0 .89-.14 1.23-.39l4.14 1.51c.08.64.43 1.18.96 1.5c.3.18.63.28.92.28c.4 0 .78-.13 1.09-.37l4.13-1.51c.36.73 1.11 1.26 1.98 1.26c1.65 0 3-1.35 3-3s-1.35-3-3-3Z"/></svg>';
+
+  static const String pendingActions =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M17 12c-2.76 0-5 2.24-5 5s2.24 5 5 5s5-2.24 5-5s-2.24-5-5-5Zm1.65 7.35L16.5 17.2V14h1v2.79l1.85 1.85l-.7.71ZM18 3h-3.18c-.41-1.16-1.52-2-2.82-2s-2.41.84-2.82 2H6c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h6.11c-.59-.88-.95-1.93-.99-3.05L10.05 18H6V5h2v3h8V5h2v5.08c1.21.1 2.34.56 3.28 1.29l.72-.7V5c0-1.1-.9-2-2-2Zm-6 0c.55 0 1 .45 1 1s-.45 1-1 1s-1-.45-1-1s.45-1 1-1Z"/></svg>';
+
+  static const String logout =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h7v2H5v14h7v2zm11-4l-1.4-1.4l2.575-2.6H10v-2h7.175L14.6 8.4L16 7l5 5z"/></svg>';
+
+  static const String home =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19h3v-6h6v6h3v-9l-6-4.5L6 10zm-2 2V9l8-6l8 6v12h-7v-6h-2v6zm8-8.75"/></svg>';
 }

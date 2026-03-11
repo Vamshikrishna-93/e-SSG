@@ -50,35 +50,35 @@ class _LoginPageState extends State<LoginPage> {
         children: [
           // ---------------- BACKGROUND DECORATIONS ----------------
           Positioned(
-            top: -100,
-            left: -50,
-            child: _buildBlob(300, [
-              const Color(0xFF8A2BE2),
-              const Color(0xFFE247D6).withOpacity(0.5),
+            top: -150,
+            left: -150,
+            child: _buildBlob(400, [
+              const Color(0xFFC98CF8),
+              const Color(0xFF8275FB),
             ]),
           ),
           Positioned(
-            top: -50,
-            right: -80,
-            child: _buildBlob(250, [
-              const Color(0xFF9D50BB),
-              const Color(0xFF6E48AA),
+            top: -156,
+            left: 156,
+            child: _buildBlob(270, [
+              const Color(0xFFC98CF8),
+              const Color(0xFF8275FB),
             ]),
           ),
           Positioned(
-            bottom: -100,
-            right: -50,
-            child: _buildBlob(350, [
-              const Color(0xFF8A2BE2),
-              const Color(0xFFE247D6),
+            top: 673,
+            left: 225,
+            child: _buildBlob(306, [
+              const Color(0xFFC98CF8),
+              const Color(0xFF8275FB),
             ]),
           ),
           Positioned(
-            bottom: 120,
-            left: 180,
-            child: _buildBlob(60, [
-              const Color(0xFF8A2BE2),
-              const Color(0xFF8A2BE2).withOpacity(0.6),
+            top: 615,
+            left: 150,
+            child: _buildBlob(70, [
+              const Color(0xFFC98CF8),
+              const Color(0xFF8275FB),
             ]),
           ),
 
@@ -139,7 +139,7 @@ class _LoginPageState extends State<LoginPage> {
                                       alignment: Alignment.center,
                                       decoration: BoxDecoration(
                                         color: isStaff
-                                            ? const Color(0xFF8A2BE2)
+                                            ? const Color(0xFF8344E0)
                                             : Colors.transparent,
                                         borderRadius: BorderRadius.circular(30),
                                       ),
@@ -163,7 +163,7 @@ class _LoginPageState extends State<LoginPage> {
                                       alignment: Alignment.center,
                                       decoration: BoxDecoration(
                                         color: !isStaff
-                                            ? const Color(0xFF8A2BE2)
+                                            ? const Color(0xFF8344E0)
                                             : Colors.transparent,
                                         borderRadius: BorderRadius.circular(30),
                                       ),
@@ -205,12 +205,10 @@ class _LoginPageState extends State<LoginPage> {
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
                                 border: InputBorder.none,
-                                hintText: isStaff
-                                    ? "Enter Staff ID (6 digits)"
-                                    : "Enter Mobile Number (10 digits)",
+                                hintText: "Enter your email address",
                                 hintStyle: const TextStyle(
-                                  color: Colors.black26,
-                                  fontSize: 14,
+                                  color: Colors.black38,
+                                  fontSize: 13,
                                 ),
                               ),
                             ),
@@ -240,8 +238,8 @@ class _LoginPageState extends State<LoginPage> {
                                 border: InputBorder.none,
                                 hintText: "Enter your password",
                                 hintStyle: const TextStyle(
-                                  color: Colors.black26,
-                                  fontSize: 14,
+                                  color: Colors.black38,
+                                  fontSize: 13,
                                 ),
                                 suffixIcon: IconButton(
                                   icon: Icon(
@@ -264,13 +262,13 @@ class _LoginPageState extends State<LoginPage> {
                             alignment: Alignment.centerRight,
                             child: TextButton(
                               onPressed: () {}, // Logic not added as requested
-                              child: const Text(
-                                "Forgot Password",
-                                style: TextStyle(
-                                  color: Colors.redAccent,
-                                  fontSize: 13,
+                                child: const Text(
+                                  "Forgot Password",
+                                  style: TextStyle(
+                                    color: Color(0xFFFA577F),
+                                    fontSize: 13,
+                                  ),
                                 ),
-                              ),
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -282,21 +280,21 @@ class _LoginPageState extends State<LoginPage> {
                               height: 55,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(15),
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFF27D74FC),
-                                    Color(0xFFBB86FC),
-                                  ],
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(
-                                      0xFF8A2BE2,
-                                    ).withOpacity(0.3),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 5),
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFF8B64FE),
+                                      Color(0xFFD68AF9),
+                                    ],
                                   ),
-                                ],
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFF8A2BE2,
+                                      ).withOpacity(0.15),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 5),
+                                    ),
+                                  ],
                               ),
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
@@ -376,10 +374,10 @@ class _LoginPageState extends State<LoginPage> {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: LinearGradient(
+        gradient: RadialGradient(
+          center: const Alignment(-0.3, -0.3),
+          radius: 0.8,
           colors: colors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
         ),
       ),
     );

@@ -134,6 +134,13 @@ class _StaffAttendancePageState extends State<StaffAttendancePage> {
                             border: Border.all(
                               color: primaryPurple.withOpacity(0.4),
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.25),
+                                blurRadius: 4,
+                                offset: const Offset(0, 0),
+                              ),
+                            ],
                           ),
                           child: TextField(
                             onChanged: (v) => setState(() => query = v),
@@ -214,9 +221,9 @@ class _StaffAttendancePageState extends State<StaffAttendancePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),
@@ -286,8 +293,9 @@ class _StaffAttendancePageState extends State<StaffAttendancePage> {
                     border: Border.all(color: Colors.black.withOpacity(0.05)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.02),
+                        color: Colors.black.withOpacity(0.25),
                         blurRadius: 4,
+                        offset: const Offset(0, 0),
                       ),
                     ],
                   ),

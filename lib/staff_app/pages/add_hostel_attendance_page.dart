@@ -229,9 +229,9 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
         border: Border.all(color: Colors.grey.withOpacity(0.12)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),
@@ -311,9 +311,9 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF7C3AED).withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
             ),
           ],
         ),
@@ -354,9 +354,9 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 4,
+                offset: const Offset(0, 0),
               ),
             ],
           ),
@@ -486,9 +486,9 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),
@@ -500,6 +500,13 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
             colors: [Color(0xFF3FAFB9), Color(0xFFAED581)],
           ),
           borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
+            ),
+          ],
         ),
         child: Material(
           color: Colors.transparent,

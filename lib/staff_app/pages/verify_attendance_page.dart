@@ -181,6 +181,13 @@ class _VerifyAttendancePageState extends State<VerifyAttendancePage>
                       decoration: BoxDecoration(
                         color: lavenderBg,
                         borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 4,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
                       ),
                       child: Column(
                         children: [
@@ -270,6 +277,13 @@ class _VerifyAttendancePageState extends State<VerifyAttendancePage>
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: Colors.grey.shade200, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 4,
+                offset: const Offset(0, 0),
+              ),
+            ],
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
@@ -315,6 +329,13 @@ class _VerifyAttendancePageState extends State<VerifyAttendancePage>
             end: Alignment.centerRight,
           ),
           borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
+            ),
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -399,6 +420,13 @@ class _VerifyAttendancePageState extends State<VerifyAttendancePage>
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.shade300, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

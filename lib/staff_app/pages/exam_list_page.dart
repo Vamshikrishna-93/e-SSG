@@ -43,6 +43,13 @@ class _ExamsListPageState extends State<ExamsListPage> {
                   color: primaryPurple.withOpacity(0.5),
                   width: 1.0,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: TextField(
                 onChanged: (v) => controller.query.value = v,
@@ -77,6 +84,13 @@ class _ExamsListPageState extends State<ExamsListPage> {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(30),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: Obx(() {
                 if (controller.isLoading.value) {
@@ -130,9 +144,9 @@ class _ExamsListPageState extends State<ExamsListPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),

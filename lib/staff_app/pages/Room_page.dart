@@ -80,6 +80,13 @@ class _RoomsPageState extends State<RoomsPage> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(color: primaryPurple.withOpacity(0.5)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: TextField(
                 onChanged: (v) => setState(() => _query = v),
@@ -119,7 +126,7 @@ class _RoomsPageState extends State<RoomsPage> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
+                  color: Colors.black12, // Keeping keeping color for distinction
                   blurRadius: 10,
                   offset: Offset(0, -2),
                 ),
@@ -160,9 +167,9 @@ class _RoomsPageState extends State<RoomsPage> {
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),

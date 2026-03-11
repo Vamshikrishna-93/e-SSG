@@ -39,7 +39,7 @@ class _FeeHeadPageState extends State<FeeHeadPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          const StaffHeader(title: "Fee Heads"),
+          const StaffHeader(title: "Fee Heads", showBack: false),
 
           Expanded(
             child: SingleChildScrollView(
@@ -69,6 +69,13 @@ class _FeeHeadPageState extends State<FeeHeadPage> {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(15),
                               border: Border.all(color: Colors.black12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.25),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 0),
+                                ),
+                              ],
                             ),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -132,6 +139,13 @@ class _FeeHeadPageState extends State<FeeHeadPage> {
                     decoration: BoxDecoration(
                       color: lavenderBg,
                       borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.25),
+                          blurRadius: 4,
+                          offset: const Offset(0, 0),
+                        ),
+                      ],
                     ),
                     child: Column(
                       children: [
@@ -210,9 +224,9 @@ class _FeeHeadPageState extends State<FeeHeadPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),

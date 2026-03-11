@@ -1,180 +1,266 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../widgets/staff_header.dart';
 
 class StudentAttendanceViewPage extends StatelessWidget {
   const StudentAttendanceViewPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const primaryPurple = Color(0xFF7E49FF);
-    const lavenderBg = Color(0xFFF3EBFF);
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          const StaffHeader(title: "Students Attendance"),
-
-          // ================= STUDENTS LIST CONTAINER =================
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: lavenderBg.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Column(
-                  children: [
-                    _buildStudentCard(0),
-                    _buildStudentCard(1),
-                    _buildStudentCard(2),
-                  ],
-                ),
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.only(
+          top: 15,
+          left: 15,
+          right: 15,
+          bottom: 20,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9FAFF), // Light background for dialog
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Close button
+            Align(
+              alignment: Alignment.topRight,
+              child: GestureDetector(
+                onTap: () => Get.back(),
+                child: const Icon(Icons.close, color: Colors.black, size: 20),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+            const SizedBox(height: 10),
 
-  Widget _buildStudentCard(int index) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200, width: 1.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "S.NO: 1",
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              Text(
-                "Adm No : 251288",
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Divider(color: Colors.grey.shade200, height: 1.5),
-          const SizedBox(height: 12),
-          _infoRow("Student Name", "Pulagara Veera Vasatha\nRayudu"),
-          const SizedBox(height: 12),
-          const Text(
-            "Attendance Status :",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 10),
-          _buildAttendanceDaysRow(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAttendanceDaysRow() {
-    // Days 2, 7, 14, 20, 25 are absent — rest are present
-    const absentDays = {2, 7, 14, 20, 25};
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: List.generate(31, (index) {
-          final day = index + 1;
-          final isAbsent = absentDays.contains(day);
-
-          return Container(
-            margin: const EdgeInsets.only(right: 8),
-            width: 40,
-            height: 55,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.grey.shade300, width: 1.5),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "$day",
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  width: 22,
-                  height: 22,
-                  decoration: BoxDecoration(
-                    color: isAbsent
-                        ? const Color(0xFFFB7185) // Red for Absent
-                        : const Color(0xFF6FC888), // Green for Present
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      isAbsent ? "A" : "P",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
+            // Header Row S M T W T F S
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: const [
+                _HeaderText("S"),
+                _HeaderText("M"),
+                _HeaderText("T"),
+                _HeaderText("W"),
+                _HeaderText("T"),
+                _HeaderText("F"),
+                _HeaderText("S"),
               ],
             ),
-          );
-        }),
+            const SizedBox(height: 15),
+
+            // Calendar Grid inside a container with borders
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: _buildCalendarGrid(),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Legend
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildLegendItem("Present", const Color(0xFF6DCB9F)),
+                  _buildLegendItem("Absent", const Color(0xFFFA7476)),
+                  _buildLegendItem("Holiday", const Color(0xFF7B8BBA)),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _infoRow(String label, String value) {
+  Widget _buildCalendarGrid() {
+    final List<TableRow> rows = [];
+    int currentDay = -1; // -1 -> 30, 0 -> 31
+
+    for (int i = 0; i < 5; i++) {
+      List<Widget> rowCells = [];
+      for (int j = 0; j < 7; j++) {
+        String dayStr = "";
+        bool isCurrentMonth = false;
+        String? status;
+
+        if (currentDay == -1) {
+          dayStr = "30";
+        } else if (currentDay == 0) {
+          dayStr = "31";
+        } else if (currentDay <= 31) {
+          dayStr = currentDay.toString();
+          isCurrentMonth = true;
+          status = "P";
+          if (currentDay == 18 || currentDay == 23) {
+            status = "A";
+          } else if (currentDay == 21) {
+            status = "H";
+          }
+        } else {
+          dayStr = (currentDay - 31).toString();
+        }
+
+        rowCells.add(
+          TableCell(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: _DayCell(
+                day: dayStr,
+                isCurrentMonth: isCurrentMonth,
+                status: status,
+              ),
+            ),
+          ),
+        );
+        currentDay++;
+      }
+      rows.add(TableRow(children: rowCells));
+    }
+
+    return Table(
+      border: TableBorder(
+        horizontalInside: BorderSide(color: Colors.grey.shade100, width: 1),
+        verticalInside: BorderSide(color: Colors.grey.shade100, width: 1),
+      ),
+      children: rows,
+    );
+  }
+
+  Widget _buildLegendItem(String text, Color color) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(
-          width: 140,
-          child: Text(
-            "$label :",
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-              color: Colors.black87,
-            ),
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: TextStyle(
+            color: color,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        Expanded(
-          child: Text(
-            value,
+      ],
+    );
+  }
+}
+
+class _HeaderText extends StatelessWidget {
+  final String text;
+  const _HeaderText(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 30,
+      child: Center(
+        child: Text(
+          text,
+          style: const TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DayCell extends StatelessWidget {
+  final String day;
+  final bool isCurrentMonth;
+  final String? status;
+
+  const _DayCell({
+    required this.day,
+    required this.isCurrentMonth,
+    this.status,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isCurrentMonth) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            day,
             style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey.shade700,
-              height: 1.3,
+              color: Colors.grey.shade300, // Light grey for next/prev month
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
             ),
           ),
+          const SizedBox(height: 24), // Maintain height matching active days
+        ],
+      );
+    }
+
+    Color bgColor = Colors.transparent;
+    if (status == "P") bgColor = const Color(0xFF6DCB9F);
+    if (status == "A") bgColor = const Color(0xFFFA7476);
+    if (status == "H") bgColor = const Color(0xFF7B8BBA);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          day,
+          style: const TextStyle(
+            color: Colors.black87,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
+        const SizedBox(height: 4),
+        if (status != null)
+          Container(
+            width: 28,
+            height: 18,
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                status!,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          )
+        else
+          const SizedBox(height: 20),
       ],
     );
   }

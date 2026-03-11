@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import '../controllers/main_controller.dart';
 import '../widgets/staff_bottom_nav_bar.dart';
 import '../widgets/staff_header.dart';
+import 'package:iconify_flutter/iconify_flutter.dart';
+import '../utils/iconify_icons.dart';
 
 class AttendanceOptionsPage extends StatefulWidget {
   const AttendanceOptionsPage({super.key});
@@ -25,67 +27,82 @@ class _AttendanceOptionsPageState extends State<AttendanceOptionsPage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F7FF),
       body: Column(
         children: [
-          const StaffHeader(
-            title: "Students Attendance",
-            showBack: false,
-          ),
+          const StaffHeader(title: "Students Attendance", showBack: false),
 
           // ================= GRID MENU =================
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 25),
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 15,
-                mainAxisSpacing: 15,
-                childAspectRatio: 173 / 146, // Exact Figma specs
-                children: [
-                  _buildGridCard(
-                    title: "Student\nAttendance",
-                    icon: Icons.how_to_reg_rounded,
-                    color1: const Color(0xFF2BDB9A), // Light green
-                    color2: const Color(0xFF07BE81), // Dark green
-                    iconColor: const Color(0xFF07BE81),
-                    onTap: () => Get.toNamed('/studentAttendance'),
-                  ),
-                  _buildGridCard(
-                    title: "Verify\nAttendance",
-                    icon: Icons.verified_user_rounded, // Shield check
-                    color1: const Color(0xFFF17C99), // Pink
-                    color2: const Color(0xFFD5295B), // Deep Pink
-                    iconColor: const Color(0xFFD5295B),
-                    onTap: () => Get.toNamed('/verifyAttendance'),
-                  ),
-                  _buildGridCard(
-                    title: "Hostel\nAttendance",
-                    icon: Icons.domain_rounded, // Building
-                    color1: const Color(0xFFD572FE), // Light Purple
-                    color2: const Color(0xFF9F1BD8), // Dark Purple
-                    iconColor: const Color(0xFF9F1BD8),
-                    onTap: () => Get.toNamed('/hostelAttendanceFilter'),
-                  ),
-                  _buildGridCard(
-                    title: "Outings",
-                    icon: Icons.route_rounded, // Path map trace
-                    color1: const Color(0xFF5AB1FF), // Light Blue
-                    color2: const Color(0xFF2386F9), // Deep Blue
-                    iconColor: const Color(0xFF2386F9),
-                    onTap: () => Get.toNamed('/outingList'),
-                  ),
-                  _buildGridCard(
-                    title: "Outings\nPending",
-                    icon: Icons.pending_actions_rounded, // Clipboard with clock
-                    color1: const Color(0xFFFFC061), // Light Orange
-                    color2: const Color(0xFFF9942A), // Deep Orange
-                    iconColor: const Color(0xFFF9942A),
-                    onTap: () => Get.toNamed('/outingPending'),
-                  ),
-                ],
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final double cardWidth = (constraints.maxWidth - 14) / 2;
+                  final double cardHeight = cardWidth * 0.88;
+                  return Wrap(
+                    spacing: 14,
+                    runSpacing: 14,
+                    children: [
+                      _buildGridCard(
+                        width: cardWidth,
+                        height: cardHeight,
+                        title: "Student\nAttendance",
+                        icon: IconifyIcons.usersCheck,
+                        gradientColors: const [
+                          Color(0xFF2CDB99),
+                          Color(0xFF19B2A1),
+                        ],
+                        onTap: () => Get.toNamed('/studentAttendance'),
+                      ),
+                      _buildGridCard(
+                        width: cardWidth,
+                        height: cardHeight,
+                        title: "Verify\nAttendance",
+                        icon: IconifyIcons.verifiedUser,
+                        gradientColors: const [
+                          Color(0xFFEF7998),
+                          Color(0xFFD32A5B),
+                        ],
+                        onTap: () => Get.toNamed('/verifyAttendance'),
+                      ),
+                      _buildGridCard(
+                        width: cardWidth,
+                        height: cardHeight,
+                        title: "Hostel\nAttendance",
+                        icon: IconifyIcons.clarityBuildingLine,
+                        gradientColors: const [
+                          Color(0xFFD170FD),
+                          Color(0xFFA11BD9),
+                        ],
+                        onTap: () => Get.toNamed('/hostelAttendanceFilter'),
+                      ),
+                      _buildGridCard(
+                        width: cardWidth,
+                        height: cardHeight,
+                        title: "Outings",
+                        icon: IconifyIcons.route,
+                        gradientColors: const [
+                          Color(0xFF5AB1FF),
+                          Color(0xFF2386F9),
+                        ],
+                        onTap: () => Get.toNamed('/outingList'),
+                      ),
+                      _buildGridCard(
+                        width: cardWidth,
+                        height: cardHeight,
+                        title: "Outings\nPending",
+                        icon: IconifyIcons.pendingActions,
+                        gradientColors: const [
+                          Color(0xFFFFBF61),
+                          Color(0xFFF9942A),
+                        ],
+                        onTap: () => Get.toNamed('/outingPending'),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -96,93 +113,112 @@ class _AttendanceOptionsPageState extends State<AttendanceOptionsPage> {
   }
 
   Widget _buildGridCard({
+    required double width,
+    required double height,
     required String title,
-    required IconData icon,
-    required Color color1,
-    required Color color2,
-    required Color iconColor,
+    required dynamic
+    icon, // Changed to dynamic to support both IconData and String (Iconify)
+    required List<Color> gradientColors,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        width: width,
+        height: height,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12), // Exact Figma: 12px
+          borderRadius: BorderRadius.circular(24),
           gradient: LinearGradient(
-            colors: [color1, color2],
+            colors: gradientColors,
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           boxShadow: [
             BoxShadow(
-              color: color2.withOpacity(0.35),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: gradientColors[1].withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
         child: Stack(
           children: [
-            // ── Bubble 1: Large top-left (overflowing corner) ──
+            // Decorative bubbles - Exact placement based on image
             Positioned(
               top: -40,
               left: -40,
               child: Container(
-                width: 130,
-                height: 130,
+                width: 140,
+                height: 140,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.20),
+                  color: Colors.white.withOpacity(0.08),
                   shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.1),
+                    width: 2,
+                  ),
                 ),
               ),
             ),
-            // ── Bubble 2: Smaller, bottom-left ──
             Positioned(
-              bottom: -30,
-              left: -20,
+              top: -20,
+              right: width * 0.2,
               child: Container(
-                width: 90,
-                height: 90,
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.12),
+                  color: Colors.white.withOpacity(0.08),
                   shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.1),
+                    width: 2,
+                  ),
                 ),
               ),
             ),
 
-            // ── Centered content: white circle icon + text ──
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 12), // Figma gap: 12px
-                // Solid white circle with colored icon
-                Center(
-                  child: Container(
+            // Content
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // White circle with icon
+                  Container(
                     width: 76,
                     height: 76,
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(icon, color: iconColor, size: 36),
+                    child: icon is IconData
+                        ? Icon(icon, color: gradientColors[1], size: 36)
+                        : Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Iconify(
+                              icon,
+                              color: gradientColors[1],
+                              size: 36,
+                            ),
+                          ),
                   ),
-                ),
-                const SizedBox(height: 12), // Figma gap: 12px
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12), // Figma padding: 12px
-                  child: Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      height: 1.25,
+                  const SizedBox(height: 12),
+                  // Title
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        height: 1.1,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -190,4 +226,3 @@ class _AttendanceOptionsPageState extends State<AttendanceOptionsPage> {
     );
   }
 }
-

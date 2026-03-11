@@ -32,6 +32,13 @@ class _AddStaffPageState extends State<AddStaffPage> {
               decoration: BoxDecoration(
                 color: lavenderBg.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: SingleChildScrollView(
                 child: Column(
@@ -75,9 +82,9 @@ class _AddStaffPageState extends State<AddStaffPage> {
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF7C69FF).withOpacity(0.3),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+                              color: Colors.black.withOpacity(0.25),
+                              blurRadius: 4,
+                              offset: const Offset(0, 0),
                             ),
                           ],
                         ),
@@ -131,6 +138,13 @@ class _AddStaffPageState extends State<AddStaffPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.black12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: TextField(
         decoration: InputDecoration(
@@ -153,6 +167,13 @@ class _AddStaffPageState extends State<AddStaffPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.black12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(

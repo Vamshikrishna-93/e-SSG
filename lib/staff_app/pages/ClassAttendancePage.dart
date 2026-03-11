@@ -112,6 +112,14 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
                       border: isAllPresent
                           ? null
                           : Border.all(color: const Color(0xFF036423)),
+                      boxShadow: [
+                        if (!isAllPresent)
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 4,
+                            offset: const Offset(0, 0),
+                          ),
+                      ],
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -153,6 +161,14 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
                       border: isAllAbsent
                           ? null
                           : Border.all(color: const Color(0xFFEF4444)),
+                      boxShadow: [
+                        if (!isAllAbsent)
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 4,
+                            offset: const Offset(0, 0),
+                          ),
+                      ],
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -244,9 +260,9 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.01),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+                      color: Colors.black.withOpacity(0.25),
+                      blurRadius: 4,
+                      offset: const Offset(0, 0),
                     ),
                   ],
                 ),
@@ -345,9 +361,9 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
           border: Border.all(color: bgColor, width: 2),
           boxShadow: [
             BoxShadow(
-              color: textColor.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
             ),
           ],
         ),
@@ -598,9 +614,9 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
               border: Border.all(color: const Color(0xFFE5E7EB)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.02),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 4,
+                  offset: const Offset(0, 0),
                 ),
               ],
             ),

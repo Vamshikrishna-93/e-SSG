@@ -55,7 +55,7 @@ class _ProfilePageState extends State<ProfilePage> {
         return Scaffold(
           backgroundColor: Colors.white,
           body: const Center(
-            child: CircularProgressIndicator(color: Color(0xFF7E49FF)),
+            child: CircularProgressIndicator(color: Color(0xFF7C3FE3)),
           ),
           bottomNavigationBar: const StaffBottomNavBar(),
         );
@@ -77,34 +77,71 @@ class _ProfilePageState extends State<ProfilePage> {
         body: Column(
           children: [
             // ── Purple header ──
-            const StaffHeader(title: "Profile"),
+            const StaffHeader(title: "Profile", showBack: false),
 
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
                 child: Column(
                   children: [
-                    // ── Lavender info card (avatar inside) ──
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEEECFF),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        children: [
-                          // Avatar
-                          Container(
-                            padding: const EdgeInsets.all(3),
+                    // ── Lavender info card (avatar overlapping top) ──
+                    Stack(
+                      clipBehavior: Clip.none,
+                      alignment: Alignment.topCenter,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(
+                            top: 46,
+                          ), // Half of avatar height
+                          padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFFF4F0FE,
+                            ), // Light purple background
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.black.withOpacity(0.05),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.25),
+                                blurRadius: 4,
+                                offset: const Offset(0, 0),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                p.name,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black, // Dark black
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              _infoRow("Email : ", p.email),
+                              const SizedBox(height: 8),
+                              _infoRow("Phone Number : ", p.mobile),
+                              const SizedBox(height: 8),
+                              _infoRow("User ID : ", p.userLogin),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          top: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(2), // White border
                             decoration: BoxDecoration(
                               color: Colors.white,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.10),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
+                                  color: Colors.black.withOpacity(0.15),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
@@ -113,48 +150,24 @@ class _ProfilePageState extends State<ProfilePage> {
                               backgroundColor: Colors.grey.shade200,
                               child: ClipOval(
                                 child:
-                                    p.avatar.isNotEmpty &&
-                                        p.avatar != "avatar.png"
+                                    (p.avatar.isNotEmpty &&
+                                        p.avatar != "avatar.png")
                                     ? Image.network(
                                         "https://dev.srisaraswathigroups.in/uploads/${p.avatar}",
+                                        key: ValueKey(p.avatar),
                                         width: 92,
                                         height: 92,
                                         fit: BoxFit.cover,
                                         errorBuilder:
                                             (context, error, stackTrace) =>
-                                                const Icon(
-                                                  Icons.person,
-                                                  size: 52,
-                                                  color: Colors.grey,
-                                                ),
+                                                _buildPlaceholderImage(),
                                       )
-                                    : const Icon(
-                                        Icons.person,
-                                        size: 52,
-                                        color: Colors.grey,
-                                      ),
+                                    : _buildPlaceholderImage(),
                               ),
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          // Name
-                          Text(
-                            p.name,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          // Info rows
-                          _infoText("Email :", p.email),
-                          const SizedBox(height: 4),
-                          _infoText("Phone Number :", p.mobile),
-                          const SizedBox(height: 4),
-                          _infoText("User ID :", p.userLogin),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
 
                     const SizedBox(height: 16),
@@ -166,9 +179,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         borderRadius: BorderRadius.circular(18),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 4,
+                            offset: const Offset(0, 0),
                           ),
                         ],
                       ),
@@ -284,21 +297,41 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _infoText(String label, String value) {
+  Widget _buildPlaceholderImage() {
+    return Image.network(
+      "https://ui-avatars.com/api/?name=Profile&background=E5E7EB&color=9CA3AF&size=200",
+      width: 92,
+      height: 92,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) =>
+          const Icon(Icons.person, size: 52, color: Colors.grey),
+    );
+  }
+
+  Widget _infoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
-      child: RichText(
-        textAlign: TextAlign.center,
-        text: TextSpan(
-          style: const TextStyle(fontSize: 14, color: Color(0xFF4B5563)),
-          children: [
-            TextSpan(
-              text: "$label ",
-              style: const TextStyle(fontWeight: FontWeight.bold),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
             ),
-            TextSpan(text: value),
-          ],
-        ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF6B7280),
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -346,9 +379,9 @@ class ProfileTab extends StatelessWidget {
               title: "Personal Information",
               children: [
                 _infoCard("Name", p.name, Icons.person),
-                _infoCard("Father's Name", p.father, Icons.badge_outlined),
-                _infoCard("Gender", p.gender, Icons.wc_outlined),
-                _infoCard("D.O.T", p.dob, Icons.calendar_month_outlined),
+                _infoCard("Father's Name", p.father, Icons.person_2_outlined),
+                _infoCard("Gender", p.gender, Icons.transgender),
+                _infoCard("D.O.T", p.dob, Icons.calendar_today),
                 _infoCard(
                   "Nationality",
                   p.nationality,
@@ -428,6 +461,13 @@ class ProfileTab extends StatelessWidget {
           decoration: BoxDecoration(
             color: const Color(0xFFEBEEFF),
             borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 4,
+                offset: const Offset(0, 0),
+              ),
+            ],
           ),
           child: GridView.count(
             shrinkWrap: true,
@@ -435,7 +475,7 @@ class ProfileTab extends StatelessWidget {
             crossAxisCount: 2,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
-            childAspectRatio: 157.5 / 119.0, // Match Figma Fill ratio
+            childAspectRatio: 1.15,
             children: children,
           ),
         ),
@@ -446,10 +486,17 @@ class ProfileTab extends StatelessWidget {
   // ================= INFO CARD =================
   Widget _infoCard(String label, String value, IconData icon) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -457,7 +504,7 @@ class ProfileTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: const BoxDecoration(
-              color: Color(0xFF8B5CF6),
+              color: Color(0xFF7C3FE3),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: Colors.white, size: 26),
@@ -467,7 +514,7 @@ class ProfileTab extends StatelessWidget {
             label,
             style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             value,
             style: const TextStyle(
@@ -508,6 +555,14 @@ class PayScaleTab extends StatelessWidget {
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF16213e) : const Color(0xFFEBEEFF),
               borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                if (!isDark)
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+              ],
             ),
             child: GridView.count(
               shrinkWrap: true,
@@ -515,7 +570,7 @@ class PayScaleTab extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
-              childAspectRatio: 157.5 / 119.0,
+              childAspectRatio: 1.15,
               children: [
                 _infoCard(Icons.account_tree, "Branch", "N/A"),
                 _infoCard(Icons.account_balance_wallet, "Salary Head", "N/A"),
@@ -550,6 +605,14 @@ class PayScaleTab extends StatelessWidget {
         gradient: isDark ? ProfilePage.cardGradient : null,
         color: isDark ? null : Colors.white,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
+            ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -557,7 +620,7 @@ class PayScaleTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(7),
             decoration: const BoxDecoration(
-              color: Color(0xFF8B5CF6),
+              color: Color(0xFF7C3FE3),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: Colors.white, size: 22),
@@ -623,6 +686,14 @@ class ChangePasswordTab extends StatelessWidget {
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF16213e) : const Color(0xFFEBEEFF),
               borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                if (!isDark)
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -652,7 +723,7 @@ class ChangePasswordTab extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
+                      colors: [Color(0xFF7C3FE3), Color(0xFFB06EF3)],
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                     ),
@@ -700,35 +771,49 @@ class ChangePasswordTab extends StatelessWidget {
 
   // ================= TEXT FIELD =================
   Widget _field(String hint, bool isDark) {
-    return TextField(
-      obscureText: true,
-      style: TextStyle(
-        fontSize: 14,
-        color: isDark ? Colors.white : Colors.black,
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withOpacity(0.1) : Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
+            ),
+        ],
       ),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(
-          fontSize: 13,
-          color: isDark ? Colors.white54 : Colors.grey[600],
+      child: TextField(
+        obscureText: true,
+        style: TextStyle(
+          fontSize: 14,
+          color: isDark ? Colors.white : Colors.black,
         ),
-        filled: true,
-        fillColor: isDark ? Colors.white.withOpacity(0.1) : Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide.none,
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(
+            fontSize: 13,
+            color: isDark ? Colors.white54 : Colors.grey[600],
+          ),
+          filled: true,
+          fillColor: Colors.transparent,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide.none,
+          ),
         ),
       ),
     );
@@ -759,6 +844,14 @@ class LeavesTab extends StatelessWidget {
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF16213e) : const Color(0xFFEBEEFF),
               borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                if (!isDark)
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+              ],
             ),
             child: GridView.count(
               shrinkWrap: true,
@@ -766,7 +859,7 @@ class LeavesTab extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
-              childAspectRatio: 157.5 / 119.0,
+              childAspectRatio: 1.15,
               children: [
                 _infoCard(Icons.logout, "Leave Type", "N/A"),
                 _infoCard(Icons.calendar_month, "From Date", "N/A"),
@@ -802,6 +895,14 @@ class LeavesTab extends StatelessWidget {
         gradient: isDark ? ProfilePage.cardGradient : null,
         color: isDark ? null : Colors.white,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
+            ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -809,7 +910,7 @@ class LeavesTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(7),
             decoration: const BoxDecoration(
-              color: Color(0xFF8B5CF6),
+              color: Color(0xFF7C3FE3),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: Colors.white, size: 22),
@@ -841,7 +942,6 @@ class LeavesTab extends StatelessWidget {
   }
 }
 
-/////////////////////////////////////////////////////////////////
 /// TFA TAB – MATCHES PAY SCALE UI
 ////////////////////////////////////////////////////////////////
 class TfaTab extends StatefulWidget {
@@ -890,9 +990,9 @@ class _TfaTabState extends State<TfaTab> {
                 boxShadow: [
                   if (!widget.isDark)
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
+                      color: Colors.black.withOpacity(0.25),
+                      blurRadius: 4,
+                      offset: const Offset(0, 0),
                     ),
                 ],
               ),
@@ -1097,6 +1197,13 @@ class AttendanceTab extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFFF3F2FF),
               borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 4,
+                  offset: const Offset(0, 0),
+                ),
+              ],
             ),
             child: Column(
               children: [
@@ -1226,6 +1333,13 @@ class AttendanceTab extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: gradient,
           borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

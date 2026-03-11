@@ -466,7 +466,7 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                 _buildStatCard(
                   "Day Scholars",
                   "2,047",
-                  IconifyIcons.hugeIconsBus,
+                  IconifyIcons.hugeIconsBus03,
                   [const Color(0xFFF26FA3), const Color(0xFFCB365B)],
                 ),
                 _buildStatCard(
