@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:student_app/student_app/widgets/student_app_header.dart';
+import 'package:student_app/student_app/widgets/skeleton_loader.dart';
 
 class HostelAttendancePage extends StatefulWidget {
   const HostelAttendancePage({super.key});
@@ -58,12 +59,15 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
     super.initState();
     _loadStoredUserData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchAttendance();
+      _refreshFlow();
     });
-    // Refresh data every 3 minutes
-    _refreshTimer = Timer.periodic(const Duration(minutes: 3), (_) {
-      _fetchAttendance();
-    });
+  }
+
+  Future<void> _refreshFlow() async {
+    // 1. Load from cache instantly (no spinner for cached data)
+    await _fetchAttendance(forceRefresh: false, showLoading: true);
+    // 2. Silently refresh from server if cache is stale (services handle TTL)
+    await _fetchAttendance(forceRefresh: true, showLoading: false);
   }
 
   Future<void> _loadStoredUserData() async {
@@ -82,14 +86,17 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
     super.dispose();
   }
 
-  Future<void> _fetchAttendance({bool showLoading = true}) async {
-    if (showLoading && mounted) {
+  Future<void> _fetchAttendance({
+    bool forceRefresh = true,
+    bool showLoading = true,
+  }) async {
+    if (showLoading && _attendanceData == null && mounted) {
       setState(() => _isLoading = true);
     }
 
     try {
       final data = await HostelAttendanceService.getHostelAttendance(
-        forceRefresh: true,
+        forceRefresh: forceRefresh,
       );
 
       if (mounted) {
@@ -121,26 +128,19 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
           _applyPeriodFilter();
           _isLoading = false;
         });
-        
-        if (!showLoading) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Hostel attendance refreshed"),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 1),
-            ),
-          );
-        }
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load attendance: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        // Only show error snackbar on explicit user-triggered refresh
+        if (forceRefresh && !showLoading) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to load attendance: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -176,93 +176,98 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
         children: [
           const StudentAppHeader(title: "Hostel Attendance"),
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0,
-                        vertical: 20.0,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Hostel Attendance',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E1E1E),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'Track and analyze your hostel attendance',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF666666),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          _buildActionButtons(),
-                          const SizedBox(height: 20),
-                          _buildHostelInfoCard(),
-                          const SizedBox(height: 16),
-                          _buildStatCard(
-                            title: 'Overall Attendance',
-                            value: '${overallAttendance.toStringAsFixed(1)}%',
-                            pillText: 'Based on 365 recorded days',
-                            pillColor: const Color(0xFFE8F5E9),
-                            pillTextColor: const Color(0xFF43A047),
-                            valueColor: const Color(0xFF43A047),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildStatCard(
-                            title: 'Night in Hostel',
-                            value: '$nightsInHostel/365',
-                            pillText: '$nightsAbsent nights absent',
-                            pillColor: const Color(0xFFE3F2FD),
-                            pillTextColor: const Color(0xFF2196F3),
-                            valueColor: const Color(0xFF2196F3),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildStatCard(
-                            title: 'Current Stay Streak',
-                            value: '$currentStreak nights',
-                            pillText: 'Best streak: $bestStreak days',
-                            pillColor: const Color(0xFFF3E5F5),
-                            pillTextColor: const Color(0xFF9C27B0),
-                            valueColor: const Color(0xFF9C27B0),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildStatCard(
-                            title: 'Leaves Taken',
-                            value: '$leavesTaken nights',
-                            pillText: '$nightOuts night outs recorded',
-                            pillColor: const Color(0xFFFFF3E0),
-                            pillTextColor: const Color(0xFFF57C00),
-                            valueColor: const Color(0xFFF57C00),
-                          ),
-                          const SizedBox(height: 20),
-                          _buildAttendanceTrendCard(context),
-                          const SizedBox(height: 20),
-                          _buildMonthlyOverviewCard(),
-                          const SizedBox(height: 20),
-                          _buildPerformanceSummaryCard(),
-                          const SizedBox(height: 20),
-                          _buildRecentActivityCard(),
-                          const SizedBox(height: 30),
-                        ],
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 20.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Hostel Attendance',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E1E1E),
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Track and analyze your hostel attendance',
+                      style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildActionButtons(),
+                    const SizedBox(height: 20),
+                    if (_isLoading && _attendanceData == null) ...[
+                      SkeletonLoader.card(height: 200),
+                      const SizedBox(height: 16),
+                      SkeletonLoader.card(height: 120),
+                      const SizedBox(height: 16),
+                      SkeletonLoader.card(height: 120),
+                      const SizedBox(height: 16),
+                      SkeletonLoader.card(height: 120),
+                      const SizedBox(height: 16),
+                      SkeletonLoader.card(height: 300),
+                    ] else ...[
+                      _buildHostelInfoCard(),
+                      const SizedBox(height: 16),
+                      _buildStatCard(
+                        title: 'Overall Attendance',
+                        value: '${overallAttendance.toStringAsFixed(1)}%',
+                        pillText: 'Based on 365 recorded days',
+                        pillColor: const Color(0xFFE8F5E9),
+                        pillTextColor: const Color(0xFF43A047),
+                        valueColor: const Color(0xFF43A047),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildStatCard(
+                        title: 'Night in Hostel',
+                        value: '$nightsInHostel/365',
+                        pillText: '$nightsAbsent nights absent',
+                        pillColor: const Color(0xFFE3F2FD),
+                        pillTextColor: const Color(0xFF2196F3),
+                        valueColor: const Color(0xFF2196F3),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildStatCard(
+                        title: 'Current Stay Streak',
+                        value: '$currentStreak nights',
+                        pillText: 'Best streak: $bestStreak days',
+                        pillColor: const Color(0xFFF3E5F5),
+                        pillTextColor: const Color(0xFF9C27B0),
+                        valueColor: const Color(0xFF9C27B0),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildStatCard(
+                        title: 'Leaves Taken',
+                        value: '$leavesTaken nights',
+                        pillText: '$nightOuts night outs recorded',
+                        pillColor: const Color(0xFFFFF3E0),
+                        pillTextColor: const Color(0xFFF57C00),
+                        valueColor: const Color(0xFFF57C00),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildAttendanceTrendCard(context),
+                      const SizedBox(height: 20),
+                      _buildMonthlyOverviewCard(),
+                      const SizedBox(height: 20),
+                      _buildPerformanceSummaryCard(),
+                      const SizedBox(height: 20),
+                      _buildRecentActivityCard(),
+                      const SizedBox(height: 30),
+                    ],
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
-
-
 
   Widget _buildActionButtons() {
     return Padding(
@@ -278,6 +283,13 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
                   colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
                 ),
                 borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: ElevatedButton.icon(
                 onPressed: () => _fetchAttendance(showLoading: false),
@@ -310,6 +322,13 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
                   colors: [Color(0xFF4ADE80), Color(0xFFA3E635)],
                 ),
                 borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: ElevatedButton.icon(
                 onPressed: _downloadAndOpenReport,
@@ -434,8 +453,15 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFEEEEEE)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -529,8 +555,15 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFEEEEEE)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -670,8 +703,15 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFEEEEEE), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -833,6 +873,13 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: const Color(0xFFEEEEEE), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -892,9 +939,9 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),
@@ -1286,6 +1333,13 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFFEEEEEE), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1381,6 +1435,13 @@ class _HostelAttendancePageState extends State<HostelAttendancePage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: const Color(0xFFEEEEEE), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

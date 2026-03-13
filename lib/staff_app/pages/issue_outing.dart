@@ -3,6 +3,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../api/api_service.dart';
+import '../controllers/outing_pending_controller.dart';
+import '../controllers/outing_controller.dart';
 import 'outing_pending_listPage.dart';
 import '../widgets/staff_header.dart';
 
@@ -32,15 +34,117 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
   List<dynamic> _searchResults = [];
   bool _isSearching = false;
   Map<String, dynamic>? _selectedStudentData;
+  bool _isLoading = false;
+  bool _isUploadingPhoto = false;
+  String? _uploadedLetterUrl;
+  late final OutingController outingCtrl;
 
   @override
   void initState() {
     super.initState();
+    if (!Get.isRegistered<OutingController>()) {
+      Get.put(OutingController(), permanent: true);
+    }
+    outingCtrl = Get.find<OutingController>();
+
     if (widget.studentName.isNotEmpty) {
       selectedStudent = widget.studentName;
     }
     if (widget.outingType.isNotEmpty) {
       passType = widget.outingType;
+    }
+  }
+
+  Future<void> _submitOuting() async {
+    if (_selectedStudentData == null) {
+      Get.snackbar(
+        "Required",
+        "Please select a student first",
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+      return;
+    }
+    if (selectedPurpose == "Select Purpose") {
+      Get.snackbar(
+        "Required",
+        "Please select a purpose",
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+      return;
+    }
+    if (_letterPhoto == null) {
+      Get.snackbar(
+        "Required",
+        "Please take a photo of the letter",
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      // 1. Upload letter photo if not already uploaded
+      String? letterUrl = _uploadedLetterUrl;
+      if (letterUrl == null) {
+        letterUrl = await ApiService.uploadOutingLetter(
+          _letterPhoto!,
+          admNo: _selectedStudentData?['admno'],
+        );
+      }
+
+      // 2. Format date (backend usually expects YYYY-MM-DD)
+      String formattedDateForApi =
+          "${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}";
+
+      // 3. Extract SID
+      int sid =
+          int.tryParse(_selectedStudentData?['id']?.toString() ?? '0') ?? 0;
+      if (sid == 0) {
+        sid =
+            int.tryParse(_selectedStudentData?['sid']?.toString() ?? '0') ?? 0;
+      }
+
+      // 4. Store Outing
+      await ApiService.storeOuting(
+        sid: sid,
+        admNo: _selectedStudentData?['admno'] ?? '',
+        studentName:
+            _selectedStudentData?['name'] ??
+            _selectedStudentData?['sfname'] ??
+            '',
+        outDate: formattedDateForApi,
+        outTime: formattedTime, // Format: 01:30 PM
+        outingType: passType,
+        purpose: selectedPurpose,
+        letterPhoto: letterUrl ?? "", // Pass URL or placeholder
+      );
+
+      // 5. Refresh Pending List (if controller exists)
+      if (Get.isRegistered<OutingPendingController>()) {
+        Get.find<OutingPendingController>().fetchOutings();
+      }
+
+      Get.snackbar(
+        "Success",
+        "Outing Issued Successfully",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+
+      // Navigate to pending list after success
+      Get.off(() => const OutingPendingListPage());
+    } catch (e) {
+      Get.snackbar(
+        "Error",
+        e.toString(),
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -55,7 +159,7 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
 
     setState(() => _isSearching = true);
     try {
-      final results = await ApiService.searchStudentByAdmNo(query);
+      final results = await ApiService.searchStudents(query);
       setState(() {
         _searchResults = results;
         _isSearching = false;
@@ -75,7 +179,117 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
       _searchController.text = student['admno'] ?? '';
       _searchResults = [];
     });
-    _showOutingListPopup(student);
+
+    final String sid = (student['sid'] ?? student['id'] ?? '0').toString();
+    final String admno = (student['admno'] ?? '').toString();
+
+    // Trigger history fetch via controller
+    outingCtrl.fetchStudentOutings(admno, sid: sid);
+
+    // Check for red flag
+    final flagVal = student['isflagged'];
+    final bool isFlagged =
+        flagVal != null && flagVal != 'null' && flagVal != false;
+
+    if (isFlagged) {
+      _showFlaggedWarning(student['isflagged'].toString(), () {
+        _showOutingListPopup(student);
+      });
+    } else {
+      _showOutingListPopup(student);
+    }
+  }
+
+  void _showFlaggedWarning(String remarks, VoidCallback onConfirm) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Warning Icon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFFACEA8), width: 3),
+                ),
+                child: const Center(
+                  child: Text(
+                    "!",
+                    style: TextStyle(
+                      fontSize: 50,
+                      fontWeight: FontWeight.w300,
+                      color: Color(0xFFF8BB86),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                "Warning",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF595959),
+                ),
+              ),
+              const SizedBox(height: 15),
+              const Text(
+                "Caution: This student has a red flag. Kindly verify before issuing an outing.",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Color(0xFF545454),
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 25),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                  onConfirm();
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 30,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF27474),
+                    borderRadius: BorderRadius.circular(5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF000000).withOpacity(0.1),
+                        blurRadius: 2,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Text(
+                    "OK",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -84,7 +298,41 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
     if (pickedFile != null) {
       setState(() {
         _letterPhoto = File(pickedFile.path);
+        _uploadedLetterUrl = null; // Reset before new upload
       });
+      await _uploadSelectedPhoto();
+    }
+  }
+
+  Future<void> _uploadSelectedPhoto() async {
+    if (_letterPhoto == null) return;
+
+    setState(() => _isUploadingPhoto = true);
+    try {
+      String? letterUrl = await ApiService.uploadOutingLetter(
+        _letterPhoto!,
+        admNo: _selectedStudentData?['admno'],
+      );
+
+      setState(() {
+        _uploadedLetterUrl = letterUrl;
+      });
+
+      Get.snackbar(
+        "Upload Successful",
+        "Letter photo uploaded successfully",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar(
+        "Upload Failed",
+        "Failed to upload photo: $e",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() => _isUploadingPhoto = false);
     }
   }
 
@@ -183,153 +431,189 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
   }
 
   Widget _buildOutingListPopup(Map<String, dynamic> student) {
-    String admNo = student['admno'] ?? '';
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: ApiService.searchOutingsByName(admNo),
-      builder: (context, snapshot) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.85,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(30),
-              topRight: Radius.circular(30),
-            ),
+    return Obx(() {
+      final isLoading = outingCtrl.isLoading.value;
+      final outings = outingCtrl.selectedStudentOutings;
+
+      return Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
           ),
-          child: Column(
-            children: [
-              // Popup Header
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 20,
-                  horizontal: 20,
+        ),
+        child: Column(
+          children: [
+            // Popup Header
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+              decoration: const BoxDecoration(
+                color: Color(0xFF8B5CF6),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
                 ),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF8B5CF6),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                          size: 20,
-                        ),
+              ),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
                       ),
-                    ),
-                    const SizedBox(width: 15),
-                    const Text(
-                      "Student Outing List",
-                      style: TextStyle(
+                      child: const Icon(
+                        Icons.arrow_back,
                         color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        size: 20,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 15),
+                  const Text(
+                    "Student Outing List",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
-              // Popup Content
-              Expanded(
-                child: Container(
-                  color: const Color(0xFFF3F0FF),
-                  padding: const EdgeInsets.all(16),
-                  child: snapshot.connectionState == ConnectionState.waiting
-                      ? const Center(child: CircularProgressIndicator())
-                      : snapshot.hasError ||
-                            !snapshot.hasData ||
-                            snapshot.data!.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.history,
-                                color: Colors.grey.shade400,
-                                size: 50,
-                              ),
-                              const SizedBox(height: 10),
-                              const Text(
-                                "No past outings found",
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: snapshot.data!.length,
-                          itemBuilder: (context, index) {
-                            final outing = snapshot.data![index];
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(15),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.25),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 0),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.person_outline,
-                                    color: Colors.black87,
-                                    size: 24,
-                                  ),
-                                  const SizedBox(width: 15),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          outing['student_name'] ??
-                                              outing['name'] ??
-                                              'N/A',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          "Approved By : ${outing['approved_by_name'] ?? 'Pending'}",
-                                          style: const TextStyle(
-                                            color: Colors.grey,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+            ),
+            // Popup Content
+            Expanded(
+              child: Container(
+                color: const Color(0xFFF3F0FF),
+                padding: const EdgeInsets.all(16),
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : outings.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.history,
+                              color: Colors.grey.shade400,
+                              size: 50,
+                            ),
+                            const SizedBox(height: 10),
+                            const Text(
+                              "No past outings found",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
                         ),
-                ),
+                      )
+                    : ListView.builder(
+                        itemCount: outings.length,
+                        itemBuilder: (context, index) {
+                          final outing = outings[index];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(15),
+                              border: Border.all(color: Colors.grey.shade100),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      outing.outDate,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF8B5CF6),
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(
+                                          0xFF8B5CF6,
+                                        ).withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Text(
+                                        outing.outingTime,
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFF8B5CF6),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.info_outline,
+                                      size: 14,
+                                      color: Colors.grey,
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Expanded(
+                                      child: Text(
+                                        "Purpose: ${outing.purpose}",
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 5),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.person_outline,
+                                      size: 14,
+                                      color: Colors.grey,
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      "By: ${outing.permission.isEmpty ? 'Pending' : outing.permission}",
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
               ),
-            ],
-          ),
-        );
-      },
-    );
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -448,7 +732,13 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
                       (v) {
                         setState(() => selectedPurpose = v!);
                       },
-                      ["Select Purpose", "Hospital", "Home Visit", "Exam"],
+                      [
+                        "Select Purpose",
+                        "Personal",
+                        "Health Problem",
+                        "Functions",
+                        "Temple Visit",
+                      ],
                     ),
                     const SizedBox(height: 20),
 
@@ -487,7 +777,7 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
             onChanged: _handleSearch,
             decoration: const InputDecoration(
               border: InputBorder.none,
-              hintText: "Enter Admission Number",
+              hintText: "Search by Adm No",
               hintStyle: TextStyle(color: Colors.black, fontSize: 13),
             ),
           ),
@@ -739,7 +1029,7 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
 
   Widget _buildPhotoUpload() {
     return GestureDetector(
-      onTap: _showPhotoPickerPopup,
+      onTap: _isUploadingPhoto ? null : _showPhotoPickerPopup,
       child: CustomPaint(
         painter: DashedBorderPainter(color: const Color(0xFF8147E7)),
         child: Container(
@@ -749,10 +1039,37 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: _letterPhoto != null
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.file(_letterPhoto!, fit: BoxFit.cover),
+          child: _isUploadingPhoto
+              ? const Center(
+                  child: CircularProgressIndicator(color: Color(0xFF8147E7)),
+                )
+              : _letterPhoto != null
+              ? Stack(
+                  children: [
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(_letterPhoto!, fit: BoxFit.cover),
+                      ),
+                    ),
+                    if (_uploadedLetterUrl != null)
+                      Positioned(
+                        top: 5,
+                        right: 5,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                  ],
                 )
               : const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -775,32 +1092,15 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
 
   Widget _buildGradientButton() {
     return GestureDetector(
-      onTap: () {
-        if (_selectedStudentData == null) {
-          Get.snackbar(
-            "Required",
-            "Please select a student first",
-            backgroundColor: Colors.orange,
-            colorText: Colors.white,
-          );
-          return;
-        }
-
-        Get.to(() => const OutingPendingListPage());
-
-        Get.snackbar(
-          "Success",
-          "Outing Issued Successfully",
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-      },
+      onTap: _isLoading ? null : _submitOuting,
       child: Container(
         width: double.infinity,
         height: 55,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
+          gradient: LinearGradient(
+            colors: _isLoading
+                ? [Colors.grey.shade400, Colors.grey.shade500]
+                : const [Color(0xFF7D74FC), Color(0xFFD08EF7)],
           ),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
@@ -811,22 +1111,31 @@ class _IssueOutingPageState extends State<IssueOutingPage> {
             ),
           ],
         ),
-        child: const Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "Grant Outing",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+        child: Center(
+          child: _isLoading
+              ? const SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 3,
+                  ),
+                )
+              : const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Grant Outing",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Icon(Icons.arrow_forward, color: Colors.white),
+                  ],
                 ),
-              ),
-              SizedBox(width: 10),
-              Icon(Icons.arrow_forward, color: Colors.white),
-            ],
-          ),
         ),
       ),
     );

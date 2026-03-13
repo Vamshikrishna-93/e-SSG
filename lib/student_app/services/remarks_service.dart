@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:student_app/student_app/config/api_config.dart';
+import 'package:student_app/student_app/services/cache_manager.dart';
 
 class RemarksService {
   static const String _endpoint = '/remarks';
@@ -21,7 +22,8 @@ class RemarksService {
 
       if (!forceRefresh) {
         final String? cachedData = prefs.getString(cacheKey);
-        if (cachedData != null) {
+        final bool fresh = await CacheManager.isFresh(cacheKey);
+        if (cachedData != null && fresh) {
           final decoded = jsonDecode(cachedData);
           if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
             return decoded['data'] as List<dynamic>;
@@ -45,6 +47,7 @@ class RemarksService {
 
         // Cache the response
         await prefs.setString(cacheKey, response.body);
+        await CacheManager.touch(cacheKey);
 
         if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
           return decoded['data'] as List<dynamic>;

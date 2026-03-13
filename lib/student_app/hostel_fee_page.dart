@@ -4,8 +4,8 @@ import 'package:student_app/student_app/receipt_page.dart';
 import 'package:student_app/student_app/services/fee_services_page.dart';
 import 'package:student_app/student_app/studentdrawer.dart';
 import 'package:student_app/student_app/widgets/student_app_header.dart';
-import 'dart:async';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:student_app/student_app/widgets/skeleton_loader.dart';
 
 enum SummaryType { danger, success, warning, info }
 
@@ -58,14 +58,22 @@ class _HostelFeesPageState extends State<HostelFeesPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _fetchData(showLoading: true, forceRefresh: false);
+    _refreshFlow();
+  }
+
+  Future<void> _refreshFlow() async {
+    // 1. Load from cache (instantly)
+    await _fetchData(showLoading: true, forceRefresh: false);
+    // 2. Refresh from server (background)
+    await _fetchData(showLoading: false, forceRefresh: true);
   }
 
   Future<void> _fetchData({
     bool showLoading = true,
     bool forceRefresh = true,
   }) async {
-    if (showLoading && mounted) {
+    // Only show full loading if we have nothing yet
+    if (showLoading && _feeData == null && mounted) {
       setState(() {
         _isLoading = true;
         _errorMessage = null;
@@ -157,9 +165,7 @@ class _HostelFeesPageState extends State<HostelFeesPage>
         children: [
           const StudentAppHeader(title: "Hostel Fees"),
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _errorMessage != null
+            child: _errorMessage != null && _feeData == null
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -186,47 +192,61 @@ class _HostelFeesPageState extends State<HostelFeesPage>
                           children: [
                             _header(),
                             const SizedBox(height: 16),
-                            _summaryCard(
-                              type: SummaryType.danger,
-                              title: "Total Due Amount",
-                              value: "₹${_totalDue.toStringAsFixed(0)}",
-                              badgeText: "Immediate attention required",
-                            ),
-                            const SizedBox(height: 16),
-                            _summaryCard(
-                              type: SummaryType.success,
-                              title: "Total Paid Amount",
-                              value: "₹${_totalPaid.toStringAsFixed(0)}",
-                              badgeText:
-                                  "${(_totalFee > 0 ? (_totalPaid / _totalFee * 100) : 0).toStringAsFixed(1)}% of total fee paid",
-                            ),
-                            const SizedBox(height: 16),
-                            _summaryCard(
-                              type: SummaryType.warning,
-                              title: "Next Due Date",
-                              value:
-                                  _data['next_due_date']?.toString() ??
-                                  "Immediate Payment Required",
-                              badgeText: _totalDue > 0
-                                  ? "Payment pending"
-                                  : "No dues",
-                            ),
-                            const SizedBox(height: 16),
-                            _summaryCard(
-                              type: SummaryType.info,
-                              title: "Payment Status",
-                              value: _totalDue > 0 ? "Pending" : "Completed",
-                              badgeText:
-                                  "Total Fee: ₹${_totalFee.toStringAsFixed(0)}",
-                            ),
+                            if (_isLoading && _feeData == null) ...[
+                              SkeletonLoader.card(height: 100),
+                              const SizedBox(height: 16),
+                              SkeletonLoader.card(height: 100),
+                              const SizedBox(height: 16),
+                              SkeletonLoader.card(height: 100),
+                              const SizedBox(height: 16),
+                              SkeletonLoader.card(height: 100),
+                            ] else ...[
+                              _summaryCard(
+                                type: SummaryType.danger,
+                                title: "Total Due Amount",
+                                value: "₹${_totalDue.toStringAsFixed(0)}",
+                                badgeText: "Immediate attention required",
+                              ),
+                              const SizedBox(height: 16),
+                              _summaryCard(
+                                type: SummaryType.success,
+                                title: "Total Paid Amount",
+                                value: "₹${_totalPaid.toStringAsFixed(0)}",
+                                badgeText:
+                                    "${(_totalFee > 0 ? (_totalPaid / _totalFee * 100) : 0).toStringAsFixed(1)}% of total fee paid",
+                              ),
+                              const SizedBox(height: 16),
+                              _summaryCard(
+                                type: SummaryType.warning,
+                                title: "Next Due Date",
+                                value:
+                                    _data['next_due_date']?.toString() ??
+                                    "Immediate Payment Required",
+                                badgeText: _totalDue > 0
+                                    ? "Payment pending"
+                                    : "No dues",
+                              ),
+                              const SizedBox(height: 16),
+                              _summaryCard(
+                                type: SummaryType.info,
+                                title: "Payment Status",
+                                value: _totalDue > 0 ? "Pending" : "Completed",
+                                badgeText:
+                                    "Total Fee: ₹${_totalFee.toStringAsFixed(0)}",
+                              ),
+                            ],
                             const SizedBox(height: 28),
                             _tabsSection(),
                             const SizedBox(height: 28),
-                            _quickPayCard(),
-                            const SizedBox(height: 24),
-                            _feeSummaryCard(),
-                            const SizedBox(height: 28),
-                            _branchSummaryCard(),
+                            if (_isLoading && _feeData == null) ...[
+                               SkeletonLoader.section(itemCount: 4),
+                            ] else ...[
+                               _quickPayCard(),
+                               const SizedBox(height: 24),
+                               _feeSummaryCard(),
+                               const SizedBox(height: 28),
+                               _branchSummaryCard(),
+                            ],
                           ],
                         ),
                       ),
@@ -296,6 +316,13 @@ class _HostelFeesPageState extends State<HostelFeesPage>
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(6),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: ElevatedButton.icon(
         onPressed: onTap,
@@ -354,6 +381,13 @@ class _HostelFeesPageState extends State<HostelFeesPage>
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1293,6 +1327,13 @@ class _HostelFeesPageState extends State<HostelFeesPage>
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1385,6 +1426,13 @@ class _HostelFeesPageState extends State<HostelFeesPage>
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1481,6 +1529,13 @@ class _HostelFeesPageState extends State<HostelFeesPage>
         color: Colors.white,
         borderRadius: BorderRadius.circular(12), // matching image style
         border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1584,6 +1639,14 @@ class _HostelFeesPageState extends State<HostelFeesPage>
         decoration: BoxDecoration(
           border: Border.all(color: Colors.grey.shade300),
           borderRadius: BorderRadius.circular(6),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
+            ),
+          ],
+          color: Colors.white,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

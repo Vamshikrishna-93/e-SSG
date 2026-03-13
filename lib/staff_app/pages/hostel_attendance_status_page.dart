@@ -84,6 +84,8 @@ class _AttendanceStatusCard extends StatelessWidget {
     final homePass = int.tryParse(row['home_pass']?.toString() ?? '0') ?? 0;
     final selfOuting = int.tryParse(row['self_outing']?.toString() ?? '0') ?? 0;
     final selfHome = int.tryParse(row['self_home']?.toString() ?? '0') ?? 0;
+    final missing = int.tryParse(row['missing']?.toString() ?? '0') ?? 0;
+    final notMarked = int.tryParse(row['not_marked']?.toString() ?? '0') ?? 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -223,6 +225,24 @@ class _AttendanceStatusCard extends StatelessWidget {
                 value: "$selfHome",
                 color: const Color(0xFF26C6DA), // Cyan
               ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _MetricBox(
+                label: "Missing",
+                value: "$missing",
+                color: const Color(0xFFEF5350), // Reddish
+              ),
+              const SizedBox(width: 10),
+              _MetricBox(
+                label: "Not Marked",
+                value: "$notMarked",
+                color: const Color(0xFF78909C), // Greyish Blue
+              ),
+              const SizedBox(width: 10),
+              const Expanded(child: SizedBox()), // Placeholder for alignment
             ],
           ),
         ],

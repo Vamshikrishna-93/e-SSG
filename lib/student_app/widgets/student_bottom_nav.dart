@@ -36,13 +36,20 @@ class StudentBottomNav extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-          decoration: const BoxDecoration(
-            color: Color(0xFF7C3AED),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(35),
-              topRight: Radius.circular(35),
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xFF7C3AED),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
+              ),
+            ],
           ),
           child: SafeArea(
             child: Row(

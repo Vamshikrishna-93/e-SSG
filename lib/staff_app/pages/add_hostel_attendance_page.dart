@@ -2,26 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../widgets/skeleton.dart';
 import '../controllers/hostel_controller.dart';
-import '../controllers/branch_controller.dart';
 import '../widgets/staff_header.dart';
 
 class AddHostelAttendancePage extends StatefulWidget {
-  final String? branch;
-  final String? hostel;
-  final String? floor;
-  final String? room;
-  final String? month;
-  final String? date;
-
-  const AddHostelAttendancePage({
-    super.key,
-    this.branch,
-    this.hostel,
-    this.floor,
-    this.room,
-    this.month,
-    this.date,
-  });
+  const AddHostelAttendancePage({super.key});
 
   @override
   State<AddHostelAttendancePage> createState() =>
@@ -30,9 +14,19 @@ class AddHostelAttendancePage extends StatefulWidget {
 
 class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
   final HostelController hostelCtrl = Get.find<HostelController>();
-  final BranchController branchCtrl = Get.put(BranchController());
   final Map<int, String> attendanceStatus = {};
   String selectedDate = DateTime.now().toIso8601String().split('T')[0];
+
+  // Route arguments
+  String? _branchId;
+  String? _branchName;
+  String? _hostelId;
+  String? _hostelName;
+  String? _floorId;
+  String? _floorName;
+  String? _roomId;
+  String? _roomName;
+  String? _month;
 
   final List<String> statusOptions = [
     'Present',
@@ -46,13 +40,33 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
   @override
   void initState() {
     super.initState();
-    if (widget.date != null) {
-      selectedDate = widget.date!;
+    // Read arguments passed from HostelAttendanceFilterPage
+    final args = Get.arguments as Map<String, dynamic>?;
+    if (args != null) {
+      _branchId   = args['branchId']   as String?;
+      _branchName = args['branchName'] as String?;
+      _hostelId   = args['hostelId']   as String?;
+      _hostelName = args['hostelName'] as String?;
+      _floorId    = args['floorId']    as String?;
+      _floorName  = args['floorName']  as String?;
+      _roomId     = args['roomId']     as String?;
+      _roomName   = args['roomName']   as String?;
+      _month      = args['month']      as String?;
+      selectedDate = args['date'] as String? ?? selectedDate;
+    }
+    // Auto-load students if we have a room ID
+    if (_roomId != null && _roomId!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _getStudents());
     }
   }
 
   Future<void> _getStudents() async {
-    final roomId = hostelCtrl.getRoomIdFromName(widget.room ?? '101');
+    // Use the roomId from route arguments directly (already the numeric ID)
+    final roomId = _roomId ?? '';
+    if (roomId.isEmpty) {
+      Get.snackbar('Info', 'Room not selected');
+      return;
+    }
     await hostelCtrl.loadRoomStudents(
       shift: '1',
       date: selectedDate,
@@ -103,28 +117,21 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
       statuses.add(statusCode);
     }
 
-    if (branchCtrl.branches.isEmpty) await branchCtrl.loadBranches();
+    // Use IDs from route arguments directly
+    final String branchId = _branchId ?? hostelCtrl.activeBranch.value;
+    final String hostelId = _hostelId ?? hostelCtrl.activeHostel.value;
+    final String floorId  = _floorId  ?? hostelCtrl.activeFloor.value;
+    final String roomId   = _roomId   ?? '';
 
-    final branchName = widget.branch ?? hostelCtrl.activeBranch.value;
-    final branchObj = branchCtrl.branches.firstWhereOrNull(
-      (b) => b.branchName == branchName || b.id.toString() == branchName,
-    );
-    final String branchId = branchObj?.id.toString() ?? branchName;
-
-    if (hostelCtrl.hostels.isEmpty && branchObj != null) {
-      await hostelCtrl.loadHostelsByBranch(branchObj.id);
+    if (roomId.isEmpty) {
+      Get.snackbar('Info', 'Room not available');
+      return;
     }
 
-    final hostelName = widget.hostel ?? hostelCtrl.activeHostel.value;
-    final hostelObj = hostelCtrl.hostels.firstWhereOrNull(
-      (h) => h.buildingName == hostelName || h.id.toString() == hostelName,
-    );
-    final String hostelId = hostelObj?.id.toString() ?? hostelName;
-
-    final floorId = hostelCtrl.getFloorIdFromName(
-      widget.floor ?? hostelCtrl.activeFloor.value,
-    );
-    final roomId = hostelCtrl.getRoomIdFromName(widget.room ?? '101');
+    // Calculate stats before submission
+    final int total   = sids.length;
+    final int present = statuses.where((s) => s == 'P').length;
+    final int absent  = statuses.where((s) => s == 'A').length;
 
     final success = await hostelCtrl.submitAttendance(
       branchId: branchId,
@@ -137,22 +144,158 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
     );
 
     if (success) {
-      Get.snackbar(
-        'Success',
-        'Attendance submitted successfully',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-      await hostelCtrl.loadRoomAttendanceSummary(
-        branch: branchId,
-        date: selectedDate,
-        hostel: hostelId,
-        floor: floorId,
-        room: roomId,
-      );
-      Get.back();
+      _showSuccessDialog(total: total, present: present, absent: absent);
     }
   }
+
+  void _showSuccessDialog({
+    required int total,
+    required int present,
+    required int absent,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ── Close button ──
+              Align(
+                alignment: Alignment.topRight,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    Get.back();
+                  },
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.close, size: 16, color: Colors.black54),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // ── Green check icon ──
+              Container(
+                width: 72,
+                height: 72,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF1B8C3A),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check, color: Colors.white, size: 40),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Success',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Attendance has been submitted\nsuccessfully!',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+              const SizedBox(height: 20),
+              // ── Stats row ──
+              Row(
+                children: [
+                  _statBox(label: 'Total',   value: total,   bgColor: const Color(0xFFF3EFFF), textColor: const Color(0xFF7D74FC)),
+                  const SizedBox(width: 8),
+                  _statBox(label: 'Present', value: present, bgColor: const Color(0xFFE8F5E9), textColor: const Color(0xFF1B8C3A)),
+                  const SizedBox(width: 8),
+                  _statBox(label: 'Absent',  value: absent,  bgColor: const Color(0xFFFFF0F0), textColor: const Color(0xFFE53935)),
+                ],
+              ),
+              const SizedBox(height: 20),
+              // ── OK button ──
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF7D74FC), Color(0xFFD08EF7)],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      Get.back();
+                    },
+                    child: const Text(
+                      'OK',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _statBox({
+    required String label,
+    required int value,
+    required Color bgColor,
+    required Color textColor,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Text(
+              '$value',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 12, color: Colors.black54),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -237,40 +380,17 @@ class _AddHostelAttendancePageState extends State<AddHostelAttendancePage> {
       ),
       child: Column(
         children: [
-          _summaryRow(
-            "Branch",
-            widget.branch ??
-                (hostelCtrl.activeBranch.value.isEmpty
-                    ? 'SSJC-VIDHYA BHAVAN'
-                    : hostelCtrl.activeBranch.value),
-          ),
+          _summaryRow("Branch", _branchName ?? hostelCtrl.activeBranch.value),
           const SizedBox(height: 8),
-          _summaryRow(
-            "Hostel",
-            widget.hostel ??
-                (hostelCtrl.activeHostel.value.isEmpty
-                    ? 'VIDHYA BHAVAN'
-                    : hostelCtrl.activeHostel.value),
-          ),
+          _summaryRow("Hostel", _hostelName ?? hostelCtrl.activeHostel.value),
           const SizedBox(height: 8),
-          _summaryRow(
-            "Floor",
-            widget.floor ??
-                (hostelCtrl.activeFloor.value.isEmpty
-                    ? '1-FLOOR'
-                    : hostelCtrl.activeFloor.value),
-          ),
+          _summaryRow("Floor",  _floorName  ?? hostelCtrl.activeFloor.value),
           const SizedBox(height: 8),
-          _summaryRow("Room", widget.room ?? '101'),
+          _summaryRow("Room",   _roomName   ?? ''),
           const SizedBox(height: 8),
-          _summaryRow(
-            "Date",
-            selectedDate.isEmpty
-                ? (hostelCtrl.activeDate.value.isEmpty
-                      ? '2026-02-28'
-                      : hostelCtrl.activeDate.value)
-                : selectedDate,
-          ),
+          _summaryRow("Month",  _month      ?? ''),
+          const SizedBox(height: 8),
+          _summaryRow("Date",   selectedDate),
         ],
       ),
     );

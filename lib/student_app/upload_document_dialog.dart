@@ -88,6 +88,13 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
                   color: Colors.grey.withOpacity(0.2),
                   width: 1.5,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: Column(
                 children: [
@@ -140,6 +147,13 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
@@ -177,6 +191,13 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
                       decoration: BoxDecoration(
                         color: const Color(0xFFD497FF),
                         borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 4,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
                       ),
                       child: const Center(
                         child: Text(
@@ -201,6 +222,13 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 4,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
                       ),
                       child: const Center(
                         child: Text(
@@ -227,7 +255,7 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(child: StudentLoadingAnimation()),
+      builder: (_) => Center(child: StudentLoadingAnimation()),
     );
 
     Future.delayed(const Duration(seconds: 2), () {

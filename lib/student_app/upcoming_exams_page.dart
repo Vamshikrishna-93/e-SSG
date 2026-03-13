@@ -147,6 +147,13 @@ class _UpcomingExamsState extends State<UpcomingExams> {
                                 ? const Color(0xFF7E3FF2)
                                 : const Color(0xFFF3F1FF),
                             borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
                           child: Text(
                             "Previous",
@@ -209,6 +216,13 @@ class _UpcomingExamsState extends State<UpcomingExams> {
                                 ? const Color(0xFF7E3FF2)
                                 : const Color(0xFFF3F1FF),
                             borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
                           child: Text(
                             "Next",
@@ -248,6 +262,13 @@ class ExamCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: Colors.black.withOpacity(0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -102,6 +102,13 @@ class _HostelPaymentPageState extends State<HostelPaymentPage> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.grey.shade300),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.25),
+                          blurRadius: 4,
+                          offset: const Offset(0, 0),
+                        ),
+                      ],
                     ),
                     child: Row(
                       children: [
@@ -189,6 +196,13 @@ class _HostelPaymentPageState extends State<HostelPaymentPage> {
                           end: Alignment.centerRight,
                         ),
                         borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 4,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
                       ),
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -343,6 +357,13 @@ class _HostelPaymentPageState extends State<HostelPaymentPage> {
             ), // Match image where all have blue borders
             width: 1,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
+            ),
+          ],
         ),
         child: Row(
           children: [

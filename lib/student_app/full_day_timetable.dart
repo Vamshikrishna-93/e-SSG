@@ -128,9 +128,9 @@ class FullDayTimetablePage extends StatelessWidget {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -5),
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 4,
+                  offset: const Offset(0, 0),
                 ),
               ],
               borderRadius: const BorderRadius.vertical(
@@ -185,6 +185,13 @@ class FullDayTimetablePage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: Colors.black12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(15),

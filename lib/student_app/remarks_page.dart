@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:student_app/student_app/services/remarks_service.dart';
-import 'package:student_app/student_app/widgets/loading_animation.dart';
 import 'package:student_app/student_app/widgets/student_app_header.dart';
+import 'package:student_app/student_app/widgets/skeleton_loader.dart';
 
 class RemarksPage extends StatefulWidget {
   const RemarksPage({super.key});
@@ -26,7 +26,14 @@ class _RemarksPageState extends State<RemarksPage> {
   @override
   void initState() {
     super.initState();
-    _fetchData();
+    _refreshFlow();
+  }
+
+  Future<void> _refreshFlow() async {
+    // 1. Load from cache instantly
+    await _fetchData(forceRefresh: false);
+    // 2. Refresh from server in background
+    await _fetchData(forceRefresh: true);
   }
 
   Future<void> _fetchData({bool forceRefresh = true}) async {
@@ -119,73 +126,84 @@ class _RemarksPageState extends State<RemarksPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: _isLoading
-          ? const Center(child: StudentLoadingAnimation())
-          : Column(
-              children: [
-                const StudentAppHeader(title: "Remarks"),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Remarks",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          "View remarks from hostel staff",
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.black54,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildRefreshButton(),
-                        const SizedBox(height: 20),
-                        _buildStatCard(
-                          "Total Remarks",
-                          "$_totalCount",
-                          const Color(0xFF2563EB),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildStatCard(
-                          "Positive",
-                          "$_positiveCount",
-                          const Color(0xFF16A34A),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildStatCard(
-                          "Warnings",
-                          "$_warningCount",
-                          const Color(0xFFF59E0B),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildStatCard(
-                          "Critical",
-                          "$_criticalCount",
-                          const Color(0xFFEF4444),
-                        ),
-                        const SizedBox(height: 32),
-                        _buildTabs(),
-                        const SizedBox(height: 2),
-                        const Divider(height: 1, color: Color(0xFFE5E7EB)),
-                        const SizedBox(height: 16),
-                        _buildRemarksList(),
-                        const SizedBox(height: 40),
-                      ],
+      body: Column(
+        children: [
+          const StudentAppHeader(title: "Remarks"),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Remarks",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  const Text(
+                    "View remarks from hostel staff",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildRefreshButton(),
+                  const SizedBox(height: 20),
+
+                  if (_isLoading && _remarks.isEmpty) ...[
+                    SkeletonLoader.card(height: 80),
+                    const SizedBox(height: 12),
+                    SkeletonLoader.card(height: 80),
+                    const SizedBox(height: 12),
+                    SkeletonLoader.card(height: 80),
+                    const SizedBox(height: 12),
+                    SkeletonLoader.card(height: 80),
+                    const SizedBox(height: 32),
+                    SkeletonLoader.section(itemCount: 4),
+                  ] else ...[
+                    _buildStatCard(
+                      "Total Remarks",
+                      "$_totalCount",
+                      const Color(0xFF2563EB),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildStatCard(
+                      "Positive",
+                      "$_positiveCount",
+                      const Color(0xFF16A34A),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildStatCard(
+                      "Warnings",
+                      "$_warningCount",
+                      const Color(0xFFF59E0B),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildStatCard(
+                      "Critical",
+                      "$_criticalCount",
+                      const Color(0xFFEF4444),
+                    ),
+                    const SizedBox(height: 32),
+                    _buildTabs(),
+                    const SizedBox(height: 2),
+                    const Divider(height: 1, color: Color(0xFFE5E7EB)),
+                    const SizedBox(height: 16),
+                    _buildRemarksList(),
+                    const SizedBox(height: 40),
+                  ],
+                ],
+              ),
             ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -202,6 +220,13 @@ class _RemarksPageState extends State<RemarksPage> {
             colors: [Color(0xFF8B5CF6), Color(0xFFD8B4FE)],
           ),
           borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
+            ),
+          ],
         ),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -230,6 +255,13 @@ class _RemarksPageState extends State<RemarksPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -327,6 +359,13 @@ class _RemarksPageState extends State<RemarksPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -357,6 +396,13 @@ class _RemarksPageState extends State<RemarksPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

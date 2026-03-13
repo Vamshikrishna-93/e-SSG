@@ -126,6 +126,36 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                 ),
                 const SizedBox(height: 15),
                 _buildPersonalInfoContainer(),
+
+                const SizedBox(height: 25),
+
+                const Text(
+                  "Academic Information",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+
+                const SizedBox(height: 15),
+
+                _buildAcademicInfoContainer(),
+
+                const SizedBox(height: 25),
+
+                const Text(
+                  "Student ID",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+
+                const SizedBox(height: 15),
+
+                _buildStudentIdContainer(),
               ],
             ),
           ),
@@ -273,6 +303,90 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
             Icons.phone_outlined,
             "Mobile",
             studentDetails!.mobile.isEmpty ? "N/A" : studentDetails!.mobile,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ACADEMIC INFORMATION CARD
+  Widget _buildAcademicInfoContainer() {
+    if (studentDetails == null) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F0FF),
+        borderRadius: BorderRadius.circular(35),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildInfoRow(
+            Icons.school_outlined,
+            "Branch",
+            studentDetails!.branchName,
+          ),
+          const SizedBox(height: 20),
+
+          _buildInfoRow(
+            Icons.groups_outlined,
+            "Group",
+            studentDetails!.groupName,
+          ),
+          const SizedBox(height: 20),
+
+          _buildInfoRow(
+            Icons.menu_book_outlined,
+            "Course",
+            studentDetails!.courseName,
+          ),
+          const SizedBox(height: 20),
+
+          _buildInfoRow(Icons.badge_outlined, "Batch", studentDetails!.batch),
+        ],
+      ),
+    );
+  }
+
+  // STUDENT ID CARD
+  Widget _buildStudentIdContainer() {
+    if (studentDetails == null) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F0FF),
+        borderRadius: BorderRadius.circular(35),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildInfoRow(
+            Icons.badge_outlined,
+            "Student ID",
+            studentDetails!.sid.toString(),
+          ),
+          const SizedBox(height: 20),
+
+          _buildInfoRow(
+            Icons.confirmation_number_outlined,
+            "Admission Number",
+            studentDetails!.admNo,
           ),
         ],
       ),

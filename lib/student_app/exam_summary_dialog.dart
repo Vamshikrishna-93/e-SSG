@@ -178,6 +178,13 @@ class _ExamSummaryDialogState extends State<ExamSummaryDialog> {
                       color: const Color(0xFFF0FDF4),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: const Color(0xFFDCFCE7)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.25),
+                          blurRadius: 4,
+                          offset: const Offset(0, 0),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,6 +207,13 @@ class _ExamSummaryDialogState extends State<ExamSummaryDialog> {
                       color: const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: const Color(0xFFDBEAFE)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.25),
+                          blurRadius: 4,
+                          offset: const Offset(0, 0),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,6 +247,13 @@ class _ExamSummaryDialogState extends State<ExamSummaryDialog> {
                       color: const Color(0xFFF0FDF4),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: const Color(0xFFDCFCE7)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.25),
+                          blurRadius: 4,
+                          offset: const Offset(0, 0),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,9 +316,9 @@ class _ExamSummaryDialogState extends State<ExamSummaryDialog> {
                       border: Border.all(color: const Color(0xFFF1F5F9)),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.02),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                          color: Colors.black.withOpacity(0.25),
+                          blurRadius: 4,
+                          offset: const Offset(0, 0),
                         ),
                       ],
                     ),
@@ -327,6 +348,13 @@ class _ExamSummaryDialogState extends State<ExamSummaryDialog> {
                           colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
                         ),
                         borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 4,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
                       ),
                       child: ElevatedButton(
                         onPressed: () {
@@ -396,6 +424,13 @@ class _ExamSummaryDialogState extends State<ExamSummaryDialog> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: const Color(0xFFF1F5F9)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
+            ),
+          ],
         ),
         child: Column(
           children: [

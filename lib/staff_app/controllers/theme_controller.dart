@@ -12,7 +12,9 @@ class ThemeController extends GetxController {
     isDark.value = _box.read('isDarkMode') ?? false;
 
     // Apply theme on app start
-    Get.changeThemeMode(isDark.value ? ThemeMode.dark : ThemeMode.light);
+    Get.changeThemeMode(
+      isDark.value ? ThemeMode.dark : ThemeMode.light,
+    );
 
     super.onInit();
   }
@@ -24,6 +26,8 @@ class ThemeController extends GetxController {
     _box.write('isDarkMode', isDark.value);
 
     // Change theme instantly
-    Get.changeThemeMode(isDark.value ? ThemeMode.dark : ThemeMode.light);
+    Get.changeThemeMode(
+      isDark.value ? ThemeMode.dark : ThemeMode.light,
+    );
   }
 }

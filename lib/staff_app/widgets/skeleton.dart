@@ -118,3 +118,109 @@ class _StaffLoadingAnimationState extends State<StaffLoadingAnimation>
     );
   }
 }
+
+class StatCardSkeleton extends StatelessWidget {
+  final Color baseColor;
+
+  const StatCardSkeleton({super.key, required this.baseColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: baseColor.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Stack(
+          children: [
+            // Decorative arcs (matching original)
+            Positioned(
+              bottom: -30,
+              right: -30,
+              child: Container(
+                width: 90,
+                height: 90,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: baseColor.withOpacity(0.1),
+                    width: 1.2,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -45,
+              right: -45,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: baseColor.withOpacity(0.1),
+                    width: 1.2,
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 80,
+                    height: 15,
+                    decoration: BoxDecoration(
+                      color: baseColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 40,
+                    height: 25,
+                    decoration: BoxDecoration(
+                      color: baseColor.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    width: 100,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: baseColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    width: 90,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: baseColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    width: 110,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: baseColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

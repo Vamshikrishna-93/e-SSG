@@ -8,7 +8,7 @@
     <application
         android:label="E-SSG"
         android:name="${applicationName}"
-        android:icon="@mipmap/e_ssg_launcher">
+        android:icon="@mipmap/ic_launcher">
 
         <activity
             android:name=".MainActivity"

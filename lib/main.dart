@@ -15,8 +15,7 @@ import 'package:student_app/staff_app/controllers/theme_controller.dart'
 import 'package:student_app/staff_app/controllers/auth_controller.dart';
 import 'package:student_app/staff_app/controllers/main_controller.dart';
 import 'package:student_app/staff_app/controllers/hostel_controller.dart';
-
-// Staff Theme
+import 'package:student_app/staff_app/controllers/pro_dashboard_controller.dart';
 
 // Staff Pages
 import 'package:student_app/staff_app/pages/profile_page.dart';
@@ -45,10 +44,11 @@ import 'package:student_app/staff_app/pages/communication_page.dart';
 import 'package:student_app/staff_app/pages/add_staff_page.dart';
 import 'package:student_app/staff_app/pages/staff_biometric_logs_page.dart';
 import 'package:student_app/staff_app/pages/take_staff_attendance_page.dart';
-import 'package:student_app/staff_app/pages/pro_admission_page.dart';
+import 'package:student_app/staff_app/pages/staff_pro_admission_page.dart';
 import 'package:student_app/staff_app/pages/hostel_attendance_mark_page.dart';
 import 'package:student_app/staff_app/pages/hostel_attendance_status_page.dart';
 import 'package:student_app/staff_app/pages/add_hostel_attendance_page.dart';
+import 'package:student_app/staff_app/pages/admin_dashboard_page.dart';
 // Student Pages
 import 'package:student_app/student_app/class_attendance_page.dart';
 import 'package:student_app/student_app/hostel_attendence_page.dart';
@@ -70,12 +70,13 @@ void main() async {
 
   // 🔐 AuthControllers & Others - Staff App
   Get.put(HostelController(), permanent: true);
-  Get.lazyPut<AuthController>(() => AuthController());
+  Get.put(AuthController(), permanent: true);
   Get.put(StaffMainController(), permanent: true);
 
   // 🎓 Student Controllers
   Get.put(DashboardController(), permanent: true);
   Get.put(DocumentsController(), permanent: true);
+  Get.put(ProDashboardController(), permanent: true);
 
   runApp(const SsJcApp());
 }
@@ -192,7 +193,11 @@ class SsJcApp extends StatelessWidget {
           name: '/addHostelAttendance',
           page: () => const AddHostelAttendancePage(),
         ),
-        GetPage(name: '/proAdmission', page: () => const ProAdmissionPage()),
+        GetPage(name: '/staffAdmission', page: () => const ProAdmissionPage()),
+        GetPage(
+          name: '/adminDashboard',
+          page: () => const AdminDashboardPage(),
+        ),
 
         // 🎓 STUDENT APP ROUTES
         GetPage(

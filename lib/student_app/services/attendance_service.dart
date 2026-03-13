@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:student_app/student_app/config/api_config.dart';
 import 'package:student_app/student_app/model/class_attendance.dart';
+import 'package:student_app/student_app/services/cache_manager.dart';
 
 class AttendanceService {
   static const String _attendanceGridEndpoint = '/student-attendance-grid';
@@ -28,7 +29,8 @@ class AttendanceService {
 
       if (!forceRefresh) {
         final String? cachedData = prefs.getString(cacheKey);
-        if (cachedData != null) {
+        final bool fresh = await CacheManager.isFresh(cacheKey);
+        if (cachedData != null && fresh) {
           final decoded = jsonDecode(cachedData);
           if (decoded is List) {
             return ClassAttendance.fromJson({'data': decoded});
@@ -59,6 +61,7 @@ class AttendanceService {
         final decoded = jsonDecode(response.body);
         // Cache the response
         await prefs.setString(cacheKey, response.body);
+        await CacheManager.touch(cacheKey);
 
         if (decoded is List) {
           return ClassAttendance.fromJson({'data': decoded});
@@ -89,7 +92,8 @@ class AttendanceService {
 
       if (!forceRefresh) {
         final String? cachedData = prefs.getString(cacheKey);
-        if (cachedData != null) {
+        final bool fresh = await CacheManager.isFresh(cacheKey);
+        if (cachedData != null && fresh) {
           return Map<String, dynamic>.from(
             jsonDecode(cachedData)['data'] ?? {},
           );
@@ -110,6 +114,7 @@ class AttendanceService {
         if (decoded['success'] == true && decoded['data'] != null) {
           // Cache the response
           await prefs.setString(cacheKey, response.body);
+          await CacheManager.touch(cacheKey);
           return Map<String, dynamic>.from(decoded['data']);
         }
         return {};

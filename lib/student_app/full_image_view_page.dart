@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:student_app/student_app/widgets/loading_animation.dart';
 
 class FullImageViewPage extends StatelessWidget {
   final String imageUrl;
@@ -33,8 +34,8 @@ class FullImageViewPage extends StatelessWidget {
             fit: BoxFit.contain,
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) return child;
-              return const Center(
-                child: CircularProgressIndicator(color: Colors.white),
+              return Center(
+                child: StudentLoadingAnimation(size: 60),
               );
             },
             errorBuilder: (context, error, stackTrace) {

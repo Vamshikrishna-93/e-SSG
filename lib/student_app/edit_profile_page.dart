@@ -216,13 +216,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   color: isSelected ? primaryPurple : const Color(0xFFE0E0E0),
                   width: 1,
                 ),
-                boxShadow: isSelected ? [
+                boxShadow: [
                   BoxShadow(
-                    color: primaryPurple.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  )
-                ] : null,
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
@@ -324,6 +324,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
               color: inputBg,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 4,
+                  offset: const Offset(0, 0),
+                ),
+              ],
             ),
             child: TextField(
               controller: _controllers[key],
@@ -354,6 +361,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 gradient: const LinearGradient(
                   colors: [Color(0xFF8B5CF6), Color(0xFFD8B4FE)],
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: Center(
                 child: _isSaving
@@ -383,6 +397,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
               decoration: BoxDecoration(
                 color: const Color(0xFFC0C0C0),
                 borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: const Center(
                 child: Text(

@@ -8,9 +8,9 @@ class StandardExamHeader extends StatelessWidget {
     const textColor = Color(0xFF1E293B);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(4),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
       ),
       child: const Row(
         children: [
@@ -90,9 +90,9 @@ class CompletedExamHeader extends StatelessWidget {
     const textColor = Color(0xFF1E293B);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(4),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
       ),
       child: const Row(
         children: [
@@ -172,9 +172,9 @@ class OnlineExamHeader extends StatelessWidget {
     const textColor = Color(0xFF1E293B);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(4),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
       ),
       child: const Row(
         children: [

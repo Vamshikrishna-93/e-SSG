@@ -30,10 +30,27 @@ class StudentProfileService {
 
   /// GET PROFILE
   static Future<Map<String, dynamic>> getProfile({bool forceRefresh = false}) async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // 1. Return memory cache if available and not forcing refresh
     if (!forceRefresh && cachedProfileData != null) {
       return cachedProfileData!;
     }
-    final prefs = await SharedPreferences.getInstance();
+
+    // 2. Try loading from SharedPreferences if memory cache is empty
+    if (!forceRefresh && cachedProfileData == null) {
+      final savedData = prefs.getString('cached_student_profile');
+      if (savedData != null) {
+        try {
+          cachedProfileData = jsonDecode(savedData);
+          return cachedProfileData!;
+        } catch (e) {
+          debugPrint("Error decoding saved profile: $e");
+        }
+      }
+    }
+
+    // 3. Fetch from API
     final studentId = prefs.getString('student_id') ?? "";
     final headers = await _getHeaders();
     final res = await http.get(
@@ -44,6 +61,10 @@ class StudentProfileService {
     if (res.statusCode == 200) {
       final decoded = jsonDecode(res.body);
       cachedProfileData = decoded;
+      
+      // Save to SharedPreferences for persistence
+      await prefs.setString('cached_student_profile', jsonEncode(decoded));
+      
       return decoded;
     }
     throw Exception("Failed to load profile");
@@ -68,6 +89,10 @@ class StudentProfileService {
       data.forEach((key, value) {
         currentData[key] = value;
       });
+      
+      // Persist updated local data
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('cached_student_profile', jsonEncode(cachedProfileData));
     }
 
     return true;
@@ -144,10 +169,12 @@ class StudentProfileService {
   }
 
   /// RESET PROFILE DATA (e.g., on logout)
-  static void resetProfileData() {
+  static void resetProfileData() async {
     profileImageUrl.value = null;
     displayName.value = null;
     displayId.value = null;
     cachedProfileData = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('cached_student_profile');
   }
 }

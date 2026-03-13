@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:student_app/student_app/widgets/loading_animation.dart';
 import 'package:student_app/student_app/services/exams_service.dart';
 import 'package:student_app/student_app/model/exam_item.dart';
 import 'package:student_app/student_app/online_exam_portal_page.dart';
@@ -335,7 +336,7 @@ class _ExamWritingPageState extends State<ExamWritingPage> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: StudentLoadingAnimation(size: 80))
           : _errorMessage != null
           ? Center(
               child: Column(

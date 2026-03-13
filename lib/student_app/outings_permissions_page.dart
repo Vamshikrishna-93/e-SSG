@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:student_app/student_app/outing_details_page.dart';
 import 'package:student_app/student_app/services/outing_service.dart';
-import 'package:student_app/student_app/widgets/loading_animation.dart';
 import 'package:student_app/student_app/widgets/student_app_header.dart';
+import 'package:student_app/student_app/widgets/skeleton_loader.dart';
 
 class OutingsPermissionsPage extends StatefulWidget {
   const OutingsPermissionsPage({super.key});
@@ -19,18 +19,28 @@ class _OutingsPermissionsPageState extends State<OutingsPermissionsPage> {
   String _lastOutingDate = "29 Jan 2026";
   int _selectedTabIndex = 0;
 
-
-
   @override
   void initState() {
     super.initState();
-    _fetchData();
+    _refreshFlow();
+  }
+
+  Future<void> _refreshFlow() async {
+    // 1. Load from cache (instantly)
+    await _fetchData(forceRefresh: false);
+    // 2. Refresh from server (background)
+    await _fetchData(forceRefresh: true);
   }
 
   Future<void> _fetchData({bool forceRefresh = true}) async {
-    setState(() => _isLoading = true);
+    // Only show full loading if we have nothing yet
+    if (_outings.isEmpty) {
+      setState(() => _isLoading = true);
+    }
     try {
-      final response = await OutingService.getOutings(forceRefresh: forceRefresh);
+      final response = await OutingService.getOutings(
+        forceRefresh: forceRefresh,
+      );
       if (mounted) {
         setState(() {
           _outings = response['data'] is List ? response['data'] : [];
@@ -116,9 +126,7 @@ class _OutingsPermissionsPageState extends State<OutingsPermissionsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: _isLoading
-          ? const Center(child: StudentLoadingAnimation())
-          : Column(
+      body: Column(
               children: [
                 const StudentAppHeader(title: "Outings"),
                 Expanded(
@@ -147,38 +155,55 @@ class _OutingsPermissionsPageState extends State<OutingsPermissionsPage> {
                         const SizedBox(height: 16),
                         _buildRefreshButton(),
                         const SizedBox(height: 20),
-                        _buildStatusBanner(),
                         const SizedBox(height: 20),
-                        _buildStatCard(
-                          "Monthly Limit",
-                          "$_monthlyLimit outings",
-                          const Color(0xFF2563EB),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildStatCard(
-                          "Used",
-                          "$_used",
-                          const Color(0xFF16A34A),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildStatCard(
-                          "Remaining",
-                          "${_monthlyLimit - _used} outings",
-                          const Color(0xFFF59E0B),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildStatCard(
-                          "Last Outing",
-                          _lastOutingDate,
-                          const Color(0xFF2563EB),
-                        ),
+                        (_isLoading && _outings.isEmpty) 
+                          ? SkeletonLoader.card(height: 80)
+                          : _buildStatusBanner(),
+                        const SizedBox(height: 20),
+                        (_isLoading && _outings.isEmpty)
+                          ? Column(
+                              children: [
+                                SkeletonLoader.card(height: 80),
+                                const SizedBox(height: 12),
+                                SkeletonLoader.card(height: 80),
+                                const SizedBox(height: 12),
+                                SkeletonLoader.card(height: 80),
+                              ],
+                            )
+                          : Column(
+                            children: [
+                              _buildStatCard(
+                                "Monthly Limit",
+                                "$_monthlyLimit outings",
+                                const Color(0xFF2563EB),
+                              ),
+                              const SizedBox(height: 12),
+                              _buildStatCard(
+                                "Used",
+                                "$_used",
+                                const Color(0xFF16A34A),
+                              ),
+                              const SizedBox(height: 12),
+                              _buildStatCard(
+                                "Remaining",
+                                "${_monthlyLimit - _used} outings",
+                                const Color(0xFFF59E0B),
+                              ),
+                              const SizedBox(height: 12),
+                              _buildStatCard(
+                                "Last Outing",
+                                _lastOutingDate,
+                                const Color(0xFF2563EB),
+                              ),
+                            ],
+                          ),
                         const SizedBox(height: 32),
                         _buildTabs(),
                         const SizedBox(height: 2),
                         const Divider(height: 1, color: Color(0xFFE5E7EB)),
                         const SizedBox(height: 16),
                         _selectedTabIndex == 0
-                            ? _buildOutingTable()
+                            ? ((_isLoading && _outings.isEmpty) ? SkeletonLoader.section(itemCount: 5) : _buildOutingTable())
                             : _buildRulesSection(),
                         const SizedBox(height: 32),
                         _buildQuickStates(),
@@ -194,8 +219,6 @@ class _OutingsPermissionsPageState extends State<OutingsPermissionsPage> {
     );
   }
 
-
-
   Widget _buildRefreshButton() {
     return GestureDetector(
       onTap: () => _fetchData(forceRefresh: true),
@@ -207,6 +230,13 @@ class _OutingsPermissionsPageState extends State<OutingsPermissionsPage> {
             colors: [Color(0xFF8B5CF6), Color(0xFFD8B4FE)],
           ),
           borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
+            ),
+          ],
         ),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -234,6 +264,13 @@ class _OutingsPermissionsPageState extends State<OutingsPermissionsPage> {
         color: const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF3B82F6).withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -283,6 +320,13 @@ class _OutingsPermissionsPageState extends State<OutingsPermissionsPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -568,9 +612,9 @@ class _OutingsPermissionsPageState extends State<OutingsPermissionsPage> {
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),
@@ -664,9 +708,9 @@ class _OutingsPermissionsPageState extends State<OutingsPermissionsPage> {
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),

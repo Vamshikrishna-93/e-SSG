@@ -107,32 +107,50 @@ class _OutingListPageState extends State<OutingListPage> {
   //  SECTION LABEL
   // ─────────────────────────────────────────────────────────────────
   Widget _buildStatsGrid() {
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 0.9,
-      children: [
-        _buildStatCard("Out Pass", controller.outPassInfo, [
-          const Color(0xFF11DA81),
-          const Color(0xFF2BB78B),
-        ], IconifyIcons.logout),
-        _buildStatCard("Self Outing", controller.selfOutingInfo, [
-          const Color(0xFFEE6B9D),
-          const Color(0xFFCC385D),
-        ], IconifyIcons.logout),
-        _buildStatCard("Home Pass", controller.homePassInfo, [
-          const Color(0xFF29A5ED),
-          const Color(0xFF2987E9),
-        ], IconifyIcons.home),
-        _buildStatCard("Self Home", controller.selfHomeInfo, [
-          const Color(0xFFF6AD39),
-          const Color(0xFFF69137),
-        ], IconifyIcons.home),
-      ],
-    );
+    return Obx(() {
+      if (controller.isLoading.value && controller.outingList.isEmpty) {
+        return GridView.count(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          childAspectRatio: 0.9,
+          children: const [
+            StatCardSkeleton(baseColor: Color(0xFF11DA81)),
+            StatCardSkeleton(baseColor: Color(0xFFEE6B9D)),
+            StatCardSkeleton(baseColor: Color(0xFF29A5ED)),
+            StatCardSkeleton(baseColor: Color(0xFFF6AD39)),
+          ],
+        );
+      }
+      return GridView.count(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        childAspectRatio: 0.9,
+        children: [
+          _buildStatCard("Out Pass", controller.outPassInfo, [
+            const Color(0xFF11DA81),
+            const Color(0xFF2BB78B),
+          ], IconifyIcons.logout),
+          _buildStatCard("Self Outing", controller.selfOutingInfo, [
+            const Color(0xFFEE6B9D),
+            const Color(0xFFCC385D),
+          ], IconifyIcons.logout),
+          _buildStatCard("Home Pass", controller.homePassInfo, [
+            const Color(0xFF29A5ED),
+            const Color(0xFF2987E9),
+          ], IconifyIcons.home),
+          _buildStatCard("Self Home", controller.selfHomeInfo, [
+            const Color(0xFFF6AD39),
+            const Color(0xFFF69137),
+          ], IconifyIcons.home),
+        ],
+      );
+    });
   }
 
   Widget _buildStatCard(
@@ -671,12 +689,6 @@ class _OutingListPageState extends State<OutingListPage> {
               ),
               const SizedBox(width: 8),
               _actionIconButton(
-                Icons.edit,
-                const Color(0xFFFFE082),
-                () => _showRemarksDialog(o),
-              ),
-              const SizedBox(width: 8),
-              _actionIconButton(
                 Icons.delete,
                 const Color(0xFFEF4444),
                 () => _showDeleteConfirmation(o),
@@ -785,9 +797,20 @@ class _OutingListPageState extends State<OutingListPage> {
                   ),
                   const SizedBox(height: 20),
                   GestureDetector(
-                    onTap: () {
-                      controller.addOutingRemarks(o.id, remarksController.text);
-                      Get.back();
+                    onTap: () async {
+                      if (remarksController.text.trim().isEmpty) {
+                        Get.snackbar(
+                          "Error",
+                          "Remarks cannot be empty",
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white,
+                        );
+                        return;
+                      }
+                      await controller.addOutingRemarks(
+                        o.id,
+                        remarksController.text,
+                      );
                     },
                     child: Container(
                       width: double.infinity,
@@ -798,15 +821,24 @@ class _OutingListPageState extends State<OutingListPage> {
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Center(
-                        child: Text(
-                          "Update Remarks",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                      child: Obx(
+                        () => controller.isLoading.value
+                            ? const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Center(
+                                child: Text(
+                                  "Update Remarks",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
                       ),
                     ),
                   ),

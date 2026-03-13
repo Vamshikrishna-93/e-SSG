@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/hostel_controller.dart';
 import '../widgets/skeleton.dart';
-import 'hostel_attendance_mark_page.dart';
+
 import '../widgets/staff_header.dart';
 
 class HostelAttendanceResultPage extends StatefulWidget {
@@ -93,16 +93,20 @@ class _HostelAttendanceResultPageState
                           ),
                         ],
                       ),
-                      child: const Row(
-                        children: [
-                          SizedBox(width: 16),
-                          Icon(Icons.search, color: Colors.grey, size: 22),
-                          SizedBox(width: 12),
-                          Text(
-                            'Search floor / hostel',
-                            style: TextStyle(color: Colors.grey, fontSize: 16),
-                          ),
-                        ],
+                      child: TextField(
+                        controller: _searchCtrl,
+                        onChanged: (val) {
+                          setState(() {
+                            _query = val;
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          hintText: 'Search floor / hostel',
+                          hintStyle: TextStyle(color: Colors.grey, fontSize: 16),
+                          prefixIcon: Icon(Icons.search, color: Colors.grey, size: 22),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(vertical: 15),
+                        ),
                       ),
                     ),
                   ),
@@ -175,7 +179,6 @@ class _HostelAttendanceResultPageState
                         itemBuilder: (context, index) => _AttendanceCard(
                           row: filtered[index],
                           sno: index + 1,
-                          hostelCtrl: hostelCtrl,
                         ),
                       );
                     }),
@@ -190,177 +193,212 @@ class _HostelAttendanceResultPageState
   }
 }
 
-class _AttendanceCard extends StatelessWidget {
+class _AttendanceCard extends StatefulWidget {
   final Map<String, dynamic> row;
   final int sno;
-  final HostelController hostelCtrl;
 
   const _AttendanceCard({
     required this.row,
     required this.sno,
-    required this.hostelCtrl,
+    super.key,
   });
 
   @override
+  State<_AttendanceCard> createState() => _AttendanceCardState();
+}
+
+class _AttendanceCardState extends State<_AttendanceCard> {
+  String morningStatus = 'P';
+  String nightStatus = 'P';
+
+  @override
   Widget build(BuildContext context) {
-    final roomName = row['room']?.toString() ?? '-';
-    final roomId = row['room_id']?.toString() ?? row['room']?.toString() ?? '';
-    final floorName = row['floor']?.toString() ?? '-';
-    final incharge = row['incharge']?.toString() ?? 'N/A';
-    final total = int.tryParse(row['total']?.toString() ?? '0') ?? 0;
-    final present = int.tryParse(row['present']?.toString() ?? '0') ?? 0;
-    final absent =
-        int.tryParse(
-          row['absent']?.toString() ?? row['total']?.toString() ?? '0',
-        ) ??
-        (total - present);
+    final roomName = widget.row['room']?.toString() ?? '-';
+    final floorName = widget.row['floor']?.toString() ?? '-';
+    final incharge = widget.row['incharge']?.toString() ?? 'N/A';
 
-    final date = hostelCtrl.activeDate.value.isNotEmpty
-        ? hostelCtrl.activeDate.value
-        : DateTime.now().toIso8601String().split('T').first;
-
-    return GestureDetector(
-      onTap: () => Get.to(
-        () => const HostelAttendanceMarkPage(),
-        arguments: {
-          'room_name': roomName,
-          'room_id': roomId,
-          'floor_name': floorName,
-          'date': date,
-        },
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.25),
-              blurRadius: 4,
-              offset: const Offset(0, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ── HEADER: Room Name ──────────────────────────────────
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: const BoxDecoration(
+              color: Color(0xFF7C3AED), // Theme Purple
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Text(
+              roomName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          ),
+
+          // ── BODY ──────────────────────────────────────────────
+          IntrinsicHeight(
+            child: Row(
               children: [
-                Text(
-                  'S.NO: $sno',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: Colors.black,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF7C3AED),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    roomName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                // LEFT COLUMN: Floor and Incharge
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildLabelValue('floor:', floorName),
+                        const SizedBox(height: 8),
+                        _buildLabelValue('Incharge:', incharge),
+                      ],
                     ),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Divider(height: 1, thickness: 1, color: Color(0xFFF3F4F6)),
-            const SizedBox(height: 15),
-            _buildRichInfo('Floor : ', floorName),
-            const SizedBox(height: 8),
-            _buildRichInfo('Incharge : ', incharge),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _Badge(
-                  icon: Icons.group,
-                  label: 'Total: $total',
-                  color: const Color(0xFF2196F3),
-                ),
-                const SizedBox(width: 8),
-                _Badge(
-                  icon: Icons.check_circle_rounded,
-                  label: 'Present: $present',
-                  color: const Color(0xFF4CAF50),
-                ),
-                const SizedBox(width: 8),
-                _Badge(
-                  icon: Icons.cancel_rounded,
-                  label: 'Absent: $absent',
-                  color: const Color(0xFFEF4444),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildRichInfo(String label, String value) {
-    return RichText(
-      text: TextSpan(
-        style: const TextStyle(color: Colors.black, fontSize: 15),
-        children: [
-          TextSpan(
-            text: label,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+                // VERTICAL DIVIDER
+                Container(
+                  width: 1,
+                  color: Colors.grey.withOpacity(0.15),
+                ),
+
+                // RIGHT COLUMN: Morning and Night Status
+                Container(
+                  width: 105,
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'morning',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      _StatusBox(
+                        text: morningStatus,
+                        color: morningStatus == 'P' ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                        onTap: () {
+                          setState(() {
+                            morningStatus = morningStatus == 'P' ? 'A' : 'P';
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'night',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      _StatusBox(
+                        text: nightStatus,
+                        color: nightStatus == 'P' ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                        onTap: () {
+                          setState(() {
+                            nightStatus = nightStatus == 'P' ? 'A' : 'P';
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-          TextSpan(text: value),
         ],
       ),
     );
   }
+
+  Widget _buildLabelValue(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Colors.black54,
+          ),
+        ),
+        const SizedBox(height: 1),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-class _Badge extends StatelessWidget {
-  final IconData icon;
-  final String label;
+class _StatusBox extends StatelessWidget {
+  final String text;
   final Color color;
+  final VoidCallback onTap;
 
-  const _Badge({required this.icon, required this.label, required this.color});
+  const _StatusBox({
+    required this.text,
+    required this.color,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return GestureDetector(
+      onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        width: 38,
+        height: 38,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color, width: 1.2),
+          color: color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color, width: 1.5),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16, color: color),
-            const SizedBox(width: 5),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
+        child: Center(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
+
+
+
+

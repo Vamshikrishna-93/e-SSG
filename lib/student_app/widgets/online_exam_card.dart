@@ -26,7 +26,7 @@ class _OnlineExamCardState extends State<OnlineExamCard> {
   @override
   Widget build(BuildContext context) {
     const textColor = Color(0xFF1E293B);
-    const secondaryTextColor = Color(0xFF64748B);
+    const secondaryTextColor = Colors.white;
     const dividerColor = Color(0xFFF1F5F9);
 
     final bool isCompleted = widget.exam.progress == 100;

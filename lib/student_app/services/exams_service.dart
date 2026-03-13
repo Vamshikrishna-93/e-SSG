@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:student_app/student_app/config/api_config.dart';
+import 'package:student_app/student_app/services/cache_manager.dart';
 
 class ExamsService {
   static const String _examsEndpoint = '/online-exams-by-student';
@@ -11,7 +12,9 @@ class ExamsService {
   static const String _submitEndpoint = '/exam/submit-test';
   static const String _summaryEndpoint = '/exam/summary';
 
-  static Future<Map<String, dynamic>> getOnlineExams() async {
+  static Future<Map<String, dynamic>> getOnlineExams({
+    bool forceRefresh = false,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
 
@@ -20,6 +23,21 @@ class ExamsService {
 
       if (token == null || studentId == null) {
         throw Exception('User or Student ID not found. Please log in again.');
+      }
+
+      final String cacheKey = 'online_exams_$studentId';
+
+      if (!forceRefresh) {
+        final String? cachedData = prefs.getString(cacheKey);
+        final bool fresh = await CacheManager.isFresh(cacheKey);
+        if (cachedData != null && fresh) {
+          final decoded = jsonDecode(cachedData);
+          if (decoded is Map<String, dynamic>) {
+            return decoded;
+          } else if (decoded is List) {
+            return {'data': decoded};
+          }
+        }
       }
 
       final response = await http.get(
@@ -33,6 +51,11 @@ class ExamsService {
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
+
+        // Cache the response
+        await prefs.setString(cacheKey, response.body);
+        await CacheManager.touch(cacheKey);
+
         if (decoded is Map<String, dynamic>) {
           return decoded;
         } else if (decoded is List) {
@@ -279,7 +302,8 @@ class ExamsService {
 
       if (!forceRefresh) {
         final String? cachedData = prefs.getString(cacheKey);
-        if (cachedData != null) {
+        final bool fresh = await CacheManager.isFresh(cacheKey);
+        if (cachedData != null && fresh) {
           final decoded = jsonDecode(cachedData);
           return decoded is Map<String, dynamic> ? decoded : {'data': decoded};
         }
@@ -300,6 +324,7 @@ class ExamsService {
         final decoded = jsonDecode(response.body);
         // Cache the response
         await prefs.setString(cacheKey, response.body);
+        await CacheManager.touch(cacheKey);
         return decoded is Map<String, dynamic> ? decoded : {'data': decoded};
       } else {
         throw Exception('Failed to load exam stats: ${response.statusCode}');

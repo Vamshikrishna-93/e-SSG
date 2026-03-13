@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import 'package:student_app/student_app/services/documents_controller.dart';
 import 'package:student_app/student_app/upload_document_dialog.dart';
 import 'package:intl/intl.dart';
-import 'package:student_app/student_app/widgets/loading_animation.dart';
 import 'package:student_app/student_app/widgets/student_app_header.dart';
+import 'package:student_app/student_app/widgets/skeleton_loader.dart';
 
 class DocumentsPage extends StatefulWidget {
   const DocumentsPage({super.key});
@@ -61,56 +61,9 @@ class _DocumentsPageState extends State<DocumentsPage>
           const StudentAppHeader(title: "Documents"),
           Expanded(
             child: Obx(() {
-              if (_controller.isLoading.value) {
-                return const Center(child: StudentLoadingAnimation());
-              }
-
-              if (_controller.errorMessage.value != null) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.folder_off_outlined,
-                          size: 56,
-                          color: Colors.grey.shade400,
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          "Unable to load documents",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          "Please check your connection and try again.",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 13, color: Colors.black54),
-                        ),
-                        const SizedBox(height: 20),
-                        ElevatedButton.icon(
-                          onPressed: () =>
-                              _controller.fetchDocuments(forceRefresh: true),
-                          icon: const Icon(Icons.refresh, size: 18),
-                          label: const Text("Retry"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF7E3FF2),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }
+              final isLoading = _controller.isLoading.value;
+              final hasError = _controller.errorMessage.value != null;
+              final hasData = _controller.documents.isNotEmpty;
 
               return SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -167,45 +120,103 @@ class _DocumentsPageState extends State<DocumentsPage>
                               colors: [Color(0xFF4DB6AC), Color(0xFFAED581)],
                             ),
                             onTap: () =>
-                                _controller.fetchDocuments(forceRefresh: true),
+                                _controller.fetchDocuments(forceRefresh: true, showSnackbar: true),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 20),
-                    _statTile(
-                      "Total Documents",
-                      _controller.totalDocs.value,
-                      const Color(0xFF2196F3),
-                      Icons.folder_outlined,
-                    ),
-                    _statTile(
-                      "Verified",
-                      _controller.verifiedDocs.value,
-                      const Color(0xFF4CAF50),
-                      Icons.check_circle_outline,
-                    ),
-                    _statTile(
-                      "Pending",
-                      _controller.pendingDocs.value,
-                      const Color(0xFFF59E0B),
-                      Icons.access_time,
-                    ),
-                    _statTile(
-                      "Rejected",
-                      _controller.rejectedDocs.value,
-                      const Color(0xFFEF4444),
-                      Icons.warning_amber_rounded,
-                    ),
-                    const SizedBox(height: 24),
-                    _buildTabs(),
-                    const SizedBox(height: 20),
-                    _buildTabContent(),
-                    const SizedBox(height: 24),
-                    _buildCategories(),
-                    const SizedBox(height: 24),
-                    _buildVerificationProgress(),
-                    const SizedBox(height: 20),
+
+                    if (isLoading && !hasData) ...[
+                      SkeletonLoader.card(height: 60),
+                      const SizedBox(height: 12),
+                      SkeletonLoader.card(height: 60),
+                      const SizedBox(height: 12),
+                      SkeletonLoader.card(height: 60),
+                      const SizedBox(height: 12),
+                      SkeletonLoader.card(height: 60),
+                      const SizedBox(height: 24),
+                      SkeletonLoader.section(itemCount: 4),
+                    ] else if (hasError && !hasData) ...[
+                       Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.folder_off_outlined,
+                                size: 56,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                "Unable to load documents",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                               ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                "Please check your connection and try again.",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 13, color: Colors.black54),
+                              ),
+                              const SizedBox(height: 20),
+                              ElevatedButton.icon(
+                                onPressed: () =>
+                                    _controller.fetchDocuments(forceRefresh: true),
+                                icon: const Icon(Icons.refresh, size: 18),
+                                label: const Text("Retry"),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF7E3FF2),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    ] else ...[
+                      _statTile(
+                        "Total Documents",
+                        _controller.totalDocs.value,
+                        const Color(0xFF2196F3),
+                        Icons.folder_outlined,
+                      ),
+                      _statTile(
+                        "Verified",
+                        _controller.verifiedDocs.value,
+                        const Color(0xFF4CAF50),
+                        Icons.check_circle_outline,
+                      ),
+                      _statTile(
+                        "Pending",
+                        _controller.pendingDocs.value,
+                        const Color(0xFFF59E0B),
+                        Icons.access_time,
+                      ),
+                      _statTile(
+                        "Rejected",
+                        _controller.rejectedDocs.value,
+                        const Color(0xFFEF4444),
+                        Icons.warning_amber_rounded,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildTabs(),
+                      const SizedBox(height: 20),
+                      _buildTabContent(),
+                      const SizedBox(height: 24),
+                      _buildCategories(),
+                      const SizedBox(height: 24),
+                      _buildVerificationProgress(),
+                      const SizedBox(height: 20),
+                    ],
                   ],
                 ),
               );
@@ -259,6 +270,13 @@ class _DocumentsPageState extends State<DocumentsPage>
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -383,9 +401,9 @@ class _DocumentsPageState extends State<DocumentsPage>
         border: Border.all(color: Colors.grey.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withOpacity(0.25),
             blurRadius: 4,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 0),
           ),
         ],
       ),
@@ -491,6 +509,13 @@ class _DocumentsPageState extends State<DocumentsPage>
             color: isSelected ? const Color(0xFF2196F3) : Colors.transparent,
             width: 1.2,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
+            ),
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -544,6 +569,13 @@ class _DocumentsPageState extends State<DocumentsPage>
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 4,
+                  offset: const Offset(0, 0),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

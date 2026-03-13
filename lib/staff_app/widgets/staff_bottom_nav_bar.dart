@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/profile_controller.dart';
+import '../controllers/main_controller.dart';
 import 'package:iconify_flutter/iconify_flutter.dart';
 import '../utils/iconify_icons.dart';
 
@@ -9,10 +9,9 @@ class StaffBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ProfileController controller = Get.put(
-      ProfileController(),
-      permanent: true,
-    );
+    final StaffMainController controller = Get.isRegistered<StaffMainController>()
+        ? Get.find<StaffMainController>()
+        : Get.put(StaffMainController(), permanent: true);
 
     return Obx(() {
       return Container(
@@ -59,7 +58,7 @@ class StaffBottomNavBar extends StatelessWidget {
     int index,
     String icon,
     String label,
-    ProfileController controller,
+    StaffMainController controller,
   ) {
     bool isSelected = controller.currentIndex.value == index;
     return GestureDetector(

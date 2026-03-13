@@ -177,6 +177,13 @@ class _HostelMonthDetailPageState extends State<HostelMonthDetailPage> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFEBF5FB),
                       borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.25),
+                          blurRadius: 4,
+                          offset: const Offset(0, 0),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,6 +254,13 @@ class _HostelMonthDetailPageState extends State<HostelMonthDetailPage> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFEBF5FB),
                       borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.25),
+                          blurRadius: 4,
+                          offset: const Offset(0, 0),
+                        ),
+                      ],
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -372,6 +386,13 @@ class _HostelMonthDetailPageState extends State<HostelMonthDetailPage> {
                             color: const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(15),
                             border: Border.all(color: const Color(0xFFE2E8F0)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.25),
+                                blurRadius: 4,
+                                offset: const Offset(0, 0),
+                              ),
+                            ],
                           ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -495,6 +516,13 @@ class _HostelMonthDetailPageState extends State<HostelMonthDetailPage> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFEBF5FB),
                       borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.25),
+                          blurRadius: 4,
+                          offset: const Offset(0, 0),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -603,9 +631,9 @@ class _HostelMonthDetailPageState extends State<HostelMonthDetailPage> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -5),
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 4,
+                  offset: const Offset(0, 0),
                 ),
               ],
             ),
@@ -713,6 +741,13 @@ class _HostelMonthDetailPageState extends State<HostelMonthDetailPage> {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

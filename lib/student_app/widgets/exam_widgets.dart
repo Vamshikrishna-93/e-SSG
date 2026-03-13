@@ -54,10 +54,7 @@ class ExamDetailRow extends StatelessWidget {
     const textColor = Color(0xFF64748B);
     return RichText(
       text: TextSpan(
-        style: const TextStyle(
-          fontSize: 12,
-          color: textColor,
-        ),
+        style: const TextStyle(fontSize: 12, color: textColor),
         children: [
           TextSpan(
             text: label,

@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:student_app/staff_app/utils/get_storage.dart';
-import 'package:student_app/student_app/services/student_profile_service.dart'
-    as student_profile;
-import 'package:student_app/student_app/services/auth_service.dart'
-    as student_auth;
+import 'package:student_app/student_app/services/student_profile_service.dart';
 import '../api/api_service.dart';
 import 'profile_controller.dart';
 
@@ -17,23 +14,24 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true;
 
-      // 🔍 Decide which login service to call based on the username length
-      final Map<String, dynamic> response;
-      if (username.length == 10) {
-        debugPrint("Calling Student AuthService (10-digit)...");
-        response = await student_auth.AuthService.login(
-          mobile: username,
-          password: password,
-        );
-      } else if (username.length == 6) {
-        debugPrint("Calling Staff ApiService (6-digit)...");
+      final dynamic response;
+      final String loginType;
+
+      if (username.length == 6) {
+        loginType = "staff";
         response = await ApiService.login(
           username: username,
           password: password,
         );
+      } else if (username.length == 10) {
+        loginType = "student";
+        response = await ApiService.studentLogin(
+          mobile: username,
+          password: password,
+        );
       } else {
         throw Exception(
-          "Username must be 6 digits (Staff) or 10 digits (Student)",
+          "Invalid username length. Use 6 digits for staff or 10 digits for student.",
         );
       }
 
@@ -43,38 +41,49 @@ class AuthController extends GetxController {
           response["success"] == "true" ||
           response["success"] == 1;
 
-      if (isSuccess && response["access_token"] != null) {
+      final token =
+          response["access_token"] ??
+          (response["data"] != null ? response["data"]["token"] : null);
+      final userId =
+          response["userid"] ??
+          (response["data"] != null ? response["data"]["sid"] : null);
+
+      if (isSuccess && token != null) {
         // 🔥 CLEAR PREVIOUS USER'S PROFILE DATA (MULTI-USER SUPPORT)
         _clearProfileController();
 
-        // 🔐 SAVE SESSION (Tokens and IDs are handled in the API calls, but we ensure it here too)
-        AppStorage.saveToken(response["access_token"]);
+        // 🔐 SAVE SESSION (Staff App Storage - GetStorage)
+        AppStorage.saveToken(token);
         AppStorage.saveUserId(
-          response["userid"] is int
-              ? response["userid"]
-              : int.tryParse(response["userid"].toString()) ?? 0,
+          userId is int ? userId : int.tryParse(userId.toString()) ?? 0,
         );
         AppStorage.setLoggedIn(true);
-
-        // 🔥 Save Role & Type for routing (Persistence)
-        final String role = (response['role'] ?? '').toString().toLowerCase();
-        AppStorage.saveUserRole(role);
-        if (response['login_type'] != null) {
-          AppStorage.saveLoginType(response['login_type'].toString());
-        }
+        AppStorage.saveLoginType(response["login_type"] ?? loginType);
 
         // 🔥 SAVE MULTI-USER SESSION
         AppStorage.saveUserSession({
           'user_login': username,
-          'userid': response['userid'],
-          'login_type': response['login_type'],
-          'role':
-              response['role'] ?? (username.length == 10 ? 'student' : 'staff'),
+          'userid': userId,
+          'login_type': response['login_type'] ?? loginType,
+          'role': response['role'] ?? (loginType == 'student' ? 'Student' : ''),
           'permissions': response['permissions'] ?? [],
-        }, response["access_token"]);
+        }, token);
 
-        // 🔥 FETCH PROFILE (Staff app only, for student we rely on dashboard)
-        if (role != 'student') {
+        if (loginType == 'student') {
+          // 🎓 STUDENT-SPECIFIC STORAGE (SharedPreferences - to support student app services)
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString("access_token", token);
+          await prefs.setString("student_id", userId.toString());
+
+          // 🎓 INITIALIZE STUDENT PROFILE
+          StudentProfileService.fetchAndSetProfileData().catchError((e) {
+            debugPrint("STUDENT PROFILE FETCH FAILED: $e");
+          });
+
+          // 🚀 GO TO STUDENT DASHBOARD
+          Get.offAllNamed('/studentDashboard');
+        } else {
+          // 👨‍🏫 STAFF-SPECIFIC INITIALIZATION
           final profileController = Get.isRegistered<ProfileController>()
               ? Get.find<ProfileController>()
               : Get.put(ProfileController());
@@ -82,12 +91,8 @@ class AuthController extends GetxController {
           profileController.fetchProfile().catchError((e) {
             debugPrint("PROFILE FETCH FAILED AFTER LOGIN: $e");
           });
-        }
 
-        // 🚀 GO TO THE CORRECT DASHBOARD
-        if (role == 'student') {
-          Get.offAllNamed('/studentDashboard', arguments: {'isLogin': true});
-        } else {
+          // 🚀 GO TO STAFF DASHBOARD
           Get.offAllNamed('/dashboard');
         }
       } else {
@@ -125,8 +130,6 @@ class AuthController extends GetxController {
       } else if (errorString.contains("Server error")) {
         errorMessage = "Server error: Please try again later";
       } else {
-        // Try to extract the actual error message from the exception
-        // Remove "Exception: " prefix if present
         errorMessage = errorString.replaceFirst("Exception: ", "").trim();
         if (errorMessage.isEmpty) {
           errorMessage = "Login failed: Please try again";
@@ -149,7 +152,6 @@ class AuthController extends GetxController {
   void _clearProfileController() {
     if (Get.isRegistered<ProfileController>()) {
       final profileController = Get.find<ProfileController>();
-      // Clear profile data
       profileController.profile.value = null;
       profileController.isLoading.value = true;
     }
@@ -157,20 +159,22 @@ class AuthController extends GetxController {
 
   // ================= LOGOUT =================
   Future<void> logout() async {
-    // 🚀 1. Clear Session (GetStorage)
+    // 🚀 1. Clear Staff Storage
     AppStorage.clear();
 
-    // 🚀 2. Clear SharedPreferences (for student app)
+    // 🚀 2. Clear Student Storage
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
-    student_profile.StudentProfileService.resetProfileData();
 
-    // 🧹 3. Clear related controllers
+    // 🚀 3. Reset Student Services
+    StudentProfileService.resetProfileData();
+
+    // 🧹 4. Clear related controllers
     if (Get.isRegistered<ProfileController>()) {
       Get.delete<ProfileController>(force: true);
     }
 
-    // 🚪 4. GO BACK TO LOGIN (via auth wrapper — session is cleared so it shows LoginPage)
-    Get.offAllNamed('/authWrapper');
+    // 🚪 5. BACK TO LOGIN
+    Get.offAllNamed('/login');
   }
 }

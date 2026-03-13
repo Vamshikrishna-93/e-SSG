@@ -73,13 +73,15 @@ class _SplashPageState extends State<SplashPage> {
                 child: Transform.scale(
                   scale: 0.8 + (0.2 * value), // Scale from 80% to 100%
                   child: Container(
-                    padding: const EdgeInsets.all(25),
+                    padding: const EdgeInsets.all(
+                      40,
+                    ), // Increased padding for a larger circle
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF7C3AED).withOpacity(0.3),
+                          color: const Color(0xFF7B6DFE).withOpacity(0.3),
                           blurRadius: 40,
                           spreadRadius: 2,
                           offset: const Offset(0, 15),
@@ -87,7 +89,7 @@ class _SplashPageState extends State<SplashPage> {
                       ],
                     ),
                     child: Image.asset(
-                      'assets/logo.png',
+                      'assets/logo gif.gif',
                       width: 150,
                       height: 150,
                       fit: BoxFit.contain,

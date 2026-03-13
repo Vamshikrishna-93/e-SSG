@@ -3,6 +3,8 @@ import 'package:student_app/student_app/studentdrawer.dart';
 import 'package:student_app/student_app/widgets/marks_widgets.dart';
 import 'package:student_app/student_app/widgets/student_app_header.dart';
 import 'package:student_app/student_app/widgets/student_bottom_nav.dart';
+import 'package:student_app/student_app/services/exams_service.dart';
+import 'package:student_app/student_app/widgets/skeleton_loader.dart';
 
 class MarksPage extends StatefulWidget {
   const MarksPage({super.key});
@@ -15,6 +17,51 @@ class _MarksPageState extends State<MarksPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String selectedSemester = "All Semesters";
   String selectedPeriod = "Monthly";
+  bool _isLoading = true;
+  Map<String, dynamic>? _examData;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshFlow();
+  }
+
+  Future<void> _refreshFlow() async {
+    // 1. Load from cache
+    await _fetchStats(forceRefresh: false);
+    // 2. Refresh from server
+    await _fetchStats(forceRefresh: true);
+  }
+
+  Future<void> _fetchStats({bool forceRefresh = true}) async {
+    if (_examData == null) {
+      setState(() => _isLoading = true);
+    }
+
+    try {
+      final response = await ExamsService.getExamStats(
+        forceRefresh: forceRefresh,
+      );
+      if (mounted) {
+        setState(() {
+          _examData = response;
+          _isLoading = false;
+        });
+        if (forceRefresh && response.isNotEmpty) {
+          // Success
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        if (forceRefresh) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Error refreshing marks: $e")));
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,13 +71,14 @@ class _MarksPageState extends State<MarksPage> {
       drawer: const StudentDrawerPage(),
       body: Column(
         children: [
-          Builder(builder: (context) {
-            return StudentAppHeader(
-              title: "Marks",
-              leadIcon: Icons.menu,
-              onLeadTap: () => Scaffold.of(context).openDrawer(),
-            );
-          }),
+          Builder(
+            builder: (context) {
+              return StudentAppHeader(
+                title: "Marks",
+                onLeadTap: () => Scaffold.of(context).openDrawer(),
+              );
+            },
+          ),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
@@ -39,19 +87,27 @@ class _MarksPageState extends State<MarksPage> {
                 children: [
                   _buildTopActions(),
                   const SizedBox(height: 24),
-                  _buildStatCards(),
+                  (_isLoading && _examData == null)
+                      ? SkeletonLoader.card(height: 120)
+                      : _buildStatCards(),
                   const SizedBox(height: 24),
                   _buildFiltersCard(),
                   const SizedBox(height: 24),
-                  _buildPerformanceTrend(),
-                  const SizedBox(height: 24),
-                  _buildGradeDistribution(),
-                  const SizedBox(height: 24),
-                  _buildSubjectPerformance(),
-                  const SizedBox(height: 24),
-                  _buildExamHistory(),
-                  const SizedBox(height: 24),
-                  _buildAchievements(),
+                  (_isLoading && _examData == null)
+                      ? SkeletonLoader.section(itemCount: 3)
+                      : Column(
+                          children: [
+                            _buildPerformanceTrend(),
+                            const SizedBox(height: 24),
+                            _buildGradeDistribution(),
+                            const SizedBox(height: 24),
+                            _buildSubjectPerformance(),
+                            const SizedBox(height: 24),
+                            _buildExamHistory(),
+                            const SizedBox(height: 24),
+                            _buildAchievements(),
+                          ],
+                        ),
                   const SizedBox(height: 100),
                 ],
               ),
@@ -140,32 +196,38 @@ class _MarksPageState extends State<MarksPage> {
   }
 
   Widget _buildStatCards() {
+    final stats = _examData?['data'] ?? {};
+    final overall = stats['overall_percentage']?.toString() ?? "83.40%";
+    final grade = stats['current_grade']?.toString() ?? "A";
+    final rank = stats['class_rank']?.toString() ?? "4/85";
+    final attendance = stats['exam_attendance']?.toString() ?? "100 %";
+
     return Column(
       children: [
         _buildStatCard(
           title: "Overall Percentage",
-          value: "83.40%",
+          value: overall,
           sub: "Consistent Improvement",
           valueColor: const Color(0xFF2563EB),
         ),
         const SizedBox(height: 16),
         _buildStatCard(
           title: "Current Grade",
-          value: "A",
+          value: grade,
           sub: "Excellent Performance",
           valueColor: const Color(0xFF22C55E),
         ),
         const SizedBox(height: 16),
         _buildStatCard(
           title: "Class Rank",
-          value: "4/85",
+          value: rank,
           sub: "Top 5% of the class",
           valueColor: const Color(0xFF8B5CF6),
         ),
         const SizedBox(height: 16),
         _buildStatCard(
           title: "Attendance in Exams",
-          value: "100 %",
+          value: attendance,
           sub: "Perfect attendance record",
           valueColor: const Color(0xFF14B8A6),
         ),
@@ -186,6 +248,13 @@ class _MarksPageState extends State<MarksPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.black.withOpacity(0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,6 +289,13 @@ class _MarksPageState extends State<MarksPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.black.withOpacity(0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -422,6 +498,13 @@ class _MarksPageState extends State<MarksPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.black.withOpacity(0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -582,6 +665,13 @@ class _MarksPageState extends State<MarksPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.black.withOpacity(0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -656,6 +746,13 @@ class _MarksPageState extends State<MarksPage> {
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -702,6 +799,13 @@ class _MarksPageState extends State<MarksPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: Colors.black.withOpacity(0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         children: [

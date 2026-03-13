@@ -4,12 +4,16 @@ import '../model/hostel_model.dart';
 import '../model/hostel_student_model.dart';
 import '../model/room_attendance_model.dart';
 import '../model/hostel_grid_model.dart';
+import '../model/floor_model.dart';
+import '../model/room_model.dart';
 
 class HostelController extends GetxController {
   var isLoading = false.obs;
 
   var hostels = <HostelModel>[].obs;
   var selectedHostel = Rxn<HostelModel>();
+  var floorModels = <FloorModel>[].obs;
+  var roomModels = <RoomModel>[].obs;
 
   // DYNAMIC FILTER DATA
   var members = <Map<String, dynamic>>[].obs;
@@ -78,6 +82,33 @@ class HostelController extends GetxController {
       hostels.assignAll(parsed);
     } catch (e) {
       print("HOSTEL CONTROLLER ERROR: $e");
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  Future<void> loadFloorsByHostel(int hostelId) async {
+    try {
+      isLoading(true);
+      floorModels.clear();
+      roomModels.clear();
+      final data = await ApiService.getFloorsByHostel(hostelId);
+      floorModels.assignAll(data.map((e) => FloorModel.fromJson(e)).toList());
+    } catch (e) {
+      print("LOAD FLOORS ERROR: $e");
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  Future<void> loadRoomsByFloor(int floorId) async {
+    try {
+      isLoading(true);
+      roomModels.clear();
+      final data = await ApiService.getRoomsByFloor(floorId);
+      roomModels.assignAll(data.map((e) => RoomModel.fromJson(e)).toList());
+    } catch (e) {
+      print("LOAD ROOMS ERROR: $e");
     } finally {
       isLoading(false);
     }
@@ -261,6 +292,8 @@ class HostelController extends GetxController {
   }
 
   Future<void> fetchRoomsByFloor(int floorId) async {
+    // Legacy method, keeping for compatibility if used elsewhere, 
+    // but the view now uses loadRoomsByFloor with models.
     try {
       isLoading(true);
       roomsList.clear();

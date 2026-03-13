@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:student_app/student_app/config/api_config.dart';
+import 'package:student_app/student_app/services/cache_manager.dart';
 
 class DocumentsService {
   // Documents endpoint
@@ -38,7 +39,8 @@ class DocumentsService {
       // Cache-first approach
       if (!forceRefresh) {
         final String? cachedData = prefs.getString(cacheKey);
-        if (cachedData != null) {
+        final bool fresh = await CacheManager.isFresh(cacheKey);
+        if (cachedData != null && fresh) {
           try {
             return jsonDecode(cachedData);
           } catch (_) {
@@ -60,6 +62,7 @@ class DocumentsService {
         final data = jsonDecode(response.body);
         // Save to cache
         await prefs.setString(cacheKey, response.body);
+        await CacheManager.touch(cacheKey);
         return data;
       } else {
         throw Exception(

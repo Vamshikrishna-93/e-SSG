@@ -28,9 +28,9 @@ class ReceiptPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+                      color: Colors.black.withOpacity(0.25),
+                      blurRadius: 4,
+                      offset: const Offset(0, 0),
                     ),
                   ],
                 ),
@@ -106,6 +106,13 @@ class ReceiptPage extends StatelessWidget {
                             colors: [Color(0xFF7C6FDF), Color(0xFFD4A0E8)],
                           ),
                           borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.25),
+                              blurRadius: 4,
+                              offset: const Offset(0, 0),
+                            ),
+                          ],
                         ),
                         child: ElevatedButton(
                           onPressed: () {

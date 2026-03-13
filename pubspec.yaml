@@ -77,16 +77,17 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/ssjc.jpg
-    - assets/logo.png
     - assets/icon/ssjc.jpg
     - assets/saraswati1.jpg
     - assets/ssjc.jpg
     - assets/girl.jpg
     - assets/QRcode.svg
+    - assets/logo1.jpeg
+    - assets/logo gif.gif
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/logo.png"
+  image_path: "assets/logo1.jpeg"
   min_sdk_android: 21
 
   

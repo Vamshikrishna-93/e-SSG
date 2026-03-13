@@ -782,30 +782,78 @@ class _HomeDashboardPageState extends State<HomeDashboardPage> {
                   vertical: 15,
                 ),
                 children: [
+                  _buildDrawerPillItem(
+                    icon:
+                        IconifyIcons.phStudent, // Student Cap Icon from Image 3
+                    title: "Dashboard",
+                    onTap: () => Get.toNamed('/dashboard'),
+                  ),
+                  _buildDrawerPillItem(
+                    icon:
+                        IconifyIcons.phStudent, // Student Cap Icon from Image 3
+                    title: "Pro Dashboard",
+                    onTap: () => Get.toNamed('/staffAdmission'),
+                  ),
+                  _buildDrawerPillItem(
+                    icon:
+                        IconifyIcons.phStudent, // Student Cap Icon from Image 3
+                    title: "Adm Dashboard",
+                    onTap: () => Get.toNamed('/adminDashboard'),
+                  ),
+                  _buildExpandableDrawerItem(
+                    icon: IconifyIcons
+                        .clarityFormLine, // Form/Exams Icon from Image 1
+                    title: "Attendence",
+                    children: [
+                      _buildDrawerSubItem(
+                        "Class Attendence",
+                        () => Get.toNamed('/classAttendance'),
+                      ),
+                      _buildDrawerSubItem(
+                        "Hostel Attendence",
+                        () => Get.toNamed('/hostelAttendanceFilter'),
+                      ),
+                      _buildDrawerSubItem(
+                        "Verify Attendence",
+                        () => Get.toNamed('/verifyAttendance'),
+                      ),
+                    ],
+                  ),
+
                   _buildExpandableDrawerItem(
                     icon: IconifyIcons
                         .clarityFormLine, // Form/Exams Icon from Image 1
                     title: "Exams",
                     children: [
                       _buildDrawerSubItem(
-                        "Exam Category List",
-                        () => Get.toNamed('/examCategoryList'),
-                      ),
-                      _buildDrawerSubItem(
                         "Exams List",
                         () => Get.toNamed('/examsList'),
                       ),
-                      _buildDrawerSubItem(
-                        "Student Marks Upload",
-                        () => Get.toNamed('/subjectMarksUploadPage'),
-                      ),
+                      // _buildDrawerSubItem(
+                      //   "Exam Category List",
+                      //   () => Get.toNamed('/examCategoryList'),
+                      // ),
+
+                      // _buildDrawerSubItem(
+                      //   "Student Marks Upload",
+                      //   () => Get.toNamed('/subjectMarksUploadPage'),
+                      // ),
                     ],
                   ),
-                  _buildDrawerPillItem(
-                    icon:
-                        IconifyIcons.phStudent, // Student Cap Icon from Image 3
-                    title: "Pro Admission",
-                    onTap: () => Get.toNamed('/proAdmission'),
+                  _buildExpandableDrawerItem(
+                    icon: IconifyIcons
+                        .clarityFormLine, // Form/Exams Icon from Image 1
+                    title: "Outings",
+                    children: [
+                      _buildDrawerSubItem(
+                        "Outing list",
+                        () => Get.toNamed('/outingList'),
+                      ),
+                      _buildDrawerSubItem(
+                        "Verify Outing",
+                        () => Get.toNamed('/outingPending'),
+                      ),
+                    ],
                   ),
                   _buildExpandableDrawerItem(
                     icon: IconifyIcons

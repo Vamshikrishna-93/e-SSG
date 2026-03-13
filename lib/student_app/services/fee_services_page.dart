@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:student_app/student_app/config/api_config.dart';
+import 'package:student_app/student_app/services/cache_manager.dart';
 
 class HostelFeeService {
   static const String _tabDataEndpoint = '/studentfeetabData';
@@ -22,7 +23,8 @@ class HostelFeeService {
 
       if (!forceRefresh) {
         final String? cachedData = prefs.getString(cacheKey);
-        if (cachedData != null) {
+        final bool fresh = await CacheManager.isFresh(cacheKey);
+        if (cachedData != null && fresh) {
           return json.decode(cachedData);
         }
       }
@@ -42,6 +44,7 @@ class HostelFeeService {
         final decoded = json.decode(response.body);
         // Cache the response
         await prefs.setString(cacheKey, response.body);
+        await CacheManager.touch(cacheKey);
         return decoded;
       } else {
         throw Exception(

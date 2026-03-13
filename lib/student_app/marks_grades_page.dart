@@ -309,6 +309,13 @@ class _MarksGradesPageState extends State<MarksGradesPage> {
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -351,6 +358,13 @@ class _MarksGradesPageState extends State<MarksGradesPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,9 +406,9 @@ class _MarksGradesPageState extends State<MarksGradesPage> {
         border: Border.all(color: const Color(0xFFF1F5F9)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),
@@ -462,6 +476,14 @@ class _MarksGradesPageState extends State<MarksGradesPage> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFF1F5F9)),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -496,6 +518,14 @@ class _MarksGradesPageState extends State<MarksGradesPage> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE2E8F0)),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -733,6 +763,13 @@ class _MarksGradesPageState extends State<MarksGradesPage> {
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Row(
         children: [

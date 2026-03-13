@@ -8,6 +8,10 @@ import '../model/non_hostel_student_model.dart';
 import '../model/hostel_student_model.dart';
 import '../model/room_attendance_model.dart';
 import '../model/hostel_grid_model.dart';
+import '../model/pro_dashboard_model.dart';
+import '../model/pro_mom_model.dart';
+import '../model/pro_yoy_model.dart';
+import '../model/pro_admissions_chart_model.dart';
 import '../utils/get_storage.dart';
 
 class ApiService {
@@ -109,8 +113,66 @@ class ApiService {
     } on FormatException {
       throw Exception("Invalid server response format");
     } catch (e) {
-      if (e is Exception) rethrow;
+      // If it's already an Exception, rethrow it
+      if (e is Exception) {
+        rethrow;
+      }
+      // Otherwise wrap it
       throw Exception(e.toString());
+    }
+  }
+
+  static Future<Map<String, dynamic>> studentLogin({
+    required String mobile,
+    required String password,
+  }) async {
+    final Uri url = Uri.parse(
+      ApiCollection.baseUrl + ApiCollection.studentLogin,
+    );
+
+    try {
+      _box.remove("token");
+      _box.remove("user_id");
+
+      final response = await http
+          .post(
+            url,
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json",
+            },
+            body: jsonEncode({"mobile": mobile, "password": password}),
+          )
+          .timeout(const Duration(seconds: 20));
+
+      if (response.statusCode != 200) {
+        throw Exception("Server error: ${response.statusCode}");
+      }
+
+      Map<String, dynamic> data =
+          jsonDecode(response.body) as Map<String, dynamic>;
+      debugPrint("STUDENT LOGIN API RESPONSE: ${response.body}");
+
+      final isSuccess =
+          data["success"] == true ||
+          data["success"] == "true" ||
+          data["success"] == 1;
+
+      if (isSuccess && data["data"] != null && data["data"]["token"] != null) {
+        final studentData = data["data"];
+        AppStorage.saveToken(studentData["token"]);
+        AppStorage.saveUserId(studentData["sid"]);
+        AppStorage.saveLoginType("student");
+
+        return data;
+      }
+
+      final errorMessage =
+          data["message"] ?? data["error"] ?? "Invalid credentials";
+      throw Exception(errorMessage);
+    } catch (e) {
+      debugPrint("STUDENT LOGIN ERROR: $e");
+      rethrow;
     }
   }
 
@@ -133,9 +195,8 @@ class ApiService {
       debugPrint("API GET RESPONSE [$endpoint]: ${response.body}");
 
       if (response.body.trim().isEmpty) {
-        if (response.statusCode == 200) {
+        if (response.statusCode == 200)
           return {"success": false, "message": "Empty response from server"};
-        }
         throw Exception(
           "Server returned empty body with status ${response.statusCode}",
         );
@@ -191,9 +252,8 @@ class ApiService {
       debugPrint("API POST RESPONSE [$endpoint]: ${response.body}");
 
       if (response.body.trim().isEmpty) {
-        if (response.statusCode == 200) {
+        if (response.statusCode == 200)
           return {"success": false, "message": "Empty response from server"};
-        }
         throw Exception(
           "Server returned empty body with status ${response.statusCode}",
         );
@@ -254,13 +314,85 @@ class ApiService {
     final res = await postRequest(ApiCollection.outingSearch(identifier));
 
     if ((res["success"] == true || res["success"] == "true")) {
-      final List? data = res["indexdata"] ?? res["outings"];
+      final List? data = res["outings"] ?? res["indexdata"] ?? res["data"];
       if (data != null) {
         return List<Map<String, dynamic>>.from(data);
       }
     }
 
     return [];
+  }
+
+  // ================= MULTI-SOURCE STUDENT SEARCH =================
+  static Future<List<Map<String, dynamic>>> searchStudents(String query) async {
+    final List<Map<String, dynamic>> results = [];
+    final Set<String> seenAdmnos = {};
+
+    void addResult(Map<String, dynamic> student) {
+      final admno = (student['admno'] ?? student['adm_no'] ?? student['admission_no'])?.toString();
+      if (admno != null && !seenAdmnos.contains(admno)) {
+        seenAdmnos.add(admno);
+        results.add(student);
+      }
+    }
+
+    // 1. Try Admission Number Search
+    try {
+      final admResults = await searchStudentByAdmNo(query);
+      for (var s in admResults) {
+        addResult(s);
+      }
+    } catch (e) {
+      debugPrint("AdmNo search failed: $e");
+    }
+
+    // 2. Try Name Search via Outing History
+    try {
+      final outingResults = await searchOutingsByName(query);
+      for (var o in outingResults) {
+        // Extract student info from outing record
+        addResult({
+          'admno': o['admno'],
+          'sid': o['sid'],
+          'sfname': o['student_name'] ?? o['studentname'] ?? o['sname'],
+          'slname': '', // Outing search usually provides full name in student_name
+          'branch_name': o['branch'],
+          'status': 'ACTIVE', // Fallback status
+        });
+      }
+    } catch (e) {
+      debugPrint("Outing name search failed: $e");
+    }
+
+    // 3. Try SID/Outing ID Search (if numeric)
+    final int? numericId = int.tryParse(query);
+    if (numericId != null) {
+      try {
+        final outingDetailRes = await getOutingDetails(numericId);
+        final indexData = outingDetailRes['indexdata'];
+        Map<String, dynamic>? o;
+        if (indexData is List && indexData.isNotEmpty) {
+          o = Map<String, dynamic>.from(indexData.first);
+        } else if (indexData is Map) {
+          o = Map<String, dynamic>.from(indexData);
+        }
+
+        if (o != null) {
+          addResult({
+            'admno': o['admno'],
+            'sid': o['sid'],
+            'sfname': o['student_name'] ?? o['studentname'] ?? o['sname'],
+            'slname': '',
+            'branch_name': o['branch'],
+            'status': 'ACTIVE',
+          });
+        }
+      } catch (e) {
+        debugPrint("SID/OutingID search failed: $e");
+      }
+    }
+
+    return results;
   }
 
   // ================= ADD OUTING REMARKS =================
@@ -467,8 +599,8 @@ class ApiService {
   }
 
   // ================= APPROVE OUTING =================
-  static Future<void> approveOuting(int outingId) async {
-    final res = await getRequest(ApiCollection.approveOuting(outingId));
+  static Future<void> approveOuting(int outingId, {String? phone}) async {
+    final res = await getRequest(ApiCollection.approveOuting(outingId, phone: phone));
 
     final bool isSuccess =
         res["success"] == true ||
@@ -1251,5 +1383,78 @@ class ApiService {
     }
 
     return [];
+  }
+
+  // ================= PRO DASHBOARD DATA =================
+  static Future<ProDashboardModel> getProDashboardData() async {
+    final res = await getRequest(ApiCollection.proDashboardData);
+
+    debugPrint("PRO DASHBOARD DATA RESPONSE: $res");
+
+    if ((res["success"] == true ||
+            res["success"] == "true" ||
+            res["success"] == 1) &&
+        res["infodata"] != null) {
+      return ProDashboardModel.fromJson(res["infodata"]);
+    }
+
+    throw Exception("Failed to load pro dashboard data");
+  }
+
+  // ================= PRO MOM DATA =================
+  static Future<ProMomModel> getProMomData() async {
+    final res = await getRequest(ApiCollection.proMomData);
+
+    debugPrint("PRO MOM DATA RESPONSE: $res");
+
+    if (res["success"] == true ||
+        res["success"] == "true" ||
+        res["success"] == 1) {
+      return ProMomModel.fromJson(res);
+    }
+
+    throw Exception("Failed to load pro month-on-month data");
+  }
+
+  // ================= PRO YOY DATA =================
+  static Future<ProYoyModel> getProYoyData() async {
+    final res = await getRequest(ApiCollection.proYoyData);
+
+    debugPrint("PRO YOY DATA RESPONSE: $res");
+
+    if (res["success"] == true ||
+        res["success"] == "true" ||
+        res["success"] == 1) {
+      return ProYoyModel.fromJson(res);
+    }
+
+    throw Exception("Failed to load pro year-on-year data");
+  }
+
+  // ================= PRO ADMISSIONS CHART DATA =================
+  static Future<ProAdmissionsChartModel> getProAdmissionsChart() async {
+    final res = await getRequest(ApiCollection.proAdmissionsChart);
+
+    debugPrint("PRO ADMISSIONS CHART RESPONSE: $res");
+
+    if (res["success"] == true ||
+        res["success"] == "true" ||
+        res["success"] == 1) {
+      return ProAdmissionsChartModel.fromJson(res);
+    }
+
+    throw Exception("Failed to load pro admissions chart data");
+  }
+
+  static Future<Map<String, dynamic>> getDashboardAttendance() async {
+    final res = await getRequest(ApiCollection.dashboardMain("attendance"));
+
+    if (res["success"] == true ||
+        res["success"] == "true" ||
+        res["success"] == 1) {
+      return Map<String, dynamic>.from(res);
+    }
+
+    throw Exception(res["message"] ?? "Failed to load dashboard data");
   }
 }

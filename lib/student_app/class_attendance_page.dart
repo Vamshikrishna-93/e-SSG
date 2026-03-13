@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:student_app/student_app/widgets/student_app_header.dart';
 import 'package:student_app/student_app/attendence_month_details_page.dart';
+import 'package:student_app/student_app/widgets/skeleton_loader.dart';
 
 class AttendancePage extends StatefulWidget {
   const AttendancePage({super.key});
@@ -44,7 +45,14 @@ class _AttendancePageState extends State<AttendancePage> {
   @override
   void initState() {
     super.initState();
-    _fetchAttendanceData(forceRefresh: false);
+    _refreshFlow();
+  }
+
+  Future<void> _refreshFlow() async {
+    // 1. Load from cache instantly
+    await _fetchAttendanceData(forceRefresh: false, showLoading: true);
+    // 2. Silently refresh from server (services handle TTL – won't hit network if cache is fresh)
+    await _fetchAttendanceData(forceRefresh: true, showLoading: false);
   }
 
   @override
@@ -58,7 +66,7 @@ class _AttendancePageState extends State<AttendancePage> {
     bool forceRefresh = true,
     bool showLoading = true,
   }) async {
-    if (showLoading && mounted) {
+    if (showLoading && monthlyData.isEmpty && mounted) {
       setState(() => _isLoading = true);
     }
 
@@ -136,7 +144,8 @@ class _AttendancePageState extends State<AttendancePage> {
 
           _isLoading = false;
         });
-        if (forceRefresh && !showLoading) {
+        // Only show success snackbar on explicit user refresh
+        if (forceRefresh && !showLoading && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Class attendance refreshed"),
@@ -149,12 +158,15 @@ class _AttendancePageState extends State<AttendancePage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load attendance: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        // Only show error for explicit user-triggered refresh
+        if (!showLoading && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to load attendance: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -210,66 +222,78 @@ class _AttendancePageState extends State<AttendancePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                const StudentAppHeader(title: "Class Attendance"),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isMobile = constraints.maxWidth < 600;
+      body: Column(
+        children: [
+          const StudentAppHeader(title: "Class Attendance"),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isMobile = constraints.maxWidth < 600;
 
-                      return SingleChildScrollView(
-                        child: Padding(
-                          padding: EdgeInsets.all(isMobile ? 16.0 : 20.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Attendance Dashboard Header Card
-                              _buildDashboardHeader(isMobile),
-                              const SizedBox(height: 20),
+                return SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.all(isMobile ? 16.0 : 20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Attendance Dashboard Header Card
+                        _buildDashboardHeader(isMobile),
+                        const SizedBox(height: 20),
 
-                              // Overall Attendance Card
-                              _buildOverallAttendanceCard(isMobile),
-                              const SizedBox(height: 16),
+                        if (_isLoading && monthlyData.isEmpty) ...[
+                          SkeletonLoader.card(height: 120),
+                          const SizedBox(height: 12),
+                          SkeletonLoader.card(height: 120),
+                          const SizedBox(height: 12),
+                          SkeletonLoader.card(height: 120),
+                          const SizedBox(height: 12),
+                          SkeletonLoader.card(height: 120),
+                          const SizedBox(height: 12),
+                          SkeletonLoader.card(height: 250),
+                          const SizedBox(height: 20),
+                          SkeletonLoader.card(height: 300),
+                        ] else ...[
+                          // Overall Attendance Card
+                          _buildOverallAttendanceCard(isMobile),
+                          const SizedBox(height: 12),
 
-                              // Days Attended Card
-                              _buildDaysAttendedCard(isMobile),
-                              const SizedBox(height: 16),
+                          // Days Attended Card
+                          _buildDaysAttendedCard(isMobile),
+                          const SizedBox(height: 12),
 
-                              // Current Streak Card
-                              _buildCurrentStreakCard(isMobile),
-                              const SizedBox(height: 16),
+                          // Current Streak Card
+                          _buildCurrentStreakCard(isMobile),
+                          const SizedBox(height: 12),
 
-                              // Leaves Taken Card
-                              _buildLeavesTakenCard(isMobile),
-                              const SizedBox(height: 20),
+                          // Leaves Taken Card
+                          _buildLeavesTakenCard(isMobile),
+                          const SizedBox(height: 12),
 
-                              // Attendance Trend Card
-                              _buildAttendanceTrendCard(isMobile),
-                              const SizedBox(height: 20),
+                          // Attendance Trend Card
+                          _buildAttendanceTrendCard(isMobile),
+                          const SizedBox(height: 20),
 
-                              // Monthly Attendance Overview Card
-                              _buildMonthlyOverviewCard(isMobile),
-                              const SizedBox(height: 20),
+                          // Monthly Attendance Overview Card
+                          _buildMonthlyOverviewCard(isMobile),
+                          const SizedBox(height: 20),
 
-                              // Performance Summary Card
-                              _buildPerformanceSummaryCard(isMobile),
-                              const SizedBox(height: 20),
+                          // Performance Summary Card
+                          _buildPerformanceSummaryCard(isMobile),
+                          const SizedBox(height: 20),
 
-                              // Recent Activity Card
-                              _buildRecentActivityCard(isMobile),
-                              const SizedBox(height: 20),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                          // Recent Activity Card
+                          _buildRecentActivityCard(isMobile),
+                          const SizedBox(height: 20),
+                        ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -303,6 +327,13 @@ class _AttendancePageState extends State<AttendancePage> {
                       colors: [Color(0xFF8B5CF6), Color(0xFFC084FC)],
                     ),
                     borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: ElevatedButton.icon(
                     onPressed: () => _fetchAttendanceData(
@@ -342,6 +373,13 @@ class _AttendancePageState extends State<AttendancePage> {
                       colors: [Color(0xFF4ADE80), Color(0xFFA3E635)],
                     ),
                     borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: ElevatedButton.icon(
                     onPressed: _downloadReport,
@@ -399,14 +437,14 @@ class _AttendancePageState extends State<AttendancePage> {
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -501,11 +539,11 @@ class _AttendancePageState extends State<AttendancePage> {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -659,11 +697,11 @@ class _AttendancePageState extends State<AttendancePage> {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -808,6 +846,13 @@ class _AttendancePageState extends State<AttendancePage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -854,11 +899,11 @@ class _AttendancePageState extends State<AttendancePage> {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1250,11 +1295,11 @@ class _AttendancePageState extends State<AttendancePage> {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1359,6 +1404,13 @@ class _AttendancePageState extends State<AttendancePage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

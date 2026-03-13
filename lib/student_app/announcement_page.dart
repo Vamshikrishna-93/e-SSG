@@ -210,6 +210,13 @@ class _AnnouncementsDialogState extends State<AnnouncementsDialog> {
                                     0xFFF3F1FF,
                                   ), // Light purple background
                             borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.25),
+                                blurRadius: 4,
+                                offset: const Offset(0, 0),
+                              ),
+                            ],
                           ),
                           child: Text(
                             "Previous",
@@ -272,6 +279,13 @@ class _AnnouncementsDialogState extends State<AnnouncementsDialog> {
                                 ? const Color(0xFF7E3FF2)
                                 : const Color(0xFFF3F1FF),
                             borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.25),
+                                blurRadius: 4,
+                                offset: const Offset(0, 0),
+                              ),
+                            ],
                           ),
                           child: Text(
                             "Next",
@@ -311,13 +325,13 @@ class AnnouncementCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: Colors.black.withOpacity(0.08)),
-        // boxShadow: [
-        //   BoxShadow(
-        //     color: Colors.black.withOpacity(0.01),
-        //     blurRadius: 5,
-        //     offset: const Offset(0, 2),
-        //   ),
-        // ],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

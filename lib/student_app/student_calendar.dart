@@ -155,9 +155,9 @@ class _StudentCalendarState extends State<StudentCalendar> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 4,
+                offset: const Offset(0, 0),
               ),
             ],
             border: Border.all(color: const Color(0xFFF1F5F9)),
@@ -295,9 +295,9 @@ class _StudentCalendarState extends State<StudentCalendar> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 4,
+                offset: const Offset(0, 0),
               ),
             ],
             border: Border.all(color: const Color(0xFFF1F5F9)),

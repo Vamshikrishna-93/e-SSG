@@ -7,8 +7,9 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:student_app/student_app/change_password_page.dart';
 import 'package:student_app/student_app/edit_profile_page.dart';
-import 'package:student_app/student_app/widgets/loading_animation.dart';
 import 'package:student_app/student_app/widgets/student_app_header.dart';
+import 'package:student_app/student_app/widgets/skeleton_loader.dart';
+import 'package:student_app/student_app/widgets/loading_animation.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -119,24 +120,22 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    if (StudentProfileService.cachedProfileData != null) {
-      _isLoading = false;
-      final response = StudentProfileService.cachedProfileData!;
-      if (response['status'] == true && response['data'] != null) {
-        final profile = StudentProfile.fromJson(response['data']);
-        _displayName = "${profile.sfname ?? ''} ${profile.slname ?? ''}".trim();
-        if (_displayName.isEmpty) _displayName = "Student";
-        _displayAdmissionNo = profile.admno ?? "240018";
-        _profile = profile;
-        _updateFromModel(profile);
-      }
-      _fetchProfileData(forceRefresh: true);
-    } else {
-      _fetchProfileData();
-    }
+    _refreshFlow();
+  }
+
+  Future<void> _refreshFlow() async {
+    // 1. Load from cache (instantly)
+    await _fetchProfileData(forceRefresh: false);
+    // 2. Refresh from server (background)
+    await _fetchProfileData(forceRefresh: true);
   }
 
   Future<void> _fetchProfileData({bool forceRefresh = false}) async {
+    // Only show full loading if we have nothing yet
+    if (_profile == null) {
+      setState(() => _isLoading = true);
+    }
+
     try {
       final response = await StudentProfileService.getProfile(
         forceRefresh: forceRefresh,
@@ -166,9 +165,11 @@ class _ProfilePageState extends State<ProfilePage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Error loading profile: $e")));
+        if (forceRefresh) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Error refreshing profile: $e")),
+          );
+        }
       }
     }
   }
@@ -204,7 +205,9 @@ class _ProfilePageState extends State<ProfilePage> {
         final key = item['key'];
         if (key != null && modelValues.containsKey(key)) {
           final val = modelValues[key];
-          item['value'] = (val != null && val.toString().isNotEmpty) ? val.toString() : 'N/A';
+          item['value'] = (val != null && val.toString().isNotEmpty)
+              ? val.toString()
+              : 'N/A';
         }
       }
     }
@@ -270,10 +273,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(body: Center(child: StudentLoadingAnimation()));
-    }
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
@@ -309,8 +308,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-
-
   // ── OVERLAPPING AVATAR ──────────────────────
   Widget _buildOverlappingAvatar() {
     return GestureDetector(
@@ -335,14 +332,23 @@ class _ProfilePageState extends State<ProfilePage> {
             return CircleAvatar(
               radius: 55,
               backgroundColor: Colors.grey.shade200,
-              backgroundImage: imageUrl != null && imageUrl.isNotEmpty
+              backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
                   ? (isBase64
                             ? MemoryImage(
                                 base64Decode(imageUrl.split(',').last),
                               )
                             : NetworkImage(imageUrl))
                         as ImageProvider
-                  : const NetworkImage("https://i.pravatar.cc/150"),
+                  : (_profile == null && _isLoading)
+                  ? null
+                  : const NetworkImage("https://i.pravatar.cc/150")
+                        as ImageProvider,
+              child:
+                  (_profile == null &&
+                      _isLoading &&
+                      (imageUrl == null || imageUrl.isEmpty))
+                  ? const CircularProgressIndicator()
+                  : null,
             );
           },
         ),
@@ -352,6 +358,23 @@ class _ProfilePageState extends State<ProfilePage> {
 
   // ── NAME AND ADMISSION CARD ────────────────────────────────────────
   Widget _buildNameCard() {
+    if (_profile == null && _isLoading) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.fromLTRB(20, 75, 20, 25),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF4EDFF),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Column(
+          children: [
+            SkeletonLoader.card(height: 20, width: 150),
+            const SizedBox(height: 12),
+            SkeletonLoader.card(height: 16, width: 200),
+          ],
+        ),
+      );
+    }
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.fromLTRB(20, 75, 20, 25),
@@ -359,6 +382,13 @@ class _ProfilePageState extends State<ProfilePage> {
       decoration: BoxDecoration(
         color: const Color(0xFFF4EDFF),
         borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -391,6 +421,17 @@ class _ProfilePageState extends State<ProfilePage> {
 
   // ── MENU CARD ──────────────────────────────────────────────────────
   Widget _buildMenuCard() {
+    if (_profile == null && _isLoading) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: SkeletonLoader.section(itemCount: 5),
+      );
+    }
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(16),
@@ -400,9 +441,9 @@ class _ProfilePageState extends State<ProfilePage> {
         border: Border.all(color: Colors.grey.withOpacity(0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),
@@ -519,6 +560,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -624,6 +672,13 @@ class ProfileDetailPage extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: badgeColor ?? Colors.grey,
                             borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.25),
+                                blurRadius: 4,
+                                offset: const Offset(0, 0),
+                              ),
+                            ],
                           ),
                           child: Text(
                             value,
@@ -651,6 +706,13 @@ class ProfileDetailPage extends StatelessWidget {
                               color: const Color(0xFFE0E0E0),
                               width: 1,
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.25),
+                                blurRadius: 4,
+                                offset: const Offset(0, 0),
+                              ),
+                            ],
                           ),
                           child: Text(
                             value,
@@ -751,9 +813,9 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),

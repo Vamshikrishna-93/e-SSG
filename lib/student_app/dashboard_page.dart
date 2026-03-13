@@ -5,11 +5,11 @@ import 'package:student_app/student_app/widgets/dashboard_widgets.dart';
 import 'package:student_app/student_app/student_calendar.dart';
 import 'package:student_app/student_app/announcement_page.dart';
 import 'package:student_app/student_app/studentdrawer.dart';
-import 'package:student_app/student_app/widgets/loading_animation.dart';
 import 'package:student_app/student_app/services/dashboard_controller.dart';
 import 'package:student_app/staff_app/controllers/auth_controller.dart';
 import 'package:student_app/student_app/widgets/student_bottom_nav.dart';
 import 'package:student_app/student_app/services/documents_controller.dart';
+import 'package:student_app/student_app/widgets/skeleton_loader.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -58,19 +58,20 @@ class _DashboardPageState extends State<DashboardPage> {
       if (Get.isRegistered<DocumentsController>()) {
         Get.find<DocumentsController>().fetchDocuments(
           forceRefresh: true,
-          showSnackbar: true,
+          showSnackbar: false,
         );
       }
+      _controller.loadAllData(forceRefresh: true);
+    } else if (_controller.classChartData.isEmpty) {
+      _controller.loadAllData(forceRefresh: true);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (_controller.isLoading.value) {
-        return const Scaffold(body: Center(child: StudentLoadingAnimation()));
-      }
-
+      final isLoading = _controller.isLoading.value;
+      
       return Scaffold(
         key: _scaffoldKey,
         drawer: const StudentDrawerPage(),
@@ -98,30 +99,43 @@ class _DashboardPageState extends State<DashboardPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
                     children: [
-                      const SizedBox(height: 16),
                       // Wrap reactive sections in Obx so they rebuild on data changes
-                      Obx(() => _buildAttendanceGrid()),
-                      const SizedBox(height: 16),
-                      Obx(() => _buildExamStats()),
-                      const SizedBox(height: 16),
-                      Obx(() => _buildRankState()),
-                      const SizedBox(height: 16),
+                      Obx(() => _controller.classChartData.isEmpty && isLoading
+                          ? SkeletonLoader.card(height: 380)
+                          : _buildAttendanceGrid()),
+                      const SizedBox(height: 5),
+                      Obx(() => _controller.examStats.isEmpty && isLoading
+                          ? SkeletonLoader.card(height: 300)
+                          : _buildExamStats()),
+                      const SizedBox(height: 5),
+                      Obx(() => _controller.examStats.isEmpty && isLoading
+                          ? SkeletonLoader.card(height: 300)
+                          : _buildRankState()),
+                      const SizedBox(height: 5),
                       _buildTimeTable(),
-                      const SizedBox(height: 16),
-                      Obx(() => _buildClassAttendance()),
-                      const SizedBox(height: 16),
-                      Obx(() => _buildHostelAttendance()),
-                      const SizedBox(height: 16),
-                      Obx(() => _buildRemarks()),
-                      const SizedBox(height: 16),
-                      Obx(() => _buildAnnouncements()),
-                      const SizedBox(height: 16),
-                      Obx(() => _buildUpcomingExams()),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 5),
+                      Obx(() => _controller.classChartData.isEmpty && isLoading
+                          ? SkeletonLoader.card(height: 300)
+                          : _buildClassAttendance()),
+                      const SizedBox(height: 5),
+                      Obx(() => _controller.hostelChartData.isEmpty && isLoading
+                          ? SkeletonLoader.card(height: 300)
+                          : _buildHostelAttendance()),
+                      const SizedBox(height: 5),
+                      Obx(() => _controller.remarks.isEmpty && isLoading
+                          ? SkeletonLoader.section(title: "Remarks")
+                          : _buildRemarks()),
+                      const SizedBox(height: 5),
+                      Obx(() => _controller.announcements.isEmpty && isLoading
+                          ? SkeletonLoader.section(title: "Announcement")
+                          : _buildAnnouncements()),
+                      const SizedBox(height: 5),
+                      Obx(() => _controller.exams.isEmpty && isLoading
+                          ? SkeletonLoader.section(title: "Upcoming Exams")
+                          : _buildUpcomingExams()),
+                      const SizedBox(height: 5),
                       _buildCalendar(),
-                      const SizedBox(height: 16),
-                      _buildEventsThisMonth(),
-                      const SizedBox(height: 120),
+                      const SizedBox(height: 80),
                     ],
                   ),
                 ),
@@ -149,9 +163,16 @@ class _DashboardPageState extends State<DashboardPage> {
                 onTap: () => _scaffoldKey.currentState?.openDrawer(),
                 child: Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.25),
+                        blurRadius: 4,
+                        offset: const Offset(0, 0),
+                      ),
+                    ],
                   ),
                   child: const Icon(
                     Icons.menu_open,
@@ -244,11 +265,11 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 5),
           const Text(
             "Student Dashboard",
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -312,7 +333,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
@@ -326,7 +347,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: ModernStatCard(
                     title: "Outing",
@@ -340,7 +361,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
@@ -367,48 +388,41 @@ class _DashboardPageState extends State<DashboardPage> {
     final stats = _controller.examStats;
     return DashboardSection(
       title: "Exam Stats",
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.6,
-          children: [
-            ModernStatCard(
-              title: "Total Questions",
-              value: stats['totalQuestions']?.toString() ?? "200",
-              icon: Icons.assignment,
-              gradientColors: const [Color(0xFF6366F1), Color(0xFF4338CA)],
-            ),
-            ModernStatCard(
-              title: "Attempted",
-              value: stats['attempted']?.toString() ?? "150",
-              icon: Icons.check_circle,
-              gradientColors: const [Color(0xFF10B981), Color(0xFF059669)],
-            ),
-            ModernStatCard(
-              title: "Not Attempted",
-              value: stats['notAttempted']?.toString() ?? "50",
-              icon: Icons.cancel,
-              gradientColors: const [Color(0xFFF59E0B), Color(0xFFD97706)],
-            ),
-            ModernStatCard(
-              title: "+ve Questions",
-              value: stats['positive']?.toString() ?? "120",
-              icon: Icons.add_circle,
-              gradientColors: const [Color(0xFF06B6D4), Color(0xFF0891B2)],
-            ),
-            ModernStatCard(
-              title: "-ve Questions",
-              value: stats['negative']?.toString() ?? "30",
-              icon: Icons.remove_circle,
-              gradientColors: const [Color(0xFFEF4444), Color(0xFFDC2626)],
-            ),
-          ],
-        ),
+      noVerticalPadding: true,
+      child: Column(
+        children: [
+          StatListItem(
+            icon: Icons.menu_book_rounded,
+            iconColor: Colors.blue.shade600,
+            title: "Total Exam Questions",
+            value: stats['totalQuestions']?.toString() ?? "200",
+          ),
+          StatListItem(
+            icon: Icons.check_circle_rounded,
+            iconColor: Colors.green.shade600,
+            title: "Attempted Questions",
+            value: stats['attempted']?.toString() ?? "150",
+          ),
+          StatListItem(
+            icon: Icons.cancel_rounded,
+            iconColor: Colors.orange.shade600,
+            title: "Not Attempted Questions",
+            value: stats['notAttempted']?.toString() ?? "50",
+          ),
+          StatListItem(
+            icon: Icons.add_circle_rounded,
+            iconColor: Colors.cyan.shade600,
+            title: "+ve Questions",
+            value: stats['positive']?.toString() ?? "120",
+          ),
+          StatListItem(
+            icon: Icons.remove_circle_rounded,
+            iconColor: Colors.red.shade600,
+            title: "-ve Questions",
+            value: stats['negative']?.toString() ?? "30",
+            isLast: true,
+          ),
+        ],
       ),
     );
   }
@@ -417,48 +431,43 @@ class _DashboardPageState extends State<DashboardPage> {
     final stats = _controller.examStats;
     return DashboardSection(
       title: "Rank State",
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.6,
-          children: [
-            ModernStatCard(
-              title: "Overall Rank",
-              value: stats['overallRank']?.toString() ?? "12",
-              icon: Icons.emoji_events,
-              gradientColors: const [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
-            ),
-            ModernStatCard(
-              title: "Branch Rank",
-              value: stats['branchRank']?.toString() ?? "3",
-              icon: Icons.account_tree,
-              gradientColors: const [Color(0xFFEC4899), Color(0xFFDB2777)],
-            ),
-            ModernStatCard(
-              title: "Group Rank",
-              value: stats['groupRank']?.toString() ?? "5",
-              icon: Icons.groups,
-              gradientColors: const [Color(0xFFF97316), Color(0xFFEA580C)],
-            ),
-            ModernStatCard(
-              title: "Course Rank",
-              value: stats['courseRank']?.toString() ?? "8",
-              icon: Icons.school,
-              gradientColors: const [Color(0xFF06B6D4), Color(0xFF0891B2)],
-            ),
-            ModernStatCard(
-              title: "Batch Rank",
-              value: stats['batchRank']?.toString() ?? "2",
-              icon: Icons.layers,
-              gradientColors: const [Color(0xFF6366F1), Color(0xFF4F46E5)],
-            ),
-          ],
-        ),
+      noVerticalPadding: true,
+      child: Column(
+        children: [
+          StatListItem(
+            icon: Icons.emoji_events_rounded,
+            iconColor: Colors.blue.shade600,
+            title: "Overall Rank",
+            value: stats['overallRank']?.toString() ?? "12",
+          ),
+          StatListItem(
+            icon: Icons.account_tree_rounded,
+            iconColor: Colors.green.shade600,
+            title: "Branch Wise Rank",
+            value: stats['branchRank']?.toString() ?? "3",
+          ),
+          StatListItem(
+            icon: Icons.groups_3_rounded,
+            iconColor: Colors.orange.shade600,
+            title: "Group Wise Rank",
+            value: stats['groupRank']?.toString() ?? "5",
+          ),
+          StatListItem(
+            icon: Icons.person_pin_circle_rounded,
+            iconColor: Colors.cyan.shade600,
+            title: "Course Wise Rank",
+            value: stats['courseRank']?.toString() ?? "8",
+          ),
+          StatListItem(
+            icon: Icons.layers_rounded,
+            iconColor: Colors.red.shade600,
+            title: "Batch Wise Rank",
+            value: stats['batchRank']?.toString() ?? "2",
+            titleColor: Colors.red.shade400,
+            valueColor: Colors.red.shade400,
+            isLast: true,
+          ),
+        ],
       ),
     );
   }
@@ -615,20 +624,13 @@ class _DashboardPageState extends State<DashboardPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
           ),
         ],
       ),
       child: const StudentCalendar(showAppBar: false, isInline: true),
-    );
-  }
-
-  Widget _buildEventsThisMonth() {
-    return DashboardSection(
-      title: "Events This Month",
-      child: const _EmptyState(message: "No events this month"),
     );
   }
 
@@ -641,6 +643,13 @@ class _DashboardPageState extends State<DashboardPage> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 4,
+              offset: const Offset(0, 0),
+            ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

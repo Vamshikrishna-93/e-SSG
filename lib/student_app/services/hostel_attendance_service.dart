@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:student_app/student_app/config/api_config.dart';
 import 'package:student_app/student_app/model/hostel_attendance.dart';
+import 'package:student_app/student_app/services/cache_manager.dart';
 
 class HostelAttendanceService {
   static const String _hostelAttendanceEndpoint =
@@ -27,7 +28,8 @@ class HostelAttendanceService {
 
       if (!forceRefresh) {
         final String? cachedData = prefs.getString(cacheKey);
-        if (cachedData != null) {
+        final bool fresh = await CacheManager.isFresh(cacheKey);
+        if (cachedData != null && fresh) {
           return HostelAttendance.fromJson(jsonDecode(cachedData));
         }
       }
@@ -55,6 +57,7 @@ class HostelAttendanceService {
         final decoded = jsonDecode(response.body);
         // Cache the response
         await prefs.setString(cacheKey, response.body);
+        await CacheManager.touch(cacheKey);
         return HostelAttendance.fromJson(decoded);
       } else {
         throw Exception(

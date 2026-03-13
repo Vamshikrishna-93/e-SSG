@@ -4,6 +4,7 @@ import '../controllers/exams_controller.dart';
 import '../model/exam_model.dart';
 import '../widgets/skeleton.dart';
 import '../widgets/staff_header.dart';
+import 'syllabus_page.dart';
 
 class ExamsListPage extends StatefulWidget {
   const ExamsListPage({super.key});
@@ -294,11 +295,14 @@ class _ExamsListPageState extends State<ExamsListPage> {
                                 ),
                               ),
                             ),
-                            Icon(Icons.edit_outlined, color: Colors.orange.shade500, size: 18),
+                            Icon(Icons.calendar_month_outlined, color: Colors.orange.shade500, size: 18),
                             const SizedBox(width: 10),
-                            Icon(Icons.delete_outline, color: Colors.red.shade500, size: 18),
+                            Icon(Icons.visibility_outlined, color: Colors.red.shade500, size: 18),
                             const SizedBox(width: 10),
-                            Icon(Icons.book_outlined, color: Colors.blue.shade500, size: 18),
+                            InkWell(
+                              onTap: () => Get.to(() => const SyllabusPage()),
+                              child: Icon(Icons.book_outlined, color: Colors.blue.shade500, size: 18),
+                            ),
                           ],
                         ),
                       ),
@@ -466,11 +470,14 @@ class _ExamsListPageState extends State<ExamsListPage> {
                                 ),
                               ),
                             ),
-                            Icon(Icons.edit_outlined, color: Colors.orange.shade500, size: 18),
+                            Icon(Icons.calendar_month_outlined, color: Colors.orange.shade500, size: 18),
                             const SizedBox(width: 10),
-                            Icon(Icons.delete_outline, color: Colors.red.shade500, size: 18),
+                            Icon(Icons.visibility_outlined, color: Colors.red.shade500, size: 18),
                             const SizedBox(width: 10),
-                            Icon(Icons.book_outlined, color: Colors.blue.shade500, size: 18),
+                            InkWell(
+                              onTap: () => Get.to(() => const SyllabusPage()),
+                              child: Icon(Icons.book_outlined, color: Colors.blue.shade500, size: 18),
+                            ),
                           ],
                         ),
                       ),

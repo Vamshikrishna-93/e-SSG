@@ -1,6 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../widgets/skeleton.dart';
+import 'package:shimmer/shimmer.dart';
 import '../widgets/staff_header.dart';
 import 'package:student_app/staff_app/controllers/outing_pending_controller.dart';
 import 'package:student_app/staff_app/model/model2.dart';
@@ -22,23 +23,37 @@ class _OutingPendingListPageState extends State<OutingPendingListPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          const StaffHeader(title: "Outing Pending"),
+          StaffHeader(
+            title: "Outing Pending",
+            onBack: () {
+              if (Navigator.canPop(context)) {
+                Get.back();
+              } else {
+                Get.offAllNamed('/home'); // Fallback to Dashboard
+              }
+            },
+          ),
+
           Expanded(
-            child: SingleChildScrollView(
+            child: Container(
+              margin: const EdgeInsets.all(20),
               padding: const EdgeInsets.all(20),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5F3FF),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Column(
-                  children: [
-                    _buildSearchBar(),
-                    const SizedBox(height: 25),
-                    _buildStudentList(),
-                  ],
-                ),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5F3FF),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                children: [
+                  _buildSearchBar(),
+                  const SizedBox(height: 25),
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: controller.fetchOutings,
+                      color: const Color(0xFFC084FC),
+                      child: _buildStudentList(),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -46,8 +61,6 @@ class _OutingPendingListPageState extends State<OutingPendingListPage> {
       ),
     );
   }
-
-  // Header is now managed by StaffHeader widget
 
   // ================= SEARCH BAR =================
   Widget _buildSearchBar() {
@@ -81,84 +94,105 @@ class _OutingPendingListPageState extends State<OutingPendingListPage> {
   // ================= STUDENT LIST =================
   Widget _buildStudentList() {
     return Obx(() {
-      if (controller.isLoading.value) {
-        return const Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: StaffLoadingAnimation(),
-          ),
-        );
-      }
+      /// LOADING
 
+      /// EMPTY
       if (controller.filteredStudents.isEmpty) {
-        return const Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              "No pending outings found",
-              style: TextStyle(color: Colors.grey),
+        if (controller.isLoading.value) {
+          return ListView.builder(
+            padding: EdgeInsets.zero,
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: 8,
+            itemBuilder: (context, index) {
+              return Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  height: 90,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              );
+            },
+          );
+        }
+
+        return ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: const [
+            SizedBox(height: 100),
+            Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text(
+                  "No pending outings found",
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
             ),
-          ),
+          ],
         );
       }
 
+      /// LIST
       return ListView.builder(
-        shrinkWrap: true,
         padding: EdgeInsets.zero,
-        physics: const NeverScrollableScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(),
         itemCount: controller.filteredStudents.length,
         itemBuilder: (context, index) {
           final StudentModel s = controller.filteredStudents[index];
 
           return GestureDetector(
-            onTap: () {
-              Get.to(
-                () => VerifyOutingPage(
-                  adm: s.admNo,
-                  name: s.name,
-                  status: s.status,
-                  time: "08:47 PM",
-                  type: "Home Pass",
-                  imageUrl: s.image,
-                  permissionBy: s.permissionBy,
-                  isReportIn: false,
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => VerifyOutingPage(
+                    key: ValueKey(s.outingId),
+                    outingId: s.outingId,
+                    adm: s.admNo,
+                    name: s.name,
+                    status: s.status,
+                    imageUrl: s.image,
+                  ),
                 ),
               );
+
+              /// refresh list after returning
+              controller.fetchOutings();
             },
+
             child: Container(
               margin: const EdgeInsets.only(bottom: 16),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: s.status.toLowerCase() == 'approved'
+                    ? const Color(0xFF34D399) // Green for approved
+                    : const Color(0xFF7D74FC), // Blue for others
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.25),
-                    blurRadius: 4,
-                    offset: const Offset(0, 0),
-                  ),
-                ],
               ),
+
               child: Row(
                 children: [
-                  // IMAGE
+                  /// IMAGE
                   Container(
                     width: 65,
                     height: 65,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       image: DecorationImage(
-                        image: (s.image != null && s.image!.isNotEmpty)
-                            ? NetworkImage(s.image!)
-                            : const AssetImage("assets/girl.jpg")
-                                  as ImageProvider,
+                        image: _getImageProvider(s.image),
                         fit: BoxFit.cover,
                       ),
                     ),
                   ),
+
                   const SizedBox(width: 16),
 
-                  // DETAILS
+                  /// DETAILS
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,25 +201,29 @@ class _OutingPendingListPageState extends State<OutingPendingListPage> {
                           s.admNo,
                           style: const TextStyle(
                             fontSize: 16,
-                            color: Colors.black,
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+
                         const SizedBox(height: 2),
+
                         Text(
                           s.name.toUpperCase(),
                           style: const TextStyle(
                             fontSize: 14,
-                            color: Colors.black,
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+
                         const SizedBox(height: 4),
+
                         Text(
                           "Permission By : ${s.permissionBy}",
                           style: const TextStyle(
                             fontSize: 12,
-                            color: Colors.grey,
+                            color: Colors.white,
                             fontWeight: FontWeight.w400,
                           ),
                         ),
@@ -199,5 +237,26 @@ class _OutingPendingListPageState extends State<OutingPendingListPage> {
         },
       );
     });
+  }
+
+  // ================= IMAGE HANDLER =================
+  ImageProvider _getImageProvider(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return const AssetImage("assets/girl.jpg");
+    }
+
+    if (imageUrl.startsWith('http')) {
+      return NetworkImage(imageUrl);
+    }
+
+    try {
+      final base64String = imageUrl.contains(',')
+          ? imageUrl.split(',').last
+          : imageUrl;
+
+      return MemoryImage(base64Decode(base64String));
+    } catch (e) {
+      return const AssetImage("assets/girl.jpg");
+    }
   }
 }

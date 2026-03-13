@@ -151,6 +151,13 @@ class OutingDetailsPage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -353,6 +360,13 @@ class OutingDetailsPage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Column(
         children: [
